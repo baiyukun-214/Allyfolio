@@ -15,7 +15,7 @@ const links = [
 const current = basePath(Astro.url.pathname);
 const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover:bg-brand-50 hover:text-brand-700';
 ---
-<header class="glass sticky top-0 z-40 border-b border-slate-200/70">
+<header id="site-header" class="site-header glass sticky top-0 z-40 border-b border-slate-200/70">
   <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
     <a href={l('/')} class="flex items-center gap-2.5 font-semibold text-lg tracking-tight text-ink">
       <Logo size={30} />
@@ -56,4 +56,24 @@ const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover
     });
   }
 </script>
-<style>header { position: relative; }</style>
+<script>
+  // Hide on scroll down, show on scroll up / after ~200 ms idle / near the top / while focused or the menu is open.
+  // Without JS the header simply stays sticky and visible.
+  const h = document.getElementById('site-header');
+  const toggle = document.getElementById('nav-toggle');
+  if (h) {
+    let lastY = scrollY, ticking = false, idle = 0, focused = false;
+    const set = (hide: boolean) => h.classList.toggle('is-hidden', hide);
+    const pinned = () => focused || toggle?.getAttribute('aria-expanded') === 'true' || scrollY < h.offsetHeight + 16;
+    const update = () => {
+      ticking = false; const y = scrollY;
+      if (pinned()) set(false); else if (y > lastY + 2) set(true); else if (y < lastY - 2) set(false);
+      lastY = y;
+      clearTimeout(idle); idle = window.setTimeout(() => set(false), 200);
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    h.addEventListener('focusin', () => { focused = true; set(false); });
+    h.addEventListener('focusout', (e) => { if (!h.contains(e.relatedTarget as Node)) focused = false; });
+    toggle?.addEventListener('click', () => set(false));
+  }
+</script>

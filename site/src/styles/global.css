@@ -70,3 +70,7 @@ summary::-webkit-details-marker { display:none; }
 }
 html { scroll-padding-top: 5rem; }
 .js [data-tabs] [role=tabpanel] { margin-top: 0; }
+/* Sticky header: hide on scroll down, show on scroll up (JS adds .is-hidden; no JS = always visible). */
+.site-header { transition: transform .25s ease; will-change: transform; }
+.site-header.is-hidden { transform: translateY(-100%); }
+@media (prefers-reduced-motion: reduce) { .site-header { transition: none; } }

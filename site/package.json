@@ -10,7 +10,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "test:a11y": "node scripts/axe-check.mjs"
+    "test:a11y": "node scripts/axe-check.mjs",
+    "test:header": "node scripts/header-check.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
