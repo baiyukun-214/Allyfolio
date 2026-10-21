@@ -26,7 +26,7 @@ const uid = detailed ? 'pd' : 'ph';
   {plans.map((p, i) => (
     <div class={`lift relative rounded-2xl p-7 flex flex-col ${p.highlight ? 'bg-gradient-to-br from-brand-700 to-indigo-900 text-white shadow-2xl shadow-brand-900/30 md:-my-3 md:py-10' : 'bg-white border border-slate-200 shadow-sm'}`}>
       {p.highlight && <p class="absolute -top-3 left-7 rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">{P.recommended}</p>}
-      <Tile name={planIcons[i]} class={p.highlight ? 'mb-4 !bg-white/15 !text-white !shadow-none' : 'mb-4'} />
+      <Tile name={planIcons[i]} class={p.highlight ? 'mb-4 tile-dark' : 'mb-4'} />
       <h3 class={`text-lg font-semibold ${p.highlight ? 'text-white' : 'text-ink'}`}>{p.name}</h3>
       <p class={`mt-1 text-sm ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{p.blurb}</p>
       <p class="mt-6 flex items-baseline gap-1.5"><span class="text-5xl font-bold tracking-tight">{p.price}</span><span class={`text-sm ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{P.perMonth}</span></p>

@@ -73,7 +73,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
           ))}
         </ul>
       </figure>
-      <Snippet kind="fix" idp="hero" class="rv relative mt-6 sm:mx-auto sm:max-w-md lg:mr-0 lg:-mt-10 lg:ml-auto lg:max-w-sm" data-d="300" />
+      <Snippet kind="fix" idp="hero" class="rv relative mt-6 sm:mx-auto sm:max-w-md lg:mr-0 lg:-mt-10 lg:ml-auto lg:max-w-sm xl:absolute xl:-left-8 xl:-bottom-20 xl:m-0 xl:w-[21rem] xl:max-w-none" data-d="300" />
       </div>
     </div>
   </section>
@@ -124,7 +124,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
     <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
       <p class="eyebrow rv">{H.how.eyebrow}</p>
       <h2 id="how-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.how.h2}</h2>
-      <ol class="steps-line mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {H.how.steps.map(([title, d], i) => (
           <li class="rv lift rounded-2xl bg-white border border-slate-200 p-6 shadow-sm" data-d={i * 80}>
             <span class="flex items-center gap-3"><Tile name={stepIcons[i]} size="lg" solid /><span aria-hidden="true" class="text-xs font-bold tracking-wider text-brand-700">0{i + 1}</span></span>
