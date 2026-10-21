@@ -2,7 +2,7 @@ export type PlanId = 'none' | 'starter' | 'business' | 'agency';
 export interface Plan { id: PlanId; name: string; priceCents: number; sites: number; pagesPerSite: number; frequency: 'weekly' | 'daily' | null; retentionMonths: number; seats: number; pdf: boolean; whiteLabel: boolean; statement: boolean }
 export const PLANS: Record<PlanId, Plan> = {
   none:     { id: 'none', name: 'No plan', priceCents: 0, sites: 1, pagesPerSite: 0, frequency: null, retentionMonths: 12, seats: 1, pdf: false, whiteLabel: false, statement: false },
-  starter:  { id: 'starter', name: 'Starter', priceCents: 1900, sites: 1, pagesPerSite: 100, frequency: 'weekly', retentionMonths: 12, seats: 1, pdf: false, whiteLabel: false, statement: true },
+  starter:  { id: 'starter', name: 'Starter', priceCents: 1900, sites: 1, pagesPerSite: 100, frequency: 'weekly', retentionMonths: 12, seats: 1, pdf: true, whiteLabel: false, statement: true },
   business: { id: 'business', name: 'Business', priceCents: 3900, sites: 3, pagesPerSite: 500, frequency: 'daily', retentionMonths: 24, seats: 3, pdf: true, whiteLabel: false, statement: true },
   agency:   { id: 'agency', name: 'Agency', priceCents: 9900, sites: 15, pagesPerSite: 1000, frequency: 'daily', retentionMonths: 24, seats: 10, pdf: true, whiteLabel: true, statement: true },
 };

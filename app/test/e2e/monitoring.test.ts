@@ -87,7 +87,10 @@ test('reports: PDF gating, white-label branding, statement draft', async () => {
   await c.post('/login', { email: 'mon@example.com', password: 'a very long password' }, '/login');
   const scan = db.get("SELECT * FROM scans WHERE kind = 'manual'");
   let r = await c.req('GET', `/app/scans/${scan.id}/report.pdf`);
-  assert.equal(r.statusCode, 303, 'Starter has no PDF export');
+  assert.equal(r.statusCode, 200, 'Starter includes PDF export'); assert.equal(r.headers['content-type'], 'application/pdf');
+  db.run("UPDATE teams SET plan = 'none'");
+  r = await c.req('GET', `/app/scans/${scan.id}/report.pdf`);
+  assert.equal(r.statusCode, 303, 'No plan: no PDF export');
   db.run("UPDATE teams SET plan = 'agency'");
   r = await c.post('/app/team/branding', { brand_name: 'Pixel Agency', brand_color: '#ffff00', brand_logo_url: '' }, '/app/team');
   assert.match(decodeURIComponent(r.headers.location), /contrast/);

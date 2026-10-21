@@ -20,7 +20,7 @@ export const en = {
     recommended: 'Recommended', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
     oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-off', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
     items: {
-      starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },
+      starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', 'PDF report export', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },
       business: { name: 'Business', blurb: 'For shops and services with bigger sites.', features: ['3 websites', 'Up to 500 pages per site', 'Daily scans', '24-month evidence history', 'PDF report export', '3 seats'], extra: ['Everything in Starter'] },
       agency: { name: 'Agency', blurb: 'For web agencies managing client sites.', features: ['15 websites', 'Up to 1,000 pages per site', 'Daily scans', '24-month evidence history', 'White-label (agency-branded) reports', '10 seats'], extra: ['Everything in Business'] },
     },
@@ -70,7 +70,7 @@ export const en = {
     title: 'Pricing', description: 'Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €49.',
     eyebrow: 'Pricing', h1: 'Plans for every size of site', lead: 'Pick the plan that fits your site. All prices are in euros and exclude VAT. Plans and limits may change before launch.',
     plansSr: 'Plans', includedH: 'Included in every plan',
-    included: ['Automated scans with Playwright and axe-core', 'Manual review checklist for issues automation cannot detect', 'Timestamped history of scans and fixes', 'Built for EU teams', 'No overlay widget and no scripts on your site'],
+    included: ['Automated scans with Playwright and axe-core', 'Manual review checklist for issues automation cannot detect', 'Timestamped history of scans and fixes', 'PDF report export', 'Built for EU teams', 'No overlay widget and no scripts on your site'],
     disclaimer: 'Allyfolio is a testing and documentation tool. It does not replace manual expert review or legal advice.',
     faqH: 'Pricing questions',
     faq: [

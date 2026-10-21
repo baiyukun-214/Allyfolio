@@ -25,7 +25,7 @@ SMEs (online shops, service providers) and web agencies preparing for the **Euro
 
 | Plan | Price | Includes |
 |---|---|---|
-| Starter | €19 / month | 1 website, up to 100 pages, weekly scans, 12-month evidence history, 1 seat, audit trail, draft statement |
+| Starter | €19 / month | 1 website, up to 100 pages, weekly scans, 12-month evidence history, PDF report export, 1 seat, audit trail, draft statement |
 | Business | €39 / month | 3 websites, up to 500 pages per site, daily scans, 24-month history, PDF report export, 3 seats |
 | Agency | €99 / month | 15 websites, up to 1,000 pages per site, daily scans, 24-month history, white-label reports, 10 seats |
 | One-off report | €49 once | 1 website, up to 100 pages, a single scan and a PDF report, no subscription |
