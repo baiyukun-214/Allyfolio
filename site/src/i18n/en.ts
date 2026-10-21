@@ -63,7 +63,7 @@ export const en = {
       ['Evidence reports', 'Clear PDF reports for management, clients or authorities.'],
       ['Built for agencies', 'Manage many client sites and send white-label reports.'],
       ['No overlay, ever', 'Nothing is injected into your site. We help you fix the source.']] },
-    pricing: { eyebrow: 'Pricing', h2: 'Simple monthly plans', lead: 'Cancel any time. Prices exclude VAT.', link: 'Compare all plans and the one-off report →' },
+    pricing: { eyebrow: 'Pricing', h2: 'Simple, transparent pricing', lead: 'Cancel any time. Prices exclude VAT.', link: 'Compare all plans and the one-off report →' },
     faq: { eyebrow: 'FAQ', h2: 'Frequently asked questions', more: 'Something else? Email' },
   },
   pricing: {

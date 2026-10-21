@@ -40,7 +40,7 @@
   if (demo && !RM) {
     const url = demo.querySelector<HTMLElement>('[data-url]')!, full = url.textContent ?? '';
     const bar = demo.querySelector<HTMLElement>('[data-bar]')!, count = demo.querySelector<HTMLElement>('[data-count]')!, status = demo.querySelector<HTMLElement>('[data-status]')!;
-    const ring = demo.querySelector<HTMLElement>('.ring')!, num = demo.querySelector<HTMLElement>('[data-score]')!;
+    const ring = demo.querySelector<HTMLElement>('.score-ring')!, num = demo.querySelector<HTMLElement>('[data-score]')!;
     const items = [...demo.querySelectorAll<HTMLElement>('.demo-issue')], total = Number(count.dataset.total), done = status.textContent, scanning = status.dataset.scanning ?? '';
     const counters = [...demo.querySelectorAll<HTMLElement>('[data-n]')];
     demo.classList.add('demo-run'); ring.style.setProperty('--p', '0'); num.textContent = '0'; bar.style.width = '0%'; count.textContent = '0'; url.textContent = ''; status.textContent = scanning;
