@@ -5,6 +5,7 @@ import { authRoutes } from './auth.ts';
 import { dashboardRoutes } from './app.ts';
 import { monitoringRoutes } from './monitoring.ts';
 import { reportRoutes } from './reports.ts';
+import { accountRoutes } from './account.ts';
 import { billingRoutes, billingWebhook } from './billing.ts';
 export default async function appRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (req, reply) => {
@@ -15,6 +16,7 @@ export default async function appRoutes(app: FastifyInstance) {
   await app.register(dashboardRoutes);
   await app.register(monitoringRoutes);
   await app.register(reportRoutes);
+  await app.register(accountRoutes);
   await app.register(billingRoutes);
   await app.register(billingWebhook);
 }

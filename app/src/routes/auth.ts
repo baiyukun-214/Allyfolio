@@ -14,9 +14,9 @@ import { LANG_COOKIE, normLocale, t } from '../i18n.ts';
 const authLimit = rateLimiter(20, 15 * 60_000);
 const field = (id: string, label: string, type: string, extra: any = '', hint = '') => html`<div class="field"><label for="${id}">${label}</label>${hint ? html`<p class="hint" id="${id}-hint">${hint}</p>` : ''}<input id="${id}" name="${id}" type="${type}" ${hint ? html`aria-describedby="${id}-hint"` : ''} ${extra}></div>`;
 
-export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '') {
+export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '', ok?: string) {
   const signup = mode === 'signup'; const A = T(req).auth;
-  return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : null, body: html`
+  return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : ok ? { kind: 'ok', msg: ok } : null, body: html`
   <div class="narrow">
     <div class="card">
       <h1>${signup ? A.signupH : A.loginH}</h1>
@@ -26,6 +26,7 @@ export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: 
         ${field('password', A.password, 'password', html`autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="10"`, signup ? A.pwHint : '')}
         <button class="btn btn-primary" type="submit" style="width:100%">${signup ? A.signupTitle : A.loginTitle}</button>
       </form>
+      ${signup ? '' : html`<p class="small" style="margin:12px 0 0"><a href="/forgot">${T(req).acct.forgotLink}</a></p>`}
     </div>
     <div class="card" style="margin-top:16px">
       <h2 style="margin-top:0">${A.magicH}</h2>

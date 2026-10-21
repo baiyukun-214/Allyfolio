@@ -12,6 +12,7 @@ import { config } from '../config.ts';
 import { requireUser, render, back, ownSite, T, loc, fmtDate } from './guard.ts';
 import { LOCALES, normLocale, t, trError } from '../i18n.ts';
 import { siteDetailExtras } from './monitoring.ts';
+import { accountSection } from './account.ts';
 
 
 export async function dashboardRoutes(app: FastifyInstance) {
@@ -137,7 +138,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
         <div class="field"><label for="locale">${D.language}</label><p class="hint" id="locale-hint">${D.languageHint}</p>
           <select id="locale" name="locale" aria-describedby="locale-hint">${LOCALES.map((x) => html`<option value="${x}" lang="${x}" ${x === l ? html`selected` : ''}>${t(x).langName}</option>`)}</select></div>
         <button class="btn btn-primary" type="submit">${D.save}</button>
-      </form>` });
+      </form>
+      ${accountSection(req, ctx)}` });
   });
 
   app.post('/app/settings', async (req, reply) => {

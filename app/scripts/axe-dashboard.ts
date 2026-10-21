@@ -43,7 +43,7 @@ for (const l of langs) {
     await p.setViewportSize({ width: w, height: 800 });
     for (const path of pages) { await p.goto(base + path); await check(p, path, w); }
     const anon = await browser.newContext({ viewport: { width: w, height: 800 } }); const a = await anon.newPage();
-    for (const path of ['/login', '/signup']) { await a.goto(`${base}${path}?lang=${l}`); await check(a, path, w); }
+    for (const path of ['/login', '/signup', '/forgot', '/reset?token=invalid']) { await a.goto(`${base}${path}?lang=${l}`); await check(a, path, w); }
     await anon.close();
   }
 }
