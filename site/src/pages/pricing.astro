@@ -9,13 +9,14 @@ const included = [
   ['Automated scans with Playwright and axe-core', 'check'],
   ['Manual review checklist for issues automation cannot detect', 'doc'],
   ['Timestamped history of scans and fixes', 'clock'],
-  ['EU data hosting', 'globe'], // TODO: confirm hosting region/provider
+  ['Built for EU teams', 'globe'], // TODO: switch to 'EU data hosting' once backend hosting in the EU is confirmed.
   ['No overlay widget and no scripts on your site', 'ban'],
 ];
 const faqs = [
-  { q: 'Can I change plans later?', a: 'We plan to let you switch between plans at any time. Exact billing terms will be confirmed before launch.' /* TODO: confirm plan-change terms */ },
-  { q: 'Are prices final?', a: 'Prices are in euros and exclude VAT. Plans and limits may change before launch; waitlist members will hear first and get a discounted first year.' },
-  { q: 'What is the one-off report for?', a: 'For a single snapshot – for example before a relaunch. You get one automated scan, a PDF report and a draft accessibility statement, without a subscription.' },
+  { q: 'How does billing work?', a: 'Plans are billed monthly. You can cancel any time and there is no minimum term.' },
+  { q: 'Can I change plans later?', a: 'Yes. Upgrades take effect immediately and you pay a prorated amount for the rest of the billing cycle. Downgrades apply from the next billing cycle.' },
+  { q: 'Are prices final?', a: 'Prices are in euros and exclude VAT. Plans and limits may change before launch. The first 100 waitlist members get 30% off their first year.' },
+  { q: 'What is the one-off report for?', a: 'For a single snapshot – for example before a relaunch. You get a single automated scan of 1 site (up to 100 pages) and a PDF report, without a subscription.' },
   { q: 'Does a clean scan mean my site is accessible?', a: 'No. Automated testing finds roughly 57% of issues (Deque study). The rest needs manual review by people, which our checklist helps you plan.' },
 ];
 ---
