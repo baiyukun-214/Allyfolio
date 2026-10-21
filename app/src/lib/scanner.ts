@@ -19,7 +19,13 @@ export function wcagRefs(tags: string[]): string[] {
 export const fingerprint = (pageUrl: string, ruleId: string, target: string) => createHash('sha256').update(`${new URL(pageUrl).pathname}|${ruleId}|${target}`).digest('hex').slice(0, 24);
 
 let browserP: Promise<Browser> | undefined;
-export function browser() { return (browserP ??= chromium.launch({ args: ['--disable-dev-shm-usage'] })); }
+/** With SCAN_PROXY set, ALL browser traffic (incl. loopback, which Chromium bypasses by default) goes through the egress proxy, which checks the IP at connect time. WebRTC is kept off non-proxied UDP. */
+export function browserLaunchOptions() {
+  const args = ['--disable-dev-shm-usage', '--force-webrtc-ip-handling-policy=disable_non_proxied_udp', '--webrtc-ip-handling-policy=disable_non_proxied_udp'];
+  if (!config.scanProxy) return { args };
+  return { args: [...args, '--proxy-bypass-list=<-loopback>'], proxy: { server: config.scanProxy, bypass: '<-loopback>' } };
+}
+export function browser() { return (browserP ??= chromium.launch(browserLaunchOptions())); }
 export async function closeBrowser() { if (browserP) { const b = await browserP; browserP = undefined; await b.close(); } }
 
 // Simple semaphore to cap concurrent browser pages.

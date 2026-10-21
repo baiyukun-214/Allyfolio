@@ -1,3 +1,4 @@
+import { installMonitoring } from './lib/monitoring.ts';
 import Fastify from 'fastify';
 import formbody from '@fastify/formbody';
 import cookie from '@fastify/cookie';
@@ -13,6 +14,7 @@ import { localeHook } from './routes/guard.ts';
 export async function buildServer() {
   db();
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' }, trustProxy: true, bodyLimit: 64 * 1024 });
+  installMonitoring(app);
   await app.register(formbody);
   await app.register(cookie, { secret: config.sessionSecret });
   await app.register(cors, { origin: config.siteOrigins, methods: ['GET', 'POST'] });

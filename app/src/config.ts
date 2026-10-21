@@ -1,7 +1,7 @@
 const e = process.env;
 export const config = {
   port: Number(e.PORT ?? 8787),
-  appUrl: (e.APP_URL ?? 'http://localhost:8787').replace(/\/$/, ''),
+  appUrl: (e.PUBLIC_APP_URL ?? e.APP_URL ?? 'http://localhost:8787').replace(/\/$/, ''),
   siteOrigins: (e.SITE_ORIGINS ?? 'http://localhost:4321').split(',').map((s) => s.trim()).filter(Boolean),
   /** Marketing site (links from the dashboard back to it). */
   siteUrl: (e.SITE_URL ?? 'http://localhost:4321').replace(/\/$/, ''),

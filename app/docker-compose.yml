@@ -1,4 +1,5 @@
-# EU deployment (e.g. Hetzner Cloud, Falkenstein/Nuremberg). Caddy terminates TLS and serves the marketing site.
+# EU deployment on one Hetzner Cloud CPX31 (4 vCPU / 8 GB, Falkenstein/Nuremberg/Helsinki). See README "Deploy".
+# Caddy terminates TLS and serves the marketing site; the scanner's browser reaches the internet only via "egress".
 services:
   app:
     build: .
@@ -7,16 +8,40 @@ services:
     environment:
       DATABASE_PATH: /data/allyfolio.db
       ALLOW_PRIVATE_TARGETS: "0"
+      SCAN_PROXY: http://egress:3128
     volumes: [ "appdata:/data" ]
     shm_size: "1gb"            # Chromium
-    mem_limit: 3g
+    mem_limit: 5g
+    depends_on: [ egress ]
+  egress:
+    # DNS-rebinding-safe forward proxy for Chromium: resolves, checks the IP, connects to that IP. Ports 80/443 only.
+    build: .
+    command: ["npx", "tsx", "src/egress/main.ts"]
+    restart: unless-stopped
+    environment: { EGRESS_PORT: "3128" }
+    expose: [ "3128" ]
+    healthcheck: { test: ["CMD", "node", "-e", "require('net').connect(3128,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"] }
+    mem_limit: 256m
+  backup:
+    image: alpine:3.20
+    restart: unless-stopped
+    entrypoint: ["/deploy/backup-cron.sh"]
+    env_file: [ { path: .env, required: false } ]
+    environment:
+      DATABASE_PATH: /data/allyfolio.db
+      BACKUP_DIR: /backups
+    volumes:
+      - appdata:/data              # read via sqlite3 .backup (online, WAL-safe)
+      - ./backups:/backups
+      - ./deploy:/deploy:ro
+      - ./deploy/rclone:/root/.config/rclone:ro   # optional: rclone.conf for BACKUP_RCLONE_REMOTE
   caddy:
     image: caddy:2
     restart: unless-stopped
     ports: [ "80:80", "443:443" ]
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ../allyfolio-site/dist:/srv/site:ro   # marketing site build (PUBLIC_API_BASE empty = same origin)
+      - ../allyfolio-site/dist:/srv/site:ro   # marketing site build
       - caddydata:/data
     depends_on: [ app ]
 volumes: { appdata: {}, caddydata: {} }

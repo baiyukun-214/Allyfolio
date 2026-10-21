@@ -1,4 +1,8 @@
 import { lookup } from 'node:dns/promises';
+import dns from 'node:dns';
+import http from 'node:http';
+import https from 'node:https';
+import { Readable } from 'node:stream';
 import net from 'node:net';
 import { config } from '../config.ts';
 
@@ -76,14 +80,46 @@ export async function assertPublicHost(hostname: string): Promise<string[]> {
   return addrs.map((a) => a.address);
 }
 
-/** fetch() that re-validates every redirect hop. */
-export async function safeFetch(input: string | URL, init: RequestInit & { maxRedirects?: number; timeoutMs?: number } = {}): Promise<Response> {
+/**
+ * dns.lookup replacement that validates the addresses it returns. Used as the socket's `lookup`, so the IP that is
+ * checked is the IP that is connected to (no second resolution an attacker could rebind).
+ */
+export function pinnedLookup(resolve: (host: string) => Promise<{ address: string; family: number }[]> = (h) => dns.promises.lookup(h, { all: true, verbatim: true })) {
+  return (host: string, opts: any, cb: any) => {
+    if (typeof opts === 'function') { cb = opts; opts = {}; }
+    resolve(host).then((addrs) => {
+      if (!config.allowPrivateTargets && (!addrs.length || addrs.some((a) => isBlockedIp(a.address)))) throw new UnsafeUrlError('That address is not publicly reachable.');
+      if (opts?.all) cb(null, addrs); else cb(null, addrs[0].address, addrs[0].family);
+    }).catch((e) => cb(e instanceof UnsafeUrlError ? e : new UnsafeUrlError('We could not find that domain.')));
+  };
+}
+
+type FetchInit = { method?: string; headers?: Record<string, string>; maxRedirects?: number; timeoutMs?: number; maxBytes?: number; lookup?: ReturnType<typeof pinnedLookup> };
+function pinnedRequest(url: URL, init: FetchInit): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const mod = url.protocol === 'https:' ? https : http;
+    const req = mod.request(url, { method: init.method ?? 'GET', lookup: (init.lookup ?? pinnedLookup()) as any, timeout: init.timeoutMs ?? 10000,
+      headers: { 'user-agent': 'AllyfolioBot/0.1 (+https://allyfolio.com)', 'accept-encoding': 'identity', ...(init.headers ?? {}) } }, (res) => {
+      const headers = new Headers(); for (const [k, v] of Object.entries(res.headers)) if (v !== undefined) for (const x of [v].flat()) headers.append(k, String(x));
+      let n = 0; const max = init.maxBytes ?? 10_000_000;
+      res.on('data', (c: Buffer) => { n += c.length; if (n > max) res.destroy(new Error('response too large')); });
+      const status = res.statusCode ?? 502; const nobody = status === 204 || status === 304 || (init.method ?? 'GET') === 'HEAD';
+      resolve(new Response(nobody ? null : (Readable.toWeb(res) as any), { status, statusText: res.statusMessage, headers }));
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout')));
+    req.on('error', reject); req.end();
+  });
+}
+
+/** fetch() that re-validates every redirect hop and pins DNS: the validated IP is the one connected to. */
+export async function safeFetch(input: string | URL, init: FetchInit = {}): Promise<Response> {
   let url = parsePublicUrl(String(input));
   const max = init.maxRedirects ?? 5;
   for (let i = 0; i <= max; i++) {
-    await assertPublicHost(url.hostname);
-    const res = await fetch(url, { ...init, redirect: 'manual', signal: AbortSignal.timeout(init.timeoutMs ?? 10000), headers: { 'user-agent': 'AllyfolioBot/0.1 (+https://allyfolio.com)', ...(init.headers ?? {}) } });
-    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { url = parsePublicUrl(new URL(res.headers.get('location')!, url).href); continue; }
+    const host = url.hostname.replace(/^\[|\]$/g, '');
+    if (net.isIP(host) && !config.allowPrivateTargets && isBlockedIp(host)) throw new UnsafeUrlError('That address is not publicly reachable.');
+    const res = await pinnedRequest(url, init);
+    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { await res.body?.cancel(); url = parsePublicUrl(new URL(res.headers.get('location')!, url).href); continue; }
     return res;
   }
   throw new UnsafeUrlError('Too many redirects.');
