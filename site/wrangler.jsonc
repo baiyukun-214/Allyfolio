@@ -1,0 +1,13 @@
+// Cloudflare Workers – static assets only (no Worker script). Build: `npm run build` → ./dist, deploy: `npx wrangler deploy`.
+// Custom domains allyfolio.com and www.allyfolio.com are attached in the Cloudflare dashboard (Workers → allyfolio →
+// Settings → Domains & Routes). No "routes" are declared here on purpose: declaring routes/custom_domains in this file
+// makes `wrangler deploy` manage them and could detach the domains configured in the dashboard.
+{
+  "name": "allyfolio",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

@@ -1,6 +1,27 @@
-node_modules
-data/*.db*
-data/reports
+# Secrets / local config (keep only .env.example)
 .env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+# Data (SQLite, reports, PDFs, backups)
+data/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+reports/
+*.pdf
 backups/
 deploy/rclone/rclone.conf
+# Build output / deps / caches
+node_modules/
+dist/
+.astro/
+.wrangler/
+# Test output
+test-results/
+playwright-report/
+coverage/
+*.log
+.DS_Store

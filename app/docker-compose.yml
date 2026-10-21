@@ -41,7 +41,7 @@ services:
     ports: [ "80:80", "443:443" ]
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ../allyfolio-site/dist:/srv/site:ro   # marketing site build
+      - ../site/dist:/srv/site:ro   # marketing site build
       - caddydata:/data
     depends_on: [ app ]
 volumes: { appdata: {}, caddydata: {} }

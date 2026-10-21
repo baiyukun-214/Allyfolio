@@ -7,7 +7,7 @@ Automated checks find only part of all issues (roughly 57%, Deque study) – the
 ## Architecture
 
 ```
-            allyfolio.com (Astro static site, ../allyfolio-site)          app.allyfolio.com
+            allyfolio.com (Astro static site, ../site)                     app.allyfolio.com
                  │  /free-scan, waitlist → fetch /api/*                         │ dashboard (server-rendered HTML)
                  ▼                                                              ▼
  Caddy (TLS) ──► Fastify app (Node 22, TypeScript via tsx) ─────────────────────────────
@@ -56,7 +56,7 @@ Note: in dev the SSRF guard blocks localhost targets; to scan a local test site 
 Marketing site against the local API:
 
 ```bash
-cd ../allyfolio-site && PUBLIC_API_BASE=http://localhost:8787 npm run build && npm run preview   # SITE_ORIGINS must include http://localhost:4321
+cd ../site && npm run build && npm run preview   # dev builds of the site default to http://localhost:8787;   # SITE_ORIGINS must include http://localhost:4321
 ```
 
 ## Tests
@@ -95,7 +95,7 @@ Events used: `subscription.created|updated|activated|past_due|paused|resumed|can
 
 1. Create a **CPX31** (4 vCPU / 8 GB) in Falkenstein, Nuremberg or Helsinki with Ubuntu 24.04; firewall: 22 (your IP), 80, 443 only. Install Docker Engine + compose plugin.
 2. DNS (Cloudflare, "DNS only"/grey cloud so Caddy's automatic HTTPS works): `allyfolio.com`, `www`, `app` → server IPv4/IPv6. Keep the Email Routing MX records as they are.
-3. Clone both repos side by side (`/srv/allyfolio-app`, `/srv/allyfolio-site`). Build the site: `cd allyfolio-site && npm ci && PUBLIC_APP_URL=https://app.allyfolio.com npm run build` (leave `PUBLIC_API_BASE` empty – same origin).
+3. Clone the monorepo to `/srv/allyfolio-mono`. The site is normally deployed to Cloudflare Workers (see `site/README.md`); to serve it from this server instead, build it with `cd site && npm ci && PUBLIC_API_BASE= npm run build` (empty = same origin) – Caddy mounts `../site/dist`.
 4. In `allyfolio-app`: `cp .env.example .env` and set at least:
    ```
    PUBLIC_APP_URL=https://app.allyfolio.com
