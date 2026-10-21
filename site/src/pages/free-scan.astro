@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Free scan" description="Run a free automated accessibility check of one page with Allyfolio. Coming soon.">
+  <div class="mx-auto max-w-2xl px-4 py-16">
+    <h1 class="text-4xl font-bold text-slate-900">Free accessibility scan</h1>
+    <p class="mt-4 text-lg text-slate-700">Check one page of your website with axe-core and get a short summary of the issues automated testing can detect.</p>
+    <p class="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900" role="note"><strong>Coming soon.</strong> The free scan is not live yet. <a class="underline" href="/#waitlist">Join the waitlist</a> to hear when it launches.</p>
+    <!-- TODO: wire this form to the scan API (e.g. POST /api/scan) once it exists. It currently submits nowhere. -->
+    <form class="mt-8 space-y-4" onsubmit="event.preventDefault(); document.getElementById('scan-status').textContent = 'The free scan is coming soon – nothing was sent.';">
+      <div>
+        <label for="scan-url" class="block font-medium text-slate-900">Page URL</label>
+        <p id="scan-url-hint" class="text-sm text-slate-600">For example https://www.example.com</p>
+        <input id="scan-url" name="url" type="url" required aria-describedby="scan-url-hint" autocomplete="url" class="mt-1 w-full rounded-md border border-slate-400 px-3 py-2" />
+      </div>
+      <button type="submit" class="rounded-md bg-brand-700 px-5 py-2 font-semibold text-white hover:bg-brand-900">Scan page</button>
+      <p id="scan-status" role="status" class="text-slate-700"></p>
+    </form>
+    <p class="mt-8 text-sm text-slate-700">Automated testing finds roughly 57% of issues (<a class="text-brand-700 underline" href="https://www.deque.com/automated-accessibility-testing-coverage/">Deque study</a>). A clean result does not mean your page is fully accessible.</p>
+  </div>
+</Base>

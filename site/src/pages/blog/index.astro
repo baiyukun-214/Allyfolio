@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title="Blog" description="Practical articles on the European Accessibility Act, BFSG and web accessibility testing for SMEs and agencies.">
+  <div class="mx-auto max-w-3xl px-4 py-16">
+    <h1 class="text-4xl font-bold text-slate-900">Blog</h1>
+    <p class="mt-4 text-lg text-slate-700">Practical notes on the EAA, BFSG and accessibility testing.</p>
+    <ul class="mt-10 space-y-8">
+      {posts.map((p) => (
+        <li>
+          <article>
+            <h2 class="text-2xl font-semibold"><a class="text-brand-700 hover:underline" href={`/blog/${p.id}`}>{p.data.title}</a></h2>
+            <p class="text-sm text-slate-600"><time datetime={p.data.pubDate.toISOString()}>{fmt(p.data.pubDate)}</time></p>
+            <p class="mt-2 text-slate-700">{p.data.description}</p>
+          </article>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>

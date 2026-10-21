@@ -1,0 +1,30 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="border-t border-slate-200 bg-slate-50 mt-16">
+  <div class="mx-auto max-w-6xl px-4 py-10 grid gap-8 md:grid-cols-3 text-sm">
+    <div>
+      <p class="font-bold text-brand-900 text-base">Allyfolio</p>
+      <p class="mt-2 text-slate-700">Accessibility monitoring and evidence for EU websites. No overlay widgets.</p>
+      <p class="mt-2"><a class="text-brand-700 underline" href="mailto:hello@allyfolio.com">hello@allyfolio.com</a></p>
+    </div>
+    <nav aria-label="Product">
+      <h2 class="font-semibold text-slate-900">Product</h2>
+      <ul class="mt-2 space-y-1">
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/pricing">Pricing</a></li>
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/free-scan">Free scan</a></li>
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/blog">Blog</a></li>
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/about">About</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="Legal">
+      <h2 class="font-semibold text-slate-900">Legal</h2>
+      <ul class="mt-2 space-y-1">
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/privacy">Privacy policy</a></li>
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/imprint">Imprint</a></li>
+        <li><a class="text-slate-700 underline-offset-4 hover:underline" href="/accessibility-statement">Accessibility statement</a></li>
+      </ul>
+    </nav>
+  </div>
+  <p class="text-center text-xs text-slate-600 pb-6">&copy; {year} Allyfolio. Allyfolio is a testing and documentation tool, not legal advice.</p>
+</footer>

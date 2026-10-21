@@ -1,0 +1,30 @@
+---
+interface Props { detailed?: boolean }
+const { detailed = false } = Astro.props;
+// TODO: confirm exact limits (sites, pages, scan frequency, seats) before launch.
+const plans = [
+  { name: 'Starter', price: '€19', per: '/month', blurb: 'For a single small business website.', features: ['1 website', 'Up to 50 pages per scan', 'Weekly scheduled scans', 'Timestamped audit trail', 'Draft accessibility statement'], extra: ['Email alerts on new issues', '12 months of history'] },
+  { name: 'Business', price: '€39', per: '/month', blurb: 'For shops and services with bigger sites.', features: ['Up to 3 websites', 'Up to 500 pages per scan', 'Daily scheduled scans', 'Everything in Starter', 'PDF evidence reports'], extra: ['Issue assignment and notes', '24 months of history'], highlight: true },
+  { name: 'Agency', price: '€99', per: '/month', blurb: 'For web agencies managing client sites.', features: ['Up to 25 client websites', 'Up to 1,000 pages per site', 'Daily scheduled scans', 'Everything in Business', 'White-label client reports'], extra: ['Multiple team seats', 'Client workspaces'] },
+];
+---
+<div class="grid gap-6 md:grid-cols-3">
+  {plans.map((p) => (
+    <div class={`rounded-xl border p-6 flex flex-col ${p.highlight ? 'border-brand-700 ring-2 ring-brand-700' : 'border-slate-200'}`}>
+      <h3 class="text-xl font-bold text-slate-900">{p.name}{p.highlight && <span class="ml-2 align-middle rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-900">Most popular</span>}</h3>
+      <p class="mt-1 text-slate-700">{p.blurb}</p>
+      <p class="mt-4"><span class="text-4xl font-bold text-slate-900">{p.price}</span><span class="text-slate-700">{p.per}, excl. VAT</span></p>
+      <ul class="mt-4 space-y-2 text-slate-700 flex-1">
+        {(detailed ? [...p.features, ...p.extra] : p.features).map((f) => (<li class="flex gap-2"><span aria-hidden="true" class="text-brand-700">✓</span>{f}</li>))}
+      </ul>
+      <a href="/#waitlist" class="mt-6 rounded-md bg-brand-700 px-4 py-2 text-center font-semibold text-white hover:bg-brand-900">Join the waitlist<span class="sr-only"> for {p.name}</span></a>
+    </div>
+  ))}
+</div>
+<div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-6 md:flex md:items-center md:justify-between gap-6">
+  <div>
+    <h3 class="text-xl font-bold text-slate-900">One-off report – €39</h3>
+    <p class="mt-1 text-slate-700">A single automated scan of up to 100 pages with a PDF report and a draft accessibility statement. No subscription. <!-- TODO: confirm page limit for one-off report --></p>
+  </div>
+  <a href="/#waitlist" class="mt-4 md:mt-0 inline-block shrink-0 rounded-md border border-brand-700 px-4 py-2 font-semibold text-brand-700 hover:bg-brand-50">Join the waitlist<span class="sr-only"> for the one-off report</span></a>
+</div>

@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import Plans from '../components/Plans.astro';
+import Faq from '../components/Faq.astro';
+import Waitlist from '../components/Waitlist.astro';
+---
+<Base title="Allyfolio" description="Scheduled accessibility scans, a timestamped audit trail and draft accessibility statements for EU SMEs and agencies preparing for the European Accessibility Act and BFSG. No overlay widget.">
+  <section class="bg-gradient-to-b from-brand-50 to-white">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-28 grid gap-10 md:grid-cols-2 items-center">
+      <div>
+        <p class="font-semibold text-brand-700">European Accessibility Act &amp; BFSG</p>
+        <h1 class="mt-2 text-4xl md:text-5xl font-bold tracking-tight text-slate-900">Show your accessibility work, not just promise it.</h1>
+        <p class="mt-6 text-lg text-slate-700">Allyfolio scans your website on a schedule, tracks every issue over time and keeps a timestamped evidence trail – so you can prove real progress towards the EAA and the German BFSG.</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#waitlist" class="rounded-md bg-brand-700 px-5 py-3 font-semibold text-white hover:bg-brand-900">Join the waitlist</a>
+          <a href="/free-scan" class="rounded-md border border-brand-700 px-5 py-3 font-semibold text-brand-700 hover:bg-brand-50">Free scan (coming soon)</a>
+        </div>
+        <p class="mt-4 text-sm text-slate-600">No overlay widget. No scripts injected into your site.</p>
+      </div>
+      <figure class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <figcaption class="text-sm font-semibold text-slate-900">Example audit trail</figcaption>
+        <ol class="mt-4 space-y-3 text-sm">
+          <li class="flex justify-between gap-4 border-b border-slate-100 pb-2"><span><time datetime="2026-09-01">1 Sep 2026</time> – weekly scan</span><span class="font-semibold text-red-800">42 issues</span></li>
+          <li class="flex justify-between gap-4 border-b border-slate-100 pb-2"><span><time datetime="2026-09-08">8 Sep 2026</time> – weekly scan</span><span class="font-semibold text-amber-800">27 issues</span></li>
+          <li class="flex justify-between gap-4 border-b border-slate-100 pb-2"><span><time datetime="2026-09-15">15 Sep 2026</time> – manual review logged</span><span class="font-semibold text-slate-700">note added</span></li>
+          <li class="flex justify-between gap-4"><span><time datetime="2026-09-22">22 Sep 2026</time> – weekly scan</span><span class="font-semibold text-green-800">6 issues</span></li>
+        </ol>
+        <p class="mt-4 text-xs text-slate-600">Illustrative data.</p>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="problem-heading" class="mx-auto max-w-6xl px-4 py-16">
+    <h2 id="problem-heading" class="text-3xl font-bold text-slate-900">The EAA has applied since 28 June 2025</h2>
+    <div class="mt-6 grid gap-8 md:grid-cols-3 text-slate-700">
+      <div><h3 class="font-semibold text-slate-900 text-lg">New legal requirements</h3><p class="mt-2">Since 28 June 2025, the European Accessibility Act – in Germany the BFSG – requires many consumer-facing digital services, such as online shops, to be accessible.</p></div>
+      <div><h3 class="font-semibold text-slate-900 text-lg">Hard to show progress</h3><p class="mt-2">One-off audits go stale with every release. Small teams need an ongoing, documented record of what they tested, what they found and what they fixed.</p></div>
+      <div><h3 class="font-semibold text-slate-900 text-lg">Overlays are not the answer</h3><p class="mt-2">"One line of code" widgets do not fix the underlying markup and can get in the way of assistive technology. Real fixes happen in your code.</p></div>
+    </div>
+    <p class="mt-8 rounded-lg bg-slate-50 border border-slate-200 p-4 text-slate-700"><strong>Microenterprise exemption:</strong> businesses providing services with fewer than 10 staff <em>and</em> an annual turnover or balance sheet total of no more than €2 million are exempt from the EAA's service requirements. Accessibility still helps your customers – but you may not be legally required to act. This is not legal advice.</p>
+  </section>
+
+  <section id="how-it-works" aria-labelledby="how-heading" class="bg-slate-50">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 id="how-heading" class="text-3xl font-bold text-slate-900">How it works</h2>
+      <ol class="mt-8 grid gap-6 md:grid-cols-4">
+        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 1</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Add your site</h3><p class="mt-2 text-slate-700">Choose the pages and user journeys that matter most.</p></li>
+        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 2</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Scheduled scans</h3><p class="mt-2 text-slate-700">Real browsers (Playwright) run axe-core checks weekly or daily.</p></li>
+        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 3</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Fix and review</h3><p class="mt-2 text-slate-700">Prioritised issues with code hints, plus a checklist for the manual review that automation cannot do.</p></li>
+        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 4</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Keep the evidence</h3><p class="mt-2 text-slate-700">Timestamped history, PDF reports and a draft accessibility statement.</p></li>
+      </ol>
+      <p class="mt-8 text-slate-700"><strong>Honest limits:</strong> automated testing finds roughly 57% of accessibility issues, according to a <a class="text-brand-700 underline" href="https://www.deque.com/automated-accessibility-testing-coverage/">Deque study of automated testing coverage</a>. The rest – such as meaningful alt text, logical focus order and understandable content – needs manual review by people.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="features-heading" class="mx-auto max-w-6xl px-4 py-16">
+    <h2 id="features-heading" class="text-3xl font-bold text-slate-900">Features</h2>
+    <ul class="mt-8 grid gap-6 md:grid-cols-3 text-slate-700">
+      <li><h3 class="font-semibold text-lg text-slate-900">Scheduled monitoring</h3><p class="mt-2">Catch regressions after every release, not months later.</p></li>
+      <li><h3 class="font-semibold text-lg text-slate-900">Timestamped audit trail</h3><p class="mt-2">A dated record of every scan, fix and manual review note.</p></li>
+      <li><h3 class="font-semibold text-lg text-slate-900">Draft accessibility statements</h3><p class="mt-2">A structured starting point based on your results, for you to review.</p></li>
+      <li><h3 class="font-semibold text-lg text-slate-900">Evidence reports</h3><p class="mt-2">Clear PDF reports for management, clients or authorities.</p></li>
+      <li><h3 class="font-semibold text-lg text-slate-900">Built for agencies</h3><p class="mt-2">Manage many client sites and send white-label reports.</p></li>
+      <li><h3 class="font-semibold text-lg text-slate-900">No overlay, ever</h3><p class="mt-2">Nothing is injected into your site. We help you fix the source.</p></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="pricing-heading" class="bg-slate-50">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 id="pricing-heading" class="text-3xl font-bold text-slate-900">Simple pricing</h2>
+      <p class="mt-2 text-slate-700">Monthly plans, cancel any time. <a class="text-brand-700 underline" href="/pricing">See full pricing details</a>.</p>
+      <div class="mt-8"><Plans /></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq-heading" class="mx-auto max-w-3xl px-4 py-16">
+    <h2 id="faq-heading" class="text-3xl font-bold text-slate-900">Frequently asked questions</h2>
+    <div class="mt-8"><Faq /></div>
+  </section>
+
+  <Waitlist />
+</Base>

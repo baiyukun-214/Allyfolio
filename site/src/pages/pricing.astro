@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import Plans from '../components/Plans.astro';
+import Waitlist from '../components/Waitlist.astro';
+---
+<Base title="Pricing" description="Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €39.">
+  <div class="mx-auto max-w-6xl px-4 py-16">
+    <h1 class="text-4xl font-bold text-slate-900">Pricing</h1>
+    <p class="mt-4 text-lg text-slate-700 max-w-2xl">Pick the plan that fits your site. All prices are in euros and exclude VAT. Plans and limits may change before launch.</p>
+    <section aria-labelledby="plans-heading" class="mt-10">
+      <h2 id="plans-heading" class="sr-only">Plans</h2>
+      <Plans detailed />
+    </section>
+    <section aria-labelledby="included-heading" class="mt-16 max-w-3xl">
+      <h2 id="included-heading" class="text-2xl font-bold text-slate-900">Included in every plan</h2>
+      <ul class="mt-4 list-disc pl-6 space-y-2 text-slate-700">
+        <li>Automated scans with Playwright and axe-core</li>
+        <li>Manual review checklist for issues automation cannot detect</li>
+        <li>Timestamped history of scans and fixes</li>
+        <li>EU data hosting <!-- TODO: confirm hosting region/provider --></li>
+        <li>No overlay widget and no scripts on your site</li>
+      </ul>
+      <p class="mt-6 text-slate-700">Allyfolio is a testing and documentation tool. It does not replace manual expert review or legal advice.</p>
+    </section>
+  </div>
+  <Waitlist />
+</Base>

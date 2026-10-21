@@ -1,0 +1,46 @@
+---
+const links = [
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/free-scan', label: 'Free scan' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/about', label: 'About' },
+];
+const current = Astro.url.pathname.replace(/\.html$/, '');
+---
+<header class="border-b border-slate-200 bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-2 font-bold text-xl text-brand-900">
+      <img src="/favicon.svg" alt="" width="32" height="32" />
+      <span>Allyfolio</span>
+    </a>
+    <button id="nav-toggle" type="button" class="md:hidden inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium" aria-expanded="false" aria-controls="site-nav">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4h16v2H2zm0 5h16v2H2zm0 5h16v2H2z"/></svg>
+      Menu
+    </button>
+    <nav id="site-nav" aria-label="Main" class="hidden md:block absolute md:static left-0 right-0 top-16 bg-white border-b md:border-0 border-slate-200 z-40">
+      <ul class="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 p-4 md:p-0">
+        {links.map((l) => (
+          <li><a href={l.href} aria-current={current === l.href ? 'page' : undefined} class="block rounded-md px-3 py-2 text-slate-700 hover:bg-brand-50 hover:text-brand-900 aria-[current=page]:font-semibold aria-[current=page]:text-brand-900 aria-[current=page]:underline underline-offset-4">{l.label}</a></li>
+        ))}
+        <li><a href="/#waitlist" class="block rounded-md bg-brand-700 px-4 py-2 font-semibold text-white hover:bg-brand-900">Join the waitlist</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<script>
+  const btn = document.getElementById('nav-toggle');
+  const nav = document.getElementById('site-nav');
+  if (btn && nav) {
+    const close = () => { btn.setAttribute('aria-expanded', 'false'); nav.classList.add('hidden'); };
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      nav.classList.toggle('hidden', open);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') { close(); btn.focus(); }
+    });
+  }
+</script>
+<style>header { position: relative; }</style>
