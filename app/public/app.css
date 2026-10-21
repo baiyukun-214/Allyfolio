@@ -51,3 +51,4 @@ th { color: var(--muted); font-weight: 500; }
 code { font-size: 13px; background: #f1f5f9; padding: 1px 6px; border-radius: 6px; word-break: break-all; }
 footer { border-top: 1px solid var(--line); background: #fff; } footer .in { padding: 20px; font-size: 13px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+nav.main a.btn-primary { color: #fff; padding: 8px 16px; } nav.main a.btn-primary:hover { background: var(--navy-900); color: #fff; }

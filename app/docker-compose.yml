@@ -1,0 +1,22 @@
+# EU deployment (e.g. Hetzner Cloud, Falkenstein/Nuremberg). Caddy terminates TLS and serves the marketing site.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_PATH: /data/allyfolio.db
+      ALLOW_PRIVATE_TARGETS: "0"
+    volumes: [ "appdata:/data" ]
+    shm_size: "1gb"            # Chromium
+    mem_limit: 3g
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: [ "80:80", "443:443" ]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../allyfolio-site/dist:/srv/site:ro   # marketing site build (PUBLIC_API_BASE empty = same origin)
+      - caddydata:/data
+    depends_on: [ app ]
+volumes: { appdata: {}, caddydata: {} }
