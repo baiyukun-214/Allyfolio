@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import { render } from 'astro:content';
+import { readingTime } from '../lib/reading';
+import { i18n } from '../i18n';
+interface Props { post: any; hasTranslation: boolean }
+const { post, hasTranslation } = Astro.props;
+const { Content } = await render(post);
+const { t, l, lang } = i18n(Astro.url.pathname);
+const B = t.blog;
+const fmt = (d: Date) => d.toLocaleDateString(B.dateLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title={post.data.title} description={post.data.description} ogType="article" hasTranslation={hasTranslation}>
+  <article>
+    <header class="border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white">
+      <div class="mx-auto max-w-3xl px-4 pt-12 pb-10">
+        <p><a class="text-sm font-medium text-brand-700 underline underline-offset-4" href={l('/blog')}>{B.allPosts}</a></p>
+        {post.data.tags.length > 0 && <ul class="mt-8 flex flex-wrap gap-2" aria-label={B.tags}>{post.data.tags.map((x: string) => <li class="rounded-full bg-white border border-brand-200 px-2.5 py-0.5 text-xs font-semibold text-brand-700">{x}</li>)}</ul>}
+        <h1 class="mt-4 text-4xl md:text-5xl font-bold tracking-tight leading-tight text-ink">{post.data.title}</h1>
+        <p class="mt-5 text-lg text-muted leading-relaxed">{post.data.description}</p>
+        <p class="mt-6 flex items-center gap-3 text-sm text-muted">
+          <span aria-hidden="true" class="grid h-9 w-9 place-items-center rounded-full bg-brand-700 text-xs font-semibold text-white">A</span>
+          <span><span class="font-medium text-ink">{post.data.author}</span><br /><time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time> · {B.minRead(readingTime(post.body, lang))}</span>
+        </p>
+      </div>
+    </header>
+    <div class="mx-auto max-w-3xl px-4 py-12 prose prose-slate prose-lg prose-headings:text-ink prose-headings:tracking-tight prose-h2:text-2xl prose-h2:mt-12 prose-a:text-brand-700 prose-strong:text-ink">
+      <Content />
+    </div>
+    <aside aria-labelledby="post-cta" class="mx-auto max-w-3xl px-4 pb-16">
+      <div class="rounded-2xl bg-brand-50 border border-brand-200 p-8 sm:flex sm:items-center sm:justify-between gap-6">
+        <div>
+          <h2 id="post-cta" class="text-xl font-semibold text-ink">{B.ctaH}</h2>
+          <p class="mt-2 text-muted">{B.ctaP}</p>
+        </div>
+        <a href={l('/#waitlist')} class="btn btn-primary mt-5 sm:mt-0 shrink-0">{B.ctaBtn}</a>
+      </div>
+    </aside>
+  </article>
+</Base>

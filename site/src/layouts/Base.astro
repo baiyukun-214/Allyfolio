@@ -1,0 +1,57 @@
+---
+import '@fontsource-variable/inter';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Motion from '../components/Motion.astro';
+import { i18n, basePath, localize, LOCALES } from '../i18n';
+interface Props { title: string; description: string; ogType?: 'website' | 'article'; hasTranslation?: boolean }
+const { title, description, ogType = 'website', hasTranslation = true } = Astro.props;
+const { lang, t } = i18n(Astro.url.pathname);
+const site = Astro.site ?? new URL('https://allyfolio.com');
+const base = basePath(Astro.url.pathname);
+const canonical = new URL(localize(base, lang), site).href;
+const alternates = hasTranslation ? LOCALES.map((l) => ({ l, href: new URL(localize(base, l), site).href })) : [];
+const fullTitle = title === 'Allyfolio' ? t.meta.siteTitle : `${title} | Allyfolio`;
+const ogImage = new URL('/og-image.png', site).href;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline>document.documentElement.classList.add('js')</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.l} href={a.href} />)}
+    {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0].href} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Allyfolio" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={t.meta.ogAlt} />
+    <meta name="twitter:image:alt" content={t.meta.ogAlt} />
+    <meta property="og:locale" content={t.meta.ogLocale} />
+    <meta property="og:locale:alternate" content={lang === 'en' ? 'zh_CN' : 'en_GB'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body class="min-h-screen flex flex-col bg-white text-ink font-sans antialiased">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-white focus:text-brand-900 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">{t.skip}</a>
+    <Header hasTranslation={hasTranslation} />
+    <main id="main" tabindex="-1" class="flex-1 focus:outline-none">
+      <slot />
+    </main>
+    <Footer hasTranslation={hasTranslation} />
+    <Motion />
+  </body>
+</html>

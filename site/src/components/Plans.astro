@@ -1,0 +1,51 @@
+---
+import Icon from './Icon.astro';
+import { i18n } from '../i18n';
+interface Props { detailed?: boolean }
+const { detailed = false } = Astro.props;
+const { t, l } = i18n(Astro.url.pathname);
+const P = t.plans;
+const plans = [
+  { ...P.items.starter, price: '€19' },
+  { ...P.items.business, price: '€39', highlight: true },
+  { ...P.items.agency, price: '€99' },
+];
+const shown = (p: typeof plans[number]) => detailed ? [...p.features, ...p.extra] : p.features.slice(0, 4);
+const uid = detailed ? 'pd' : 'ph';
+---
+<div data-tabs>
+  <div role="tablist" aria-label={P.tabsLabel} class="seg mb-10" hidden>
+    <span class="seg-pill" aria-hidden="true"></span>
+    <button type="button" role="tab" id={`${uid}-t1`} aria-controls={`${uid}-p1`} aria-selected="true">{P.tabSubs}</button>
+    <button type="button" role="tab" id={`${uid}-t2`} aria-controls={`${uid}-p2`} aria-selected="false" tabindex="-1">{P.tabOneoff}</button>
+  </div>
+  <div id={`${uid}-p1`} role="tabpanel" aria-labelledby={`${uid}-t1`}>
+<div class="grid gap-6 md:grid-cols-3 md:items-stretch">
+  {plans.map((p) => (
+    <div class={`lift relative rounded-2xl p-7 flex flex-col ${p.highlight ? 'bg-gradient-to-br from-brand-700 to-indigo-900 text-white shadow-2xl shadow-brand-900/30 md:-my-3 md:py-10' : 'bg-white border border-slate-200 shadow-sm'}`}>
+      {p.highlight && <p class="absolute -top-3 left-7 rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">{P.recommended}</p>}
+      <h3 class={`text-lg font-semibold ${p.highlight ? 'text-white' : 'text-ink'}`}>{p.name}</h3>
+      <p class={`mt-1 text-sm ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{p.blurb}</p>
+      <p class="mt-6 flex items-baseline gap-1.5"><span class="text-5xl font-bold tracking-tight">{p.price}</span><span class={`text-sm ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{P.perMonth}</span></p>
+      <p class={`mt-1 text-xs ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{P.exVat}</p>
+      <ul class={`mt-6 space-y-3 text-sm flex-1 border-t pt-6 ${p.highlight ? 'border-white/20' : 'border-slate-200'}`}>
+        {shown(p).map((f) => (<li class="flex gap-2.5"><span class={p.highlight ? 'text-brand-200' : 'text-brand-500'}><Icon name="check" /></span>{f}</li>))}
+      </ul>
+      <a href={l('/#waitlist')} class={`btn mt-8 w-full ${p.highlight ? 'bg-white text-brand-700 hover:bg-brand-50 focus-visible:outline-white' : 'btn-secondary'}`}>{P.join}<span class="sr-only"> {P.joinFor} {p.name}</span></a>
+    </div>
+  ))}
+</div>
+  </div>
+  <div id={`${uid}-p2`} role="tabpanel" aria-labelledby={`${uid}-t2`} class="mt-10">
+    <div class="lift max-w-xl rounded-2xl border border-brand-200 bg-white p-7 shadow-sm">
+      <h3 class="text-lg font-semibold text-ink">{P.oneoffTitle}</h3>
+      <p class="mt-1 text-sm text-muted">{P.oneoffText}</p>
+      <p class="mt-6 flex items-baseline gap-1.5"><span class="text-5xl font-bold tracking-tight">€49</span><span class="text-sm text-muted">{P.oneoffPer}</span></p>
+      <p class="mt-1 text-xs text-muted">{P.exVat}</p>
+      <ul class="mt-6 space-y-3 text-sm border-t border-slate-200 pt-6">
+        {P.oneoffFeatures.map((f) => (<li class="flex gap-2.5"><span class="text-brand-500"><Icon name="check" /></span>{f}</li>))}
+      </ul>
+      <a href={l('/#waitlist')} class="btn btn-primary mt-8 w-full">{P.join}<span class="sr-only"> {P.oneoffSr}</span></a>
+    </div>
+  </div>
+</div>

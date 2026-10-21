@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { i18n } from '../i18n';
+interface Props { kind: 'check' | 'error' }
+const { t, l } = i18n(Astro.url.pathname);
+const w = t.waitlist; const ok = Astro.props.kind === 'check';
+---
+<Base title={w.pageTitle} description={w.pageTitle}>
+  <PageHeader eyebrow={w.pageTitle} title={ok ? w.checkTitle : w.errTitle} lead={ok ? w.checkLead : w.errLead} narrow />
+  <div class="mx-auto max-w-3xl px-4 py-12"><a class="font-semibold text-brand-700 underline underline-offset-4" href={l('/')}>{w.back}</a></div>
+</Base>

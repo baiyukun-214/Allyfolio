@@ -1,0 +1,11 @@
+---
+import BlogPost from '../../../views/BlogPost.astro';
+import { getCollection } from 'astro:content';
+import { postSlug } from '../../../lib/posts';
+export async function getStaticPaths() {
+  const all = await getCollection('blog', ({ data }) => !data.draft);
+  const mine = all.filter((p) => p.data.lang === 'zh-CN');
+  return mine.map((post) => ({ params: { slug: postSlug(post.id) }, props: { post, hasTranslation: all.some((o) => o.data.lang !== 'zh-CN' && postSlug(o.id) === postSlug(post.id)) } }));
+}
+---
+<BlogPost post={Astro.props.post} hasTranslation={Astro.props.hasTranslation} />

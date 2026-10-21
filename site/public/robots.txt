@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://allyfolio.com/sitemap-index.xml

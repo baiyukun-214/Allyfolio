@@ -1,0 +1,168 @@
+---
+import Base from '../layouts/Base.astro';
+import Plans from '../components/Plans.astro';
+import Faq from '../components/Faq.astro';
+import Waitlist from '../components/Waitlist.astro';
+import Icon from '../components/Icon.astro';
+import { i18n } from '../i18n';
+const { t, l } = i18n(Astro.url.pathname);
+const H = t.home;
+const D = H.demo, F = H.fix;
+const sevCls = ['bg-red-50 text-red-800', 'bg-amber-50 text-amber-900', 'bg-brand-50 text-brand-700', 'bg-brand-50 text-brand-700'];
+const trailMeta = [
+  { d: '2026-09-01', cls: 'text-red-700 bg-red-50', h: 100 },
+  { d: '2026-09-08', cls: 'text-amber-800 bg-amber-50', h: 64 },
+  { d: '2026-09-15', cls: 'text-brand-700 bg-brand-50', h: 0 },
+  { d: '2026-09-22', cls: 'text-green-800 bg-green-50', h: 14 },
+];
+const trail = trailMeta.map((m, i) => ({ ...m, label: H.card.rows[i][0], what: H.card.rows[i][1], val: H.card.rows[i][2] }));
+// TODO: switch "Built for EU teams" to "EU data hosting" once backend hosting in the EU is confirmed.
+const trustIcons = ['ban', 'globe', 'check', 'clock'];
+const whyIcons = ['scale', 'chart', 'ban'];
+const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
+---
+<Base title={H.title} description={H.description}>
+  <section class="relative overflow-hidden bg-gradient-to-b from-brand-50 via-white to-white">
+    <div class="hero-glow" aria-hidden="true"></div><div class="hero-grid" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-6xl px-4 pt-14 pb-16 md:pt-24 md:pb-24 grid gap-12 lg:grid-cols-12 items-center">
+      <div class="lg:col-span-6">
+        <p class="rv inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700"><span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>{H.pill}</p>
+        <h1 class="rv mt-6 text-4xl sm:text-5xl lg:text-[3.6rem] font-bold tracking-[-0.03em] leading-[1.08] text-ink" data-d="60">{H.h1}</h1>
+        <p class="rv mt-6 text-lg text-muted leading-relaxed max-w-xl" data-d="120">{H.lead}</p>
+        <div class="rv mt-8 grid grid-cols-1 sm:flex gap-3" data-d="180">
+          <a href="#waitlist" class="btn btn-primary px-6">{H.ctaPrimary}</a>
+          <a href={l('/free-scan')} class="btn btn-secondary px-6">{H.ctaSecondary}</a>
+        </div>
+        <p class="mt-5 text-sm text-muted">{H.trustLine}</p>
+      </div>
+      <figure data-demo class="rv glass relative lg:col-span-6 rounded-3xl border border-brand-100 p-6 sm:p-7 shadow-2xl shadow-brand-900/15" data-d="120">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <figcaption class="font-semibold text-ink">{D.caption}</figcaption>
+          <span class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">{D.note}</span>
+        </div>
+        <div class="mt-5 flex items-center gap-2 rounded-xl border border-brand-200 bg-white px-3.5 py-2.5 font-mono text-sm text-ink">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#3b5bdb" stroke-width="2"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg>
+          <span data-url>{D.url}</span><span class="caret" aria-hidden="true"></span>
+        </div>
+        <div class="mt-5 flex items-center gap-5">
+          <div class="score-ring" data-p="82" role="img" aria-label={D.scoreLabel}>
+            <svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg>
+            <span aria-hidden="true" class="absolute inset-0 grid place-content-center text-center"><span data-score class="text-3xl font-bold text-ink leading-none">82</span><span class="mt-1 text-[11px] leading-tight text-muted">{D.score}</span></span>
+          </div>
+          <div class="min-w-0 flex-1" aria-hidden="true">
+            <p class="text-sm text-muted"><span data-status data-scanning={D.scanning}>{D.done}</span> · <span data-count data-total="48">48</span> / 48 {D.pages}</p>
+            <div class="prog mt-2"><span data-bar style="width:100%"></span></div>
+            <p class="mt-2 text-xs text-muted">{D.scoreSub}</p>
+          </div>
+        </div>
+        <ul class="mt-5 space-y-2 text-sm">
+          {D.issues.map(([name, sev, n], i) => (
+            <li class="demo-issue flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5">
+              <span class="text-ink">{name}</span>
+              <span class={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${sevCls[i]}`}>{sev} · <span data-n={n}>{n}</span></span>
+            </li>
+          ))}
+        </ul>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-label={H.trustAria} class="border-y border-slate-200 bg-white">
+    <ul class="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-medium text-ink">
+      {H.trust.map((x, i) => <li class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={trustIcons[i]} /></span>{x}</li>)}
+    </ul>
+  </section>
+
+  <section aria-labelledby="problem-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+    <p class="eyebrow rv">{H.why.eyebrow}</p>
+    <h2 id="problem-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.why.h2}</h2>
+    <div class="mt-10 grid gap-6 md:grid-cols-3">
+      {H.why.items.map(([title, d], i) => (
+        <div class="rv lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={i * 90}>
+          <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={whyIcons[i]} /></span>
+          <h3 class="mt-5 font-semibold text-lg text-ink">{title}</h3>
+          <p class="mt-2 text-muted leading-relaxed">{d}</p>
+        </div>
+      ))}
+    </div>
+    <p class="mt-6 flex gap-3 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-5 py-4 text-sm text-muted leading-relaxed"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span><span><strong class="text-ink">{H.micro.label}</strong> <Fragment set:html={H.micro.html} /></span></p>
+  </section>
+
+  <section id="how-it-works" aria-labelledby="how-heading" class="bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <p class="eyebrow rv">{H.how.eyebrow}</p>
+      <h2 id="how-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.how.h2}</h2>
+      <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {H.how.steps.map(([title, d], i) => (
+          <li class="rv lift rounded-2xl bg-white border border-slate-200 p-6 shadow-sm" data-d={i * 80}>
+            <span class="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-brand-700 to-indigo-600 text-sm font-semibold text-white shadow-md shadow-brand-900/20" aria-hidden="true">{i + 1}</span>
+            <h3 class="mt-4 font-semibold text-lg text-ink"><span class="sr-only">{H.how.step === '第' ? `第 ${i + 1} 步：` : `Step ${i + 1}: `}</span>{title}</h3>
+            <p class="mt-2 text-muted leading-relaxed">{d}</p>
+          </li>
+        ))}
+      </ol>
+      <div class="rv mt-8 grid gap-6 rounded-2xl border border-brand-200 bg-white p-6 shadow-sm md:grid-cols-12 md:items-center">
+        <p class="md:col-span-4 flex items-baseline gap-3"><span class="text-6xl font-bold tracking-tight text-gradient">~<span data-to={H.stat.value}>{H.stat.value}</span>{H.stat.suffix}</span></p>
+        <div class="md:col-span-8 text-sm text-muted leading-relaxed"><p class="font-medium text-ink">{H.stat.label}</p><p class="mt-2"><strong class="text-ink">{H.limits.label}</strong> <Fragment set:html={H.limits.html} /></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="features-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+    <p class="eyebrow rv">{H.features.eyebrow}</p>
+    <h2 id="features-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.features.h2}</h2>
+    <ul class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {H.features.items.map(([title, d], i) => (
+        <li class="rv lift group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={(i % 3) * 90}>
+          <span aria-hidden="true" class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-brand-100 to-violet-100 opacity-70 transition-transform duration-500 group-hover:scale-125"></span>
+          <span class="relative grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-indigo-600 text-white shadow-md shadow-brand-900/20"><Icon name={featIcons[i]} /></span>
+          <h3 class="relative mt-5 font-semibold text-lg text-ink">{title}</h3><p class="relative mt-2 text-muted leading-relaxed">{d}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section aria-labelledby="fix-heading" class="bg-gradient-to-b from-white to-brand-50/60 border-t border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <p class="eyebrow rv">{F.eyebrow}</p>
+      <h2 id="fix-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{F.h2}</h2>
+      <p class="mt-3 max-w-2xl text-muted rv">{F.lead}</p>
+      <div class="mt-10 grid gap-5 md:grid-cols-2">
+        <div class="rv lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p class="flex items-center justify-between gap-3"><span class="font-semibold text-ink">{F.before}</span><span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">{F.beforeNote}</span></p>
+          <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100"><code><span class="text-red-300">- &lt;img src="shoe.jpg"&gt;</span></code></pre>
+        </div>
+        <div class="rv lift rounded-2xl border border-brand-200 bg-white p-6 shadow-lg shadow-brand-900/10" data-d="120">
+          <p class="flex items-center justify-between gap-3"><span class="font-semibold text-ink">{F.after}</span><span class="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-800">{F.afterNote}</span></p>
+          <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100"><code><span class="text-green-300">+ &lt;img src="shoe.jpg" alt="Blue running shoe, side view"&gt;</span></code></pre>
+        </div>
+      </div>
+      <p class="rv mt-6 flex gap-3 text-sm text-muted"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span>{F.caveat}</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="pricing-heading" class="bg-brand-50/60 border-b border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <div class="md:flex md:items-end md:justify-between gap-6">
+        <div>
+          <p class="eyebrow rv">{H.pricing.eyebrow}</p>
+          <h2 id="pricing-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.pricing.h2}</h2>
+          <p class="mt-3 text-muted">{H.pricing.lead}</p>
+        </div>
+        <a class="mt-4 md:mt-0 inline-block font-semibold text-brand-700 underline underline-offset-4 hover:text-brand-900" href={l('/pricing')}>{H.pricing.link}</a>
+      </div>
+      <div class="mt-12"><Plans /></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24 grid gap-10 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <p class="eyebrow rv">{H.faq.eyebrow}</p>
+      <h2 id="faq-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.faq.h2}</h2>
+      <p class="mt-4 text-muted">{H.faq.more} <a class="text-brand-700 underline" href="mailto:hello@allyfolio.com">hello@allyfolio.com</a>.</p>
+    </div>
+    <div class="lg:col-span-8"><Faq /></div>
+  </section>
+
+  <Waitlist />
+</Base>

@@ -1,0 +1,11 @@
+---
+import Prose from '../layouts/Prose.astro';
+import { i18n } from '../i18n';
+import { prosePages } from '../i18n/pages';
+interface Props { page: 'about' | 'privacy' | 'imprint' | 'statement' | 'terms' | 'dpa' }
+const { lang, t } = i18n(Astro.url.pathname);
+const p = prosePages[lang][Astro.props.page];
+---
+<Prose eyebrow={p.eyebrow === 'legal' ? t.prose.legal : t.prose.about} title={p.title} description={p.description}>
+  <Fragment set:html={p.html} />
+</Prose>
