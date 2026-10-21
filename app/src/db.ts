@@ -59,6 +59,8 @@ export function db(): DatabaseSync {
   _db = new DatabaseSync(config.dbPath);
   _db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
   _db.exec(SCHEMA);
+  // Additive migrations (idempotent).
+  for (const m of ["ALTER TABLE users ADD COLUMN locale TEXT", "ALTER TABLE waitlist ADD COLUMN locale TEXT"]) { try { _db.exec(m); } catch { /* column exists */ } }
   return _db;
 }
 export const now = () => new Date().toISOString();

@@ -31,8 +31,8 @@ export function assertDowngradeFits(teamId: string, to: PlanId) {
   const p = PLANS[to];
   const sites = get<any>('SELECT COUNT(*) AS n FROM sites WHERE team_id = ?', teamId)!.n;
   const seats = get<any>('SELECT COUNT(*) AS n FROM memberships WHERE team_id = ?', teamId)!.n;
-  if (sites > p.sites) throw new LimitError(`${p.name} includes ${p.sites} site${p.sites === 1 ? '' : 's'}. Remove ${sites - p.sites} site(s) first.`);
-  if (seats > p.seats) throw new LimitError(`${p.name} includes ${p.seats} seat${p.seats === 1 ? '' : 's'}. Remove ${seats - p.seats} member(s) first.`);
+  if (sites > p.sites) throw new LimitError('downSites', to, p.sites, sites - p.sites);
+  if (seats > p.seats) throw new LimitError('downSeats', to, p.seats, seats - p.seats);
 }
 
 async function ensureCustomer(team: any, email: string) {
@@ -43,7 +43,7 @@ async function ensureCustomer(team: any, email: string) {
 }
 export async function createCheckout(team: any, email: string, what: PlanId | 'oneoff') {
   const customer = await ensureCustomer(team, email);
-  const base = { customer, client_reference_id: team.id, success_url: `${config.appUrl}/app/billing?ok=${encodeURIComponent('Payment received. Thank you!')}`, cancel_url: `${config.appUrl}/app/billing`, metadata: { team_id: team.id, kind: what } };
+  const base = { customer, client_reference_id: team.id, success_url: `${config.appUrl}/app/billing?paid=1`, cancel_url: `${config.appUrl}/app/billing`, metadata: { team_id: team.id, kind: what } };
   if (what === 'oneoff') {
     return stripe().checkout.sessions.create({ ...base, mode: 'payment', line_items: [{ price: priceFor('oneoff' as any), quantity: 1 }], invoice_creation: { enabled: true } });
   }

@@ -86,3 +86,11 @@ npm run typecheck
 - DNS rebinding: hosts are re-resolved per request, but there is a small window between check and connect; for stronger isolation run the scanner in a separate network namespace/egress proxy that blocks private ranges.
 - No password reset page (magic link covers it), no account deletion UI, no team switching for users in several teams.
 - Statement generator produces a draft only; it must be reviewed by the site owner.
+
+## Languages (en, zh-CN)
+
+All UI, emails, HTML/PDF reports and the statement draft come from `src/i18n.ts` (`t(locale)`).
+Locale priority: the user's setting (`/app/settings`, stored in `users.locale`) > `?lang=` (persisted to the `af_lang` cookie) > cookie > `Accept-Language` > English.
+The header switcher links to `/lang?to=…&next=…`, which sets the cookie (and the user's setting when logged in).
+`POST /api/scan` and `POST /api/waitlist` accept `lang`; scan results carry a localised `label` per impact group and Chinese rule help from axe-core's own `zh_CN` locale (English fallback for unmapped rules).
+PDF reports need a CJK font on the server; the Docker image installs `fonts-noto-cjk`.

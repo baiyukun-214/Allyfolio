@@ -8,6 +8,7 @@ import { config } from './config.ts';
 import { db } from './db.ts';
 import { publicRoutes } from './routes/public.ts';
 import appRoutes from './routes/index.ts';
+import { localeHook } from './routes/guard.ts';
 
 export async function buildServer() {
   db();
@@ -20,6 +21,8 @@ export async function buildServer() {
     reply.header('x-content-type-options', 'nosniff').header('referrer-policy', 'strict-origin-when-cross-origin').header('x-frame-options', 'DENY');
     return payload;
   });
+  app.decorateRequest('locale', 'en' as any);
+  app.addHook('onRequest', localeHook);
   await app.register(publicRoutes);
   await app.register(appRoutes);
   return app;

@@ -76,6 +76,13 @@ export async function scanPage(rawUrl: string, opts: { collectLinks?: boolean } 
   } finally { clearTimeout(deadline); await ctx.close().catch(() => {}); release(); }
 }
 
+import { createRequire } from 'node:module';
+import { t, type Locale } from '../i18n.ts';
+const axeZh = createRequire(import.meta.url)('axe-core/locales/zh_CN.json') as { rules: Record<string, { help: string }> };
+/** Localised rule help text: axe-core's own zh_CN translations, falling back to English. */
+export function ruleHelp(ruleId: string, english: string, l: Locale | string = 'en'): string {
+  return t(l).htmlLang === 'zh-CN' ? axeZh.rules[ruleId]?.help ?? english : english;
+}
 export function summarize(issues: Issue[]) {
   const counts: Record<Impact, number> = { critical: 0, serious: 0, moderate: 0, minor: 0 };
   const rules = new Map<string, { ruleId: string; impact: Impact; help: string; helpUrl: string; wcag: string[]; count: number; examples: string[] }>();
@@ -87,4 +94,4 @@ export function summarize(issues: Issue[]) {
   const byImpact = IMPACTS.map((impact) => ({ impact, count: counts[impact], rules: [...rules.values()].filter((r) => r.impact === impact).sort((a, b) => b.count - a.count) }));
   return { total: issues.length, counts, byImpact };
 }
-export const AUTOMATION_NOTE = 'Automated testing finds roughly 57% of accessibility issues (Deque study). A clean result does not mean the page is fully accessible – manual review by people is still needed.';
+export const AUTOMATION_NOTE = t('en').automationNote;

@@ -1,7 +1,8 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { get, all, run, now, tx } from '../db.ts';
 import { planOf, pageCap } from '../lib/plans.ts';
-import { scanPage, type Issue } from '../lib/scanner.ts';
+import { scanPage, ruleHelp, type Issue } from '../lib/scanner.ts';
+import { t } from '../i18n.ts';
 import { sitemapUrls, normaliseLink } from '../lib/crawler.ts';
 import { mailer } from '../lib/mailer.ts';
 import { config } from '../config.ts';
@@ -63,11 +64,14 @@ export async function runSiteScan(p: SiteScanPayload, log: any = console): Promi
 }
 
 async function alertTeam(site: any, scanId: string, issues: Issue[]) {
-  const emails = all<any>('SELECT u.email FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.team_id = ?', site.team_id).map((r) => r.email);
-  const byRule = new Map<string, number>(); for (const i of issues) byRule.set(i.help, (byRule.get(i.help) ?? 0) + 1);
-  const lines = [...byRule].slice(0, 10).map(([h, n]) => `- ${h} (${n})`).join('\n');
-  for (const to of emails) await mailer.send({ to, subject: `${issues.length} new serious accessibility issue${issues.length === 1 ? '' : 's'} on ${site.name}`,
-    text: `The latest scan of ${site.origin} found new serious or critical issues:\n\n${lines}\n\nDetails: ${config.appUrl}/app/scans/${scanId}\n\nAutomated checks find only part of all issues; manual review is still needed.` });
+  const members = all<any>('SELECT u.email, u.locale FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.team_id = ?', site.team_id);
+  const byRule = new Map<string, { help: string; n: number }>();
+  for (const i of issues) { const r = byRule.get(i.ruleId) ?? { help: i.help, n: 0 }; r.n++; byRule.set(i.ruleId, r); }
+  for (const m of members) {
+    const M = t(m.locale).mon;
+    const lines = [...byRule].slice(0, 10).map(([id, r]) => `- ${ruleHelp(id, r.help, m.locale ?? 'en')} (${r.n})`).join('\n');
+    await mailer.send({ to: m.email, subject: M.alertSubject(issues.length, site.name), text: M.alertBody(site.origin, lines, `${config.appUrl}/app/scans/${scanId}`) });
+  }
 }
 
 /** Delete scan history older than each team's plan retention (12 or 24 months). */

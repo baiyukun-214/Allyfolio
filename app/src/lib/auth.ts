@@ -14,11 +14,11 @@ export async function verifyPassword(pw: string, stored: string | null) {
 }
 export const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 
-export function createUserWithTeam(email: string, passwordHash: string | null, name = '') {
+export function createUserWithTeam(email: string, passwordHash: string | null, name = '', locale: string | null = null, teamName?: string) {
   return tx(() => {
     const uid = randomUUID(), tid = randomUUID(), t = now();
-    run('INSERT INTO users (id, email, password_hash, name, created_at) VALUES (?,?,?,?,?)', uid, email, passwordHash, name, t);
-    run('INSERT INTO teams (id, name, created_at) VALUES (?,?,?)', tid, `${name || email.split('@')[0]}'s team`, t);
+    run('INSERT INTO users (id, email, password_hash, name, created_at, locale) VALUES (?,?,?,?,?,?)', uid, email, passwordHash, name, t, locale);
+    run('INSERT INTO teams (id, name, created_at) VALUES (?,?,?)', tid, teamName ?? `${name || email.split('@')[0]}'s team`, t);
     run("INSERT INTO memberships (team_id, user_id, role, created_at) VALUES (?,?,'owner',?)", tid, uid, t);
     return { uid, tid };
   });
@@ -33,10 +33,10 @@ export function endSession(req: FastifyRequest, reply: FastifyReply) {
   reply.clearCookie(SESSION_COOKIE, { path: '/' });
 }
 function readSid(req: FastifyRequest) { const c = req.cookies[SESSION_COOKIE]; if (!c) return null; const u = req.unsignCookie(c); return u.valid ? u.value : null; }
-export interface Ctx { user: { id: string; email: string; name: string }; team: any; role: string }
+export interface Ctx { user: { id: string; email: string; name: string; locale?: string | null }; team: any; role: string }
 export function currentUser(req: FastifyRequest): Ctx | null {
   const sid = readSid(req); if (!sid) return null;
-  const u = get<any>('SELECT u.id, u.email, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?', sha256(sid), now());
+  const u = get<any>('SELECT u.id, u.email, u.name, u.locale FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?', sha256(sid), now());
   if (!u) return null;
   const m = get<any>('SELECT t.*, m.role FROM memberships m JOIN teams t ON t.id = m.team_id WHERE m.user_id = ? ORDER BY m.created_at LIMIT 1', u.id);
   return { user: u, team: m, role: m?.role };

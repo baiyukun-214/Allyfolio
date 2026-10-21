@@ -11,12 +11,17 @@ export const PAID: PlanId[] = ['starter', 'business', 'agency'];
 export const planOf = (id: string | null | undefined): Plan => PLANS[(id as PlanId)] ?? PLANS.none;
 export const rank = (id: PlanId) => ['none', 'starter', 'business', 'agency'].indexOf(id);
 
-export class LimitError extends Error { constructor(msg: string) { super(msg); this.name = 'LimitError'; } }
+import { t, type Locale } from '../i18n.ts';
+export type LimitCode = 'sites' | 'seats' | 'downSites' | 'downSeats';
+export class LimitError extends Error {
+  constructor(public code: LimitCode, public planId: PlanId, public n: number, public extra = 0) { super(`${code}:${planId}:${n}`); this.name = 'LimitError'; }
+  msg(l: Locale | string) { const T = t(l); const name = T.plans[this.planId]; return this.code === 'sites' || this.code === 'seats' ? T.limits[this.code](name, this.n) : T.limits[this.code](name, this.n, this.extra); }
+}
 export function assertCanAddSite(plan: Plan, currentSites: number) {
-  if (currentSites >= plan.sites) throw new LimitError(`Your ${plan.name} plan includes ${plan.sites} site${plan.sites === 1 ? '' : 's'}. Upgrade to add more.`);
+  if (currentSites >= plan.sites) throw new LimitError('sites', plan.id, plan.sites);
 }
 export function assertCanAddSeat(plan: Plan, currentSeats: number) {
-  if (currentSeats >= plan.seats) throw new LimitError(`Your ${plan.name} plan includes ${plan.seats} seat${plan.seats === 1 ? '' : 's'}. Upgrade to invite more people.`);
+  if (currentSeats >= plan.seats) throw new LimitError('seats', plan.id, plan.seats);
 }
 /** Page cap for a scan: subscription plan limit, or the one-off report limit. */
 export function pageCap(plan: Plan, oneoff: boolean) { return oneoff ? ONE_OFF.pages : plan.pagesPerSite; }

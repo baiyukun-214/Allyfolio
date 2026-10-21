@@ -1,0 +1,266 @@
+import type { FastifyReply, FastifyRequest } from 'fastify';
+export type Locale = 'en' | 'zh-CN';
+export const LOCALES: Locale[] = ['en', 'zh-CN'];
+export const LANG_COOKIE = 'af_lang';
+export const normLocale = (v: unknown): Locale | null => {
+  const s = String(v ?? '').toLowerCase();
+  if (s.startsWith('zh')) return 'zh-CN';
+  if (s.startsWith('en')) return 'en';
+  return null;
+};
+export function fromAcceptLanguage(h: string | undefined): Locale | null {
+  if (!h) return null;
+  const items = h.split(',').map((p) => { const [tag, q] = p.trim().split(';q='); return { tag, q: q ? Number(q) : 1 }; }).sort((a, b) => b.q - a.q);
+  for (const i of items) { const l = normLocale(i.tag); if (l) return l; }
+  return null;
+}
+/** Request locale without user setting: ?lang (persisted to cookie) > cookie > Accept-Language > en. */
+export function requestLocale(req: FastifyRequest, reply?: FastifyReply): Locale {
+  const q = normLocale((req.query as any)?.lang);
+  if (q) { reply?.setCookie(LANG_COOKIE, q, { path: '/', sameSite: 'lax', maxAge: 365 * 86400 }); return q; }
+  return normLocale(req.cookies?.[LANG_COOKIE]) ?? fromAcceptLanguage(req.headers['accept-language']) ?? 'en';
+}
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+const en = {
+  langName: 'English', htmlLang: 'en', dateLocale: 'en-GB',
+  switchLabel: '中文', switchAria: '切换到简体中文',
+  layout: { skip: 'Skip to main content', main: 'Main', sites: 'Sites', team: 'Team', billing: 'Billing', settings: 'Settings', logout: 'Log out', login: 'Log in', signup: 'Create account', footer: 'Allyfolio is a testing and documentation tool, not legal advice. Automated checks find only part of all accessibility issues.' },
+  impacts: { critical: 'Critical', serious: 'Serious', moderate: 'Moderate', minor: 'Minor' } as Record<string, string>,
+  automationNote: 'Automated testing finds roughly 57% of accessibility issues (Deque study). A clean result does not mean the page is fully accessible – manual review by people is still needed.',
+  errors: {
+    enterUrl: 'Please enter a URL.', tooLong: 'That URL is too long.', invalidUrl: 'That does not look like a valid URL.', scheme: 'Only http and https URLs can be scanned.',
+    credentials: 'URLs with credentials are not allowed.', port: 'Only standard ports (80 and 443) can be scanned.', notPublic: 'That address is not publicly reachable.',
+    fullDomain: 'Please use a full public domain name.', noDomain: 'We could not find that domain.', redirects: 'Too many redirects.',
+    timeout: 'The page took too long to load.', loadFail: 'We could not load that page.', scanFail: 'The scan failed.',
+    scanLimit: (n: number) => `You have reached the limit of ${n} free scans per hour. Please try again later.`,
+    email: 'Please enter a valid email address.', tooMany: 'Too many attempts. Please try again later.', csrf: 'Invalid form token. Please go back, reload the page and try again.',
+  },
+  limits: {
+    sites: (plan: string, n: number) => `Your ${plan} plan includes ${n} ${plural(n, 'site', 'sites')}. Upgrade to add more.`,
+    seats: (plan: string, n: number) => `Your ${plan} plan includes ${n} ${plural(n, 'seat', 'seats')}. Upgrade to invite more people.`,
+    downSites: (plan: string, n: number, extra: number) => `${plan} includes ${n} ${plural(n, 'site', 'sites')}. Remove ${extra} site(s) first.`,
+    downSeats: (plan: string, n: number, extra: number) => `${plan} includes ${n} ${plural(n, 'seat', 'seats')}. Remove ${extra} member(s) first.`,
+  },
+  plans: { none: 'No plan', starter: 'Starter', business: 'Business', agency: 'Agency' } as Record<string, string>,
+  waitlist: {
+    ok: 'Check your inbox and click the link to confirm your email.',
+    mailSubject: 'Confirm your place on the Allyfolio waitlist',
+    mailBody: (link: string) => `Hi,\n\nplease confirm your email to join the Allyfolio waitlist:\n${link}\n\nThe first 100 confirmed waitlist members get 30% off their first year.\nIf you did not sign up, ignore this email – we will not contact you again.\n\nAllyfolio`,
+    confirmedTitle: 'You are on the waitlist', invalidTitle: 'This link is not valid',
+    confirmedEarly: 'Thanks for confirming. You are one of the first 100 members, so you get 30% off your first year.',
+    confirmed: 'Thanks for confirming. We will email you when Allyfolio launches.', invalid: 'The confirmation link is invalid or has expired. Please sign up again.', back: 'Back to allyfolio.com',
+  },
+  auth: {
+    loginTitle: 'Log in', signupTitle: 'Create account', signupH: 'Create your account', loginH: 'Log in',
+    signupLead: 'Monitor your sites and keep a timestamped evidence trail.', loginLead: 'Welcome back.',
+    email: 'Work email', password: 'Password', pwHint: 'At least 10 characters.', magicH: 'Prefer a magic link?', magicEmail: 'Email', magicBtn: 'Email me a sign-in link',
+    have: 'Already have an account?', haveLink: 'Log in', newHere: 'New here?', newLink: 'Create an account',
+    tooMany: 'Too many attempts. Please wait a few minutes.', pwShort: 'Your password needs at least 10 characters.', exists: 'An account with this email already exists. Log in or use a magic link.',
+    wrong: 'Email or password is not correct.', checkTitle: 'Check your email', checkBody: 'If the address is valid, we sent a sign-in link to it. The link works once and expires in 15 minutes.',
+    linkInvalid: 'That sign-in link is invalid or has expired.',
+    mailSubject: 'Your Allyfolio sign-in link', mailBody: (link: string) => `Sign in to Allyfolio (link valid for 15 minutes, one use):\n${link}\n\nIf you did not request this, ignore this email.`,
+    inviteNotFound: 'Invite not found', inviteUsed: 'This invite was already used or withdrawn.', noSeat: 'No free seat', askOwner: 'Ask the team owner to upgrade.',
+    teamName: (n: string) => `${n}'s team`,
+  },
+  dash: {
+    sites: 'Sites', planPill: (plan: string, used: number, max: number) => `${plan} plan · ${used}/${max} ${plural(max, 'site', 'sites')}`,
+    noPlanH: 'No plan yet.', noPlan: 'Add and verify a site, then', noPlanLink: 'choose a plan', noPlanEnd: 'for scheduled scans, or buy a one-off report.',
+    yourSites: 'Your sites', colSite: 'Site', colOwner: 'Ownership', colLast: 'Last scan', colSerious: 'Critical + serious', verified: 'Verified', notVerified: 'Not verified', noSites: 'No sites yet.',
+    addH: 'Add a site', name: 'Name', namePh: 'Main shop', origin: 'Website address', addBtn: 'Add site',
+    invalidAddr: 'Invalid address.', dup: 'This site is already in your list.', notFound: 'Site not found', back: '← All sites',
+    verifiedVia: (m: string) => `Ownership verified (${m === 'dns' ? 'DNS' : 'meta tag'})`,
+    verifyH: 'Verify that you own this site', verifyLead: 'We only scan sites you control. Use one of these methods, then select “Check now”.',
+    opt1: 'Option 1: DNS TXT record', opt1Text: 'Add a TXT record to', opt2: 'Option 2: meta tag', opt2Text: 'Add this to the <head> of your home page:', checkNow: 'Check now',
+    verifyFail: 'We could not find the TXT record or meta tag yet. DNS changes can take a while – try again later.', verifyOk: 'Ownership verified.',
+    danger: 'Danger zone', remove: 'Remove site and its scan history', ownerOnlyRemove: 'Only the team owner can remove sites.', removed: 'Site removed.',
+    team: 'Team', seatsUsed: (u: number, m: number) => `${u}/${m} ${plural(m, 'seat', 'seats')} used`, members: 'Team members', colEmail: 'Email', colRole: 'Role', actions: 'Actions',
+    roles: { owner: 'Owner', member: 'Member' } as Record<string, string>, invited: 'Invited', removeBtn: 'Remove', inviteH: 'Invite someone', inviteBtn: 'Send invite',
+    ownerOnlyInvite: 'Only the team owner can invite people.', inviteSent: (e: string) => `Invite sent to ${e}.`, ownerOnlyRemoveM: 'Only the team owner can remove people.', memberRemoved: 'Member removed.',
+    inviteSubject: (team: string) => `You are invited to ${team} on Allyfolio`, inviteBody: (from: string, team: string, link: string) => `${from} invited you to join ${team} on Allyfolio:\n${link}`,
+    brandH: 'Report branding', brandName: 'Agency name', brandColor: 'Brand colour', brandColorHint: 'Hex, e.g. #1E3A8A. Must have 4.5:1 contrast on white.', brandLogo: 'Logo URL (https)', brandSave: 'Save branding',
+    settings: 'Settings', language: 'Language', languageHint: 'Used for the dashboard, emails, reports and statement drafts.', save: 'Save', saved: 'Settings saved.',
+  },
+  mon: {
+    note: 'Automated checks are partial.', noteText: 'They find roughly 57% of accessibility issues (Deque study). Manual review by people is still needed – for example for meaningful alt text, focus order and understandable content.',
+    status: 'Monitoring status', schedule: 'Schedule', daily: 'Daily', weekly: 'Weekly', none: 'None', next: 'Next', pageLimit: 'Page limit per scan', planSuffix: (p: string) => `${p} plan`,
+    history: 'History kept', months: (n: number) => `${n} months`, appendOnly: 'Timestamped, append-only',
+    scanNow: 'Scan now', queued: 'Scan queued…', oneoff: (n: number) => `Run one-off report scan (${n} left)`, statementBtn: 'Draft accessibility statement',
+    historyH: 'Scan history (evidence trail)', historyCaption: 'Scan history, newest first', colFinished: 'Finished', colType: 'Type', colPages: 'Pages', colCounts: 'Critical / serious / moderate / minor', colDiff: 'New / fixed', colHash: 'Evidence hash',
+    kinds: { scheduled: 'scheduled', manual: 'manual', oneoff: 'one-off', free: 'free' } as Record<string, string>, statuses: { running: 'running', failed: 'failed', done: 'done' } as Record<string, string>,
+    noScans: 'No scans yet.', firstQueued: ' The first scan is queued.',
+    choosePlan: 'Choose a plan to run scans.', scanQueuedMsg: 'Scan queued. Refresh the page in a few minutes.', noCredit: 'No one-off report credit left.', oneoffQueued: 'One-off scan queued (up to 100 pages).',
+    scanNotFound: 'Scan not found', scanOf: (s: string) => `Scan of ${s}`, finished: 'Finished', pagesN: (n: number) => `${n} ${plural(n, 'page', 'pages')}`, limit: 'limit', hash: 'evidence hash',
+    pdf: 'Download PDF report', printable: 'View printable report', diff: (n: number, f: number) => [`${n}`, ' new and ', `${f}`, ' fixed compared with the previous scan.'],
+    first: 'This is the first scan, so there is nothing to compare yet.', byRule: 'Issues by rule', elements: (n: number) => `${n} ${plural(n, 'element', 'elements')}`, newN: (n: number) => `${n} new`,
+    bestPractice: 'Best practice', howFix: 'How to fix (Deque University)', affected: 'Affected elements', colPage: 'Page', colElement: 'Element', more: (n: number) => `And ${n} more.`,
+    noIssues: 'No issues found by automated checks.', fixedH: 'Fixed since the previous scan', on: 'on',
+    alertSubject: (n: number, site: string) => `${n} new serious accessibility ${plural(n, 'issue', 'issues')} on ${site}`,
+    alertBody: (origin: string, lines: string, link: string) => `The latest scan of ${origin} found new serious or critical issues:\n\n${lines}\n\nDetails: ${link}\n\nAutomated checks find only part of all issues; manual review is still needed.`,
+  },
+  rep: {
+    title: (s: string) => `Accessibility report – ${s}`, kind: 'Accessibility scan report', finished: 'scan finished', pagesChecked: (n: number, lim: number) => `${n} pages checked (limit ${lim})`,
+    compared: (n: number, f: number) => `Compared with the previous scan: ${n} new, ${f} fixed.`,
+    coversH: 'What this report covers.', covers: 'It lists issues found by automated checks (axe-core in a real Chromium browser) against WCAG 2.0–2.2 level A and AA rules. Automated testing finds roughly 57% of accessibility issues (Deque study). It does not show that the site meets WCAG or the European Accessibility Act; manual review by people is still needed.',
+    byRule: 'Issues by rule', colImpact: 'Impact', colIssue: 'Issue', colWcag: 'WCAG', colElements: 'Elements', colPages: 'Pages', none: 'No issues found by automated checks.',
+    topPages: 'Pages with the most issues', colPage: 'Page', colIssues: 'Issues', evidence: 'Evidence',
+    evidenceText: 'This scan is stored unchanged in a timestamped history. Its evidence hash links it to the previous scan, so later edits would be detectable.',
+    scanId: 'Scan ID', hash: 'Evidence hash (SHA-256)', prev: 'Previous hash', firstScan: '– (first scan)',
+    preparedBy: (n: string) => `Prepared by ${n}.`, generated: 'Generated by Allyfolio.', notLegal: 'This report is documentation of automated testing, not legal advice.', page: 'Page', of: 'of',
+    pdfGate: 'PDF export is part of the Business and Agency plans and the one-off report.', statementGate: 'The statement generator is part of all paid plans.',
+    stTitle: 'Draft accessibility statement', stNoteH: 'This is a draft.', stNote: 'It is based on your latest automated scan. Review every section, add your manual review results and contact details, and fill the placeholders in [brackets] before publishing. It is not legal advice.',
+    stLabel: 'Statement (Markdown)', stDownload: 'Download as Markdown', brandGate: 'White-label reports are part of the Agency plan.', brandColor: 'Brand colour must be a hex value with at least 4.5:1 contrast on white.', brandLogo: 'Logo URL must start with https://', brandSaved: 'Branding saved.',
+  },
+  bill: {
+    title: 'Billing', notConfigured: 'Billing is not configured on this server yet (Stripe test keys missing). Plans can be set with npm run set-plan in development.',
+    current: 'Current plan', status: 'Status', periodEnds: 'current period ends', pending: (to: string, cur: string) => [`Your plan changes to `, to, ` at the end of the current period. Until then you keep your ${cur} limits.`],
+    credits: 'One-off report credits', portal: 'Invoices and payment method', earlyH: 'Early-bird offer:', early: 'as one of the first 100 waitlist members you get 30% off your first year. It is applied automatically at checkout.',
+    plans: 'Plans', terms: 'Billed monthly in euros, excl. VAT. Cancel any time, no minimum term. Upgrades apply immediately with a prorated charge; downgrades apply from the next billing cycle.',
+    perMonth: '/month', sitesN: (n: number) => `${n} ${plural(n, 'site', 'sites')}`, pagesN: (n: number) => `Up to ${n.toLocaleString('en-GB')} pages per site`, daily: 'Daily scans', weekly: 'Weekly scans',
+    history: (n: number) => `${n}-month evidence history`, pdf: 'PDF report export', wl: 'White-label (agency-branded) reports', seatsN: (n: number) => `${n} ${plural(n, 'seat', 'seats')}`,
+    currentPill: 'Current plan', upgrade: 'Upgrade now', downgrade: 'Downgrade at period end', choose: 'Choose',
+    oneoffH: 'One-off report', oneoff: (p: string) => `${p} – 1 site, up to 100 pages, a single scan and a PDF report. No subscription.`, buyOneoff: 'Buy one-off report',
+    ownerOnly: 'Only the team owner can manage billing.', unknown: 'Unknown plan.', hasSub: 'You already have a subscription. Change plan instead.', checkoutFail: 'Checkout is not available right now.',
+    noSub: 'No subscription to change.', upgraded: (p: string, c: string) => `Upgraded to ${p}. A prorated charge of ${c} was invoiced.`, downFrom: (p: string, d: string) => `${p} starts on ${d}.`, noChange: 'No change.',
+    changeFail: 'The plan change failed. Please try again.', noAccount: 'No billing account yet.', portalFail: 'The billing portal is not available right now.', paid: 'Payment received. Thank you!',
+  },
+  statement: {
+    h1: (host: string) => `Accessibility statement for ${host}`,
+    draft: (d: string) => `DRAFT generated by Allyfolio on ${d}. Review and edit every section before publishing. This draft is not legal advice.`,
+    intro: (org: string, host: string) => `${org} wants ${host} to be usable by as many people as possible. We aim to meet the Web Content Accessibility Guidelines (WCAG) 2.2 at level AA, the technical benchmark used with the European Accessibility Act (EAA) and the German BFSG via EN 301 549.`,
+    statusH: 'Conformance status', status: (host: string) => `[Choose one after your manual review: "fully conforms", "partially conforms" or "does not conform".] ${host} **partially conforms** to WCAG 2.2 level AA. The known issues are listed below.`,
+    knownH: 'Known issues', foundOn: (n: number) => `found on ${n} element(s)`, noSerious: 'Our automated checks did not find serious issues in the latest scan. Manual review results: [add].', noScan: '[No scan yet. Run a scan first.]',
+    addManual: '[Add issues found in manual review, e.g. keyboard traps, unclear link text, captions.]', working: 'We are working to fix these issues. [Add planned dates if you have them.]',
+    howH: 'How we tested', auto: (latest: string) => `Automated checks with axe-core in a real browser, run on a schedule${latest}. Automated testing finds roughly 57% of issues (Deque study).`,
+    latest: (d: string, n: number) => ` (latest scan: ${d}, ${n} pages)`, manual: 'Manual review: [describe – e.g. keyboard-only navigation, screen readers used, zoom to 200%].', noOverlay: 'We do not use an accessibility overlay widget.',
+    prepared: 'This statement was prepared on [date] and last reviewed on [date].', feedbackH: 'Feedback and contact',
+    feedback: (host: string) => `If you find a barrier on ${host}, please contact us: [email address], [phone]. We aim to reply within [5] working days.`,
+    enforceH: 'Enforcement procedure', enforce: '[Name the market surveillance authority for your country. In Germany: the Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen (MLBF). Check the current contact details.]',
+  },
+};
+export type Dict = typeof en;
+
+const zh: Dict = {
+  langName: '简体中文', htmlLang: 'zh-CN', dateLocale: 'zh-CN',
+  switchLabel: 'English', switchAria: 'Switch to English',
+  layout: { skip: '跳到主要内容', main: '主导航', sites: '网站', team: '团队', billing: '账单', settings: '设置', logout: '退出登录', login: '登录', signup: '注册账户', footer: 'Allyfolio 是一款测试与记录工具，不构成法律建议。自动化检测只能发现部分无障碍问题。' },
+  impacts: { critical: '严重', serious: '较严重', moderate: '中等', minor: '轻微' },
+  automationNote: '自动化测试大约能发现 57% 的无障碍问题（Deque 研究）。结果中没有问题并不代表页面已完全无障碍，仍需要人工审查。',
+  errors: {
+    enterUrl: '请输入网址。', tooLong: '网址过长。', invalidUrl: '这似乎不是有效的网址。', scheme: '只能扫描 http 和 https 网址。',
+    credentials: '网址中不能包含用户名或密码。', port: '只能扫描标准端口（80 和 443）。', notPublic: '该地址无法从公网访问。',
+    fullDomain: '请使用完整的公开域名。', noDomain: '找不到该域名。', redirects: '重定向次数过多。',
+    timeout: '页面加载时间过长。', loadFail: '无法加载该页面。', scanFail: '扫描失败。',
+    scanLimit: (n: number) => `您已达到每小时 ${n} 次免费扫描的上限，请稍后再试。`,
+    email: '请输入有效的邮箱地址。', tooMany: '尝试次数过多，请稍后再试。', csrf: '表单令牌无效。请返回并刷新页面后重试。',
+  },
+  limits: {
+    sites: (plan, n) => `您的${plan}包含 ${n} 个网站。如需添加更多，请升级方案。`,
+    seats: (plan, n) => `您的${plan}包含 ${n} 个席位。如需邀请更多成员，请升级方案。`,
+    downSites: (plan, n, extra) => `${plan}包含 ${n} 个网站。请先移除 ${extra} 个网站。`,
+    downSeats: (plan, n, extra) => `${plan}包含 ${n} 个席位。请先移除 ${extra} 位成员。`,
+  },
+  plans: { none: '未选方案', starter: '入门版', business: '商业版', agency: '代理商版' },
+  waitlist: {
+    ok: '请查收邮件并点击其中的链接确认您的邮箱。',
+    mailSubject: '请确认您在 Allyfolio 候补名单中的位置',
+    mailBody: (link) => `您好！\n\n请点击以下链接确认您的邮箱，加入 Allyfolio 候补名单：\n${link}\n\n前 100 位确认的候补名单成员首年享 7 折优惠。\n如果您没有注册，请忽略此邮件，我们不会再联系您。\n\nAllyfolio`,
+    confirmedTitle: '您已加入候补名单', invalidTitle: '该链接无效',
+    confirmedEarly: '感谢确认！您是前 100 位成员之一，首年可享 7 折优惠。',
+    confirmed: '感谢确认！Allyfolio 上线时我们会发邮件通知您。', invalid: '确认链接无效或已过期，请重新注册。', back: '返回 allyfolio.com',
+  },
+  auth: {
+    loginTitle: '登录', signupTitle: '注册账户', signupH: '创建您的账户', loginH: '登录',
+    signupLead: '监测您的网站，并保留带时间戳的证据记录。', loginLead: '欢迎回来。',
+    email: '工作邮箱', password: '密码', pwHint: '至少 10 个字符。', magicH: '想用登录链接？', magicEmail: '邮箱', magicBtn: '给我发送登录链接',
+    have: '已有账户？', haveLink: '登录', newHere: '还没有账户？', newLink: '注册账户',
+    tooMany: '尝试次数过多，请几分钟后再试。', pwShort: '密码至少需要 10 个字符。', exists: '该邮箱已注册。请登录或使用登录链接。',
+    wrong: '邮箱或密码不正确。', checkTitle: '请查收邮件', checkBody: '如果该地址有效，我们已向其发送登录链接。链接只能使用一次，15 分钟内有效。',
+    linkInvalid: '该登录链接无效或已过期。',
+    mailSubject: '您的 Allyfolio 登录链接', mailBody: (link) => `登录 Allyfolio（链接 15 分钟内有效，仅可使用一次）：\n${link}\n\n如果这不是您本人的操作，请忽略此邮件。`,
+    inviteNotFound: '未找到邀请', inviteUsed: '该邀请已被使用或已撤回。', noSeat: '没有空余席位', askOwner: '请联系团队所有者升级方案。',
+    teamName: (n) => `${n} 的团队`,
+  },
+  dash: {
+    sites: '网站', planPill: (plan, used, max) => `${plan} · ${used}/${max} 个网站`,
+    noPlanH: '尚未选择方案。', noPlan: '添加并验证网站后，', noPlanLink: '选择一个方案', noPlanEnd: '即可启用定期扫描，或购买单次报告。',
+    yourSites: '您的网站', colSite: '网站', colOwner: '所有权', colLast: '最近扫描', colSerious: '严重 + 较严重', verified: '已验证', notVerified: '未验证', noSites: '还没有网站。',
+    addH: '添加网站', name: '名称', namePh: '主网店', origin: '网站地址', addBtn: '添加网站',
+    invalidAddr: '地址无效。', dup: '该网站已在您的列表中。', notFound: '未找到网站', back: '← 所有网站',
+    verifiedVia: (m) => `所有权已验证（${m === 'dns' ? 'DNS' : 'meta 标签'}）`,
+    verifyH: '验证您拥有此网站', verifyLead: '我们只扫描您有权管理的网站。请使用以下任一方式，然后点击“立即检查”。',
+    opt1: '方式一：DNS TXT 记录', opt1Text: '为以下域名添加 TXT 记录：', opt2: '方式二：meta 标签', opt2Text: '将以下代码添加到首页的 <head> 中：', checkNow: '立即检查',
+    verifyFail: '暂未找到 TXT 记录或 meta 标签。DNS 变更可能需要一些时间，请稍后再试。', verifyOk: '所有权已验证。',
+    danger: '危险操作', remove: '移除网站及其扫描历史', ownerOnlyRemove: '只有团队所有者可以移除网站。', removed: '网站已移除。',
+    team: '团队', seatsUsed: (u, m) => `已使用 ${u}/${m} 个席位`, members: '团队成员', colEmail: '邮箱', colRole: '角色', actions: '操作',
+    roles: { owner: '所有者', member: '成员' }, invited: '已邀请', removeBtn: '移除', inviteH: '邀请成员', inviteBtn: '发送邀请',
+    ownerOnlyInvite: '只有团队所有者可以邀请成员。', inviteSent: (e) => `已向 ${e} 发送邀请。`, ownerOnlyRemoveM: '只有团队所有者可以移除成员。', memberRemoved: '成员已移除。',
+    inviteSubject: (team) => `您受邀加入 Allyfolio 上的 ${team}`, inviteBody: (from, team, link) => `${from} 邀请您加入 Allyfolio 上的 ${team}：\n${link}`,
+    brandH: '报告品牌', brandName: '代理商名称', brandColor: '品牌颜色', brandColorHint: '十六进制，例如 #1E3A8A。与白色背景的对比度须至少为 4.5:1。', brandLogo: '标志网址（https）', brandSave: '保存品牌设置',
+    settings: '设置', language: '语言', languageHint: '用于控制台、邮件、报告和声明草稿。', save: '保存', saved: '设置已保存。',
+  },
+  mon: {
+    note: '自动化检测只能覆盖一部分。', noteText: '它大约能发现 57% 的无障碍问题（Deque 研究）。仍需要人工审查，例如替代文本是否有意义、焦点顺序和内容是否易于理解。',
+    status: '监测状态', schedule: '扫描周期', daily: '每天', weekly: '每周', none: '无', next: '下次', pageLimit: '每次扫描的页面上限', planSuffix: (p) => p,
+    history: '历史保留', months: (n) => `${n} 个月`, appendOnly: '带时间戳，只增不改',
+    scanNow: '立即扫描', queued: '扫描已排队…', oneoff: (n) => `运行单次报告扫描（剩余 ${n} 次）`, statementBtn: '无障碍声明草稿',
+    historyH: '扫描历史（证据记录）', historyCaption: '扫描历史，最新的在前', colFinished: '完成时间', colType: '类型', colPages: '页面数', colCounts: '严重 / 较严重 / 中等 / 轻微', colDiff: '新增 / 已修复', colHash: '证据哈希',
+    kinds: { scheduled: '定期', manual: '手动', oneoff: '单次', free: '免费' }, statuses: { running: '进行中', failed: '失败', done: '完成' },
+    noScans: '还没有扫描记录。', firstQueued: '第一次扫描已排队。',
+    choosePlan: '请先选择方案再运行扫描。', scanQueuedMsg: '扫描已排队，请几分钟后刷新页面。', noCredit: '没有剩余的单次报告额度。', oneoffQueued: '单次扫描已排队（最多 100 个页面）。',
+    scanNotFound: '未找到扫描', scanOf: (s) => `${s} 的扫描`, finished: '完成于', pagesN: (n) => `${n} 个页面`, limit: '上限', hash: '证据哈希',
+    pdf: '下载 PDF 报告', printable: '查看可打印报告', diff: (n, f) => ['与上一次扫描相比：新增 ', `${n}`, ' 个，已修复 ', `${f}`, ' 个。'],
+    first: '这是第一次扫描，暂无可比较的数据。', byRule: '按规则分类的问题', elements: (n) => `${n} 个元素`, newN: (n) => `新增 ${n}`,
+    bestPractice: '最佳实践', howFix: '如何修复（Deque University，英文）', affected: '受影响的元素', colPage: '页面', colElement: '元素', more: (n) => `另有 ${n} 个。`,
+    noIssues: '自动化检测没有发现问题。', fixedH: '自上次扫描以来已修复', on: '位于',
+    alertSubject: (n, site) => `${site} 新增 ${n} 个较严重的无障碍问题`,
+    alertBody: (origin, lines, link) => `最近一次对 ${origin} 的扫描发现了新的严重或较严重问题：\n\n${lines}\n\n详情：${link}\n\n自动化检测只能发现部分问题，仍需要人工审查。`,
+  },
+  rep: {
+    title: (s) => `无障碍报告 – ${s}`, kind: '无障碍扫描报告', finished: '扫描完成于', pagesChecked: (n, lim) => `已检测 ${n} 个页面（上限 ${lim}）`,
+    compared: (n, f) => `与上一次扫描相比：新增 ${n} 个，已修复 ${f} 个。`,
+    coversH: '本报告涵盖的内容。', covers: '本报告列出自动化检测（在真实 Chromium 浏览器中运行 axe-core）对照 WCAG 2.0–2.2 A 级和 AA 级规则发现的问题。自动化测试大约能发现 57% 的无障碍问题（Deque 研究）。本报告并不表明网站满足 WCAG 或《欧洲无障碍法案》的要求，仍需要人工审查。',
+    byRule: '按规则分类的问题', colImpact: '影响程度', colIssue: '问题', colWcag: 'WCAG', colElements: '元素数', colPages: '页面数', none: '自动化检测没有发现问题。',
+    topPages: '问题最多的页面', colPage: '页面', colIssues: '问题数', evidence: '证据',
+    evidenceText: '本次扫描以原始状态保存在带时间戳的历史中。其证据哈希与上一次扫描相关联，因此任何事后修改都可以被发现。',
+    scanId: '扫描 ID', hash: '证据哈希（SHA-256）', prev: '上一次哈希', firstScan: '–（首次扫描）',
+    preparedBy: (n) => `由 ${n} 编制。`, generated: '由 Allyfolio 生成。', notLegal: '本报告是自动化测试的记录，不构成法律建议。', page: '第', of: '页，共',
+    pdfGate: 'PDF 导出仅适用于商业版、代理商版和单次报告。', statementGate: '声明生成器适用于所有付费方案。',
+    stTitle: '无障碍声明草稿', stNoteH: '这是一份草稿。', stNote: '它基于您最近一次自动化扫描。发布前请审阅每个部分，补充人工审查结果和联系方式，并填写 [方括号] 中的占位内容。本草稿不构成法律建议。',
+    stLabel: '声明（Markdown）', stDownload: '下载 Markdown 文件', brandGate: '白标报告仅适用于代理商版。', brandColor: '品牌颜色须为十六进制值，且与白色背景的对比度至少为 4.5:1。', brandLogo: '标志网址必须以 https:// 开头', brandSaved: '品牌设置已保存。',
+  },
+  bill: {
+    title: '账单', notConfigured: '此服务器尚未配置计费（缺少 Stripe 测试密钥）。开发环境中可使用 npm run set-plan 设置方案。',
+    current: '当前方案', status: '状态', periodEnds: '本期结束于', pending: (to, cur) => ['您的方案将在本期结束时变更为', to, `。在此之前，您仍可使用${cur}的额度。`],
+    credits: '单次报告额度', portal: '发票与付款方式', earlyH: '早鸟优惠：', early: '作为前 100 位候补名单成员，您首年可享 7 折优惠，结账时自动生效。',
+    plans: '方案', terms: '按月以欧元计费，不含增值税。可随时取消，无最短合约期。升级立即生效并按比例收费；降级从下一个计费周期开始生效。',
+    perMonth: '/月', sitesN: (n) => `${n} 个网站`, pagesN: (n) => `每个网站最多 ${n.toLocaleString('zh-CN')} 个页面`, daily: '每日扫描', weekly: '每周扫描',
+    history: (n) => `${n} 个月证据历史`, pdf: 'PDF 报告导出', wl: '白标（代理商品牌）报告', seatsN: (n) => `${n} 个席位`,
+    currentPill: '当前方案', upgrade: '立即升级', downgrade: '本期结束时降级', choose: '选择',
+    oneoffH: '单次报告', oneoff: (p) => `${p} – 1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。`, buyOneoff: '购买单次报告',
+    ownerOnly: '只有团队所有者可以管理账单。', unknown: '未知方案。', hasSub: '您已有订阅，请改为更换方案。', checkoutFail: '暂时无法结账。',
+    noSub: '没有可更换的订阅。', upgraded: (p, c) => `已升级到${p}。已开具按比例计算的 ${c} 账单。`, downFrom: (p, d) => `${p}将于 ${d} 生效。`, noChange: '没有变化。',
+    changeFail: '方案更换失败，请重试。', noAccount: '还没有计费账户。', portalFail: '计费门户暂时不可用。', paid: '已收到付款，谢谢！',
+  },
+  statement: {
+    h1: (host) => `${host} 无障碍声明`,
+    draft: (d) => `草稿：由 Allyfolio 于 ${d} 生成。发布前请审阅并修改每个部分。本草稿不构成法律建议。`,
+    intro: (org, host) => `${org} 希望尽可能多的人能够使用 ${host}。我们的目标是达到《Web 内容无障碍指南》（WCAG）2.2 AA 级。这是《欧洲无障碍法案》（EAA）和德国 BFSG 通过 EN 301 549 采用的技术基准。`,
+    statusH: '符合性状态', status: (host) => `[完成人工审查后请选择其一：“完全符合”“部分符合”或“不符合”。] ${host} **部分符合** WCAG 2.2 AA 级。已知问题列于下方。`,
+    knownH: '已知问题', foundOn: (n) => `涉及 ${n} 个元素`, noSerious: '在最近一次扫描中，自动化检测未发现严重问题。人工审查结果：[请补充]。', noScan: '[尚无扫描记录，请先运行扫描。]',
+    addManual: '[请补充人工审查中发现的问题，例如键盘陷阱、含义不清的链接文字、字幕等。]', working: '我们正在修复这些问题。[如有计划日期，请补充。]',
+    howH: '我们如何测试', auto: (latest) => `在真实浏览器中按计划运行 axe-core 自动化检测${latest}。自动化测试大约能发现 57% 的问题（Deque 研究）。`,
+    latest: (d, n) => `（最近一次扫描：${d}，${n} 个页面）`, manual: '人工审查：[请说明，例如仅用键盘导航、所用读屏软件、200% 缩放等]。', noOverlay: '我们不使用无障碍覆盖层插件。',
+    prepared: '本声明编制于 [日期]，最近一次审阅于 [日期]。', feedbackH: '反馈与联系方式',
+    feedback: (host) => `如果您在 ${host} 上遇到障碍，请联系我们：[邮箱地址]、[电话]。我们会尽量在 [5] 个工作日内回复。`,
+    enforceH: '执行程序', enforce: '[请填写您所在国家的市场监督机构。在德国为：Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen（MLBF）。请核实最新联系方式。]',
+  },
+};
+const dicts: Record<Locale, Dict> = { en, 'zh-CN': zh };
+export const t = (l: Locale | string | null | undefined): Dict => dicts[(normLocale(l) ?? 'en') as Locale];
+/** Translate an English message produced by lower layers (SSRF guard, scanner) into the target locale. */
+export function trError(l: Locale, msg: string): string {
+  const E = en.errors as Record<string, any>, Z = t(l).errors as Record<string, any>;
+  for (const k of Object.keys(E)) if (typeof E[k] === 'string' && E[k] === msg) return Z[k];
+  return msg;
+}
