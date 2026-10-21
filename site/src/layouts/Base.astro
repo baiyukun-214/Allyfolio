@@ -1,4 +1,5 @@
 ---
+import '@fontsource-variable/inter';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -35,7 +36,7 @@ const ogImage = new URL('/og-image.png', site).href;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
   </head>
-  <body class="min-h-screen flex flex-col bg-white text-slate-800 font-sans antialiased">
+  <body class="min-h-screen flex flex-col bg-white text-ink font-sans antialiased">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-white focus:text-brand-900 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">Skip to main content</a>
     <Header />
     <main id="main" tabindex="-1" class="flex-1 focus:outline-none">

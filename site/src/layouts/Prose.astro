@@ -1,11 +1,12 @@
 ---
 import Base from './Base.astro';
-interface Props { title: string; description: string; }
-const { title, description } = Astro.props;
+import PageHeader from '../components/PageHeader.astro';
+interface Props { title: string; description: string; eyebrow?: string; updated?: string }
+const { title, description, eyebrow, updated = 'October 2026' } = Astro.props;
 ---
 <Base title={title} description={description}>
-  <article class="mx-auto max-w-3xl px-4 py-16 prose prose-slate prose-a:text-brand-700">
-    <h1>{title}</h1>
+  <PageHeader title={title} eyebrow={eyebrow} updated={updated} narrow />
+  <article class="mx-auto max-w-3xl px-4 py-14 prose prose-slate prose-headings:text-ink prose-headings:tracking-tight prose-h2:mt-10 prose-a:text-brand-700 prose-p:text-muted prose-li:text-muted">
     <slot />
   </article>
 </Base>

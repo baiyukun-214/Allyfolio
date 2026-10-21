@@ -10,6 +10,7 @@ const blog = defineCollection({
     pubDate: z.coerce.date(),
     author: z.string().default('The Allyfolio team'),
     draft: z.boolean().default(false),
+    tags: z.array(z.string()).default([]),
   }),
 });
 

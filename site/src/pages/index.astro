@@ -3,79 +3,144 @@ import Base from '../layouts/Base.astro';
 import Plans from '../components/Plans.astro';
 import Faq from '../components/Faq.astro';
 import Waitlist from '../components/Waitlist.astro';
+import Icon from '../components/Icon.astro';
+const trail = [
+  { d: '2026-09-01', label: '1 Sep', what: 'Weekly scan', val: '42 issues', cls: 'text-red-700 bg-red-50', h: 100 },
+  { d: '2026-09-08', label: '8 Sep', what: 'Weekly scan', val: '27 issues', cls: 'text-amber-800 bg-amber-50', h: 64 },
+  { d: '2026-09-15', label: '15 Sep', what: 'Manual review logged', val: 'Note added', cls: 'text-brand-700 bg-brand-50', h: 0 },
+  { d: '2026-09-22', label: '22 Sep', what: 'Weekly scan', val: '6 issues', cls: 'text-green-800 bg-green-50', h: 14 },
+];
+const trust = [
+  { icon: 'ban', t: 'No overlay widget' },
+  { icon: 'globe', t: 'Built for EU teams' }, // TODO: switch to "EU hosting" once hosting region is confirmed.
+  { icon: 'check', t: 'WCAG 2.2 & EN 301 549 aligned checks' },
+  { icon: 'clock', t: 'Timestamped evidence' },
+];
+const why = [
+  { icon: 'scale', t: 'New legal requirements', d: 'Since 28 June 2025, the European Accessibility Act – in Germany the BFSG – requires many consumer-facing digital services, such as online shops, to be accessible.' },
+  { icon: 'chart', t: 'Hard to show progress', d: 'One-off audits go stale with every release. Small teams need an ongoing, documented record of what they tested, what they found and what they fixed.' },
+  { icon: 'ban', t: 'Overlays are not the answer', d: '"One line of code" widgets do not fix the underlying markup and can get in the way of assistive technology. Real fixes happen in your code.' },
+];
+const steps = [
+  ['Add your site', 'Choose the pages and user journeys that matter most.'],
+  ['Scheduled scans', 'Real browsers (Playwright) run axe-core checks weekly or daily.'],
+  ['Fix and review', 'Prioritised issues with code hints, plus a checklist for the manual review that automation cannot do.'],
+  ['Keep the evidence', 'Timestamped history, PDF reports and a draft accessibility statement.'],
+];
+const features = [
+  { icon: 'chart', t: 'Scheduled monitoring', d: 'Catch regressions after every release, not months later.' },
+  { icon: 'clock', t: 'Timestamped audit trail', d: 'A dated record of every scan, fix and manual review note.' },
+  { icon: 'doc', t: 'Draft accessibility statements', d: 'A structured starting point based on your results, for you to review.' },
+  { icon: 'file', t: 'Evidence reports', d: 'Clear PDF reports for management, clients or authorities.' },
+  { icon: 'users', t: 'Built for agencies', d: 'Manage many client sites and send white-label reports.' },
+  { icon: 'shield', t: 'No overlay, ever', d: 'Nothing is injected into your site. We help you fix the source.' },
+];
 ---
 <Base title="Allyfolio" description="Scheduled accessibility scans, a timestamped audit trail and draft accessibility statements for EU SMEs and agencies preparing for the European Accessibility Act and BFSG. No overlay widget.">
-  <section class="bg-gradient-to-b from-brand-50 to-white">
-    <div class="mx-auto max-w-6xl px-4 py-20 md:py-28 grid gap-10 md:grid-cols-2 items-center">
-      <div>
-        <p class="font-semibold text-brand-700">European Accessibility Act &amp; BFSG</p>
-        <h1 class="mt-2 text-4xl md:text-5xl font-bold tracking-tight text-slate-900">Show your accessibility work, not just promise it.</h1>
-        <p class="mt-6 text-lg text-slate-700">Allyfolio scans your website on a schedule, tracks every issue over time and keeps a timestamped evidence trail – so you can prove real progress towards the EAA and the German BFSG.</p>
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a href="#waitlist" class="rounded-md bg-brand-700 px-5 py-3 font-semibold text-white hover:bg-brand-900">Join the waitlist</a>
-          <a href="/free-scan" class="rounded-md border border-brand-700 px-5 py-3 font-semibold text-brand-700 hover:bg-brand-50">Free scan (coming soon)</a>
+  <section class="bg-gradient-to-b from-brand-50 via-brand-50/60 to-white">
+    <div class="mx-auto max-w-6xl px-4 pt-14 pb-16 md:pt-24 md:pb-24 grid gap-12 lg:grid-cols-12 items-center">
+      <div class="lg:col-span-6">
+        <p class="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700"><span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>EAA in force since 28 June 2025</p>
+        <h1 class="mt-6 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.08] text-ink">Show your accessibility work, not just promise it.</h1>
+        <p class="mt-6 text-lg text-muted leading-relaxed max-w-xl">Allyfolio scans your website on a schedule, tracks every issue over time and keeps a timestamped evidence trail – so you can prove real progress towards the EAA and the German BFSG.</p>
+        <div class="mt-8 grid grid-cols-1 sm:flex gap-3">
+          <a href="#waitlist" class="btn btn-primary px-6">Join the waitlist</a>
+          <a href="/free-scan" class="btn btn-secondary px-6">Free scan <span class="font-normal text-muted">(coming soon)</span></a>
         </div>
-        <p class="mt-4 text-sm text-slate-600">No overlay widget. No scripts injected into your site.</p>
+        <p class="mt-5 text-sm text-muted">No overlay widget · No scripts injected into your site</p>
       </div>
-      <figure class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <figcaption class="text-sm font-semibold text-slate-900">Example audit trail</figcaption>
-        <ol class="mt-4 space-y-3 text-sm">
-          <li class="flex justify-between gap-4 border-b border-slate-100 pb-2"><span><time datetime="2026-09-01">1 Sep 2026</time> – weekly scan</span><span class="font-semibold text-red-800">42 issues</span></li>
-          <li class="flex justify-between gap-4 border-b border-slate-100 pb-2"><span><time datetime="2026-09-08">8 Sep 2026</time> – weekly scan</span><span class="font-semibold text-amber-800">27 issues</span></li>
-          <li class="flex justify-between gap-4 border-b border-slate-100 pb-2"><span><time datetime="2026-09-15">15 Sep 2026</time> – manual review logged</span><span class="font-semibold text-slate-700">note added</span></li>
-          <li class="flex justify-between gap-4"><span><time datetime="2026-09-22">22 Sep 2026</time> – weekly scan</span><span class="font-semibold text-green-800">6 issues</span></li>
+      <figure class="lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-2xl shadow-brand-900/10">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <figcaption class="font-semibold text-ink">Audit trail <span class="font-normal text-muted">· shop.example.de</span></figcaption>
+          <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-muted">Illustrative data</span>
+        </div>
+        <div aria-hidden="true" class="mt-6 flex h-28 items-end gap-3 border-b border-slate-200">
+          {trail.map((t) => <div class="flex-1 rounded-t-md bg-brand-500/85" style={`height:${t.h || 3}%`}></div>)}
+        </div>
+        <ol class="mt-2 divide-y divide-slate-100 text-sm">
+          {trail.map((t) => (
+            <li class="flex items-center justify-between gap-3 py-3">
+              <span class="min-w-0"><time datetime={t.d} class="inline-block w-14 font-medium text-ink">{t.label}</time><span class="text-muted">{t.what}</span></span>
+              <span class={`shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-semibold ${t.cls}`}>{t.val}</span>
+            </li>
+          ))}
         </ol>
-        <p class="mt-4 text-xs text-slate-600">Illustrative data.</p>
       </figure>
     </div>
   </section>
 
-  <section aria-labelledby="problem-heading" class="mx-auto max-w-6xl px-4 py-16">
-    <h2 id="problem-heading" class="text-3xl font-bold text-slate-900">The EAA has applied since 28 June 2025</h2>
-    <div class="mt-6 grid gap-8 md:grid-cols-3 text-slate-700">
-      <div><h3 class="font-semibold text-slate-900 text-lg">New legal requirements</h3><p class="mt-2">Since 28 June 2025, the European Accessibility Act – in Germany the BFSG – requires many consumer-facing digital services, such as online shops, to be accessible.</p></div>
-      <div><h3 class="font-semibold text-slate-900 text-lg">Hard to show progress</h3><p class="mt-2">One-off audits go stale with every release. Small teams need an ongoing, documented record of what they tested, what they found and what they fixed.</p></div>
-      <div><h3 class="font-semibold text-slate-900 text-lg">Overlays are not the answer</h3><p class="mt-2">"One line of code" widgets do not fix the underlying markup and can get in the way of assistive technology. Real fixes happen in your code.</p></div>
-    </div>
-    <p class="mt-8 rounded-lg bg-slate-50 border border-slate-200 p-4 text-slate-700"><strong>Microenterprise exemption:</strong> businesses providing services with fewer than 10 staff <em>and</em> an annual turnover or balance sheet total of no more than €2 million are exempt from the EAA's service requirements. Accessibility still helps your customers – but you may not be legally required to act. This is not legal advice.</p>
-  </section>
-
-  <section id="how-it-works" aria-labelledby="how-heading" class="bg-slate-50">
-    <div class="mx-auto max-w-6xl px-4 py-16">
-      <h2 id="how-heading" class="text-3xl font-bold text-slate-900">How it works</h2>
-      <ol class="mt-8 grid gap-6 md:grid-cols-4">
-        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 1</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Add your site</h3><p class="mt-2 text-slate-700">Choose the pages and user journeys that matter most.</p></li>
-        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 2</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Scheduled scans</h3><p class="mt-2 text-slate-700">Real browsers (Playwright) run axe-core checks weekly or daily.</p></li>
-        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 3</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Fix and review</h3><p class="mt-2 text-slate-700">Prioritised issues with code hints, plus a checklist for the manual review that automation cannot do.</p></li>
-        <li class="rounded-xl bg-white border border-slate-200 p-6"><p class="text-sm font-semibold text-brand-700">Step 4</p><h3 class="mt-1 font-semibold text-lg text-slate-900">Keep the evidence</h3><p class="mt-2 text-slate-700">Timestamped history, PDF reports and a draft accessibility statement.</p></li>
-      </ol>
-      <p class="mt-8 text-slate-700"><strong>Honest limits:</strong> automated testing finds roughly 57% of accessibility issues, according to a <a class="text-brand-700 underline" href="https://www.deque.com/automated-accessibility-testing-coverage/">Deque study of automated testing coverage</a>. The rest – such as meaningful alt text, logical focus order and understandable content – needs manual review by people.</p>
-    </div>
-  </section>
-
-  <section aria-labelledby="features-heading" class="mx-auto max-w-6xl px-4 py-16">
-    <h2 id="features-heading" class="text-3xl font-bold text-slate-900">Features</h2>
-    <ul class="mt-8 grid gap-6 md:grid-cols-3 text-slate-700">
-      <li><h3 class="font-semibold text-lg text-slate-900">Scheduled monitoring</h3><p class="mt-2">Catch regressions after every release, not months later.</p></li>
-      <li><h3 class="font-semibold text-lg text-slate-900">Timestamped audit trail</h3><p class="mt-2">A dated record of every scan, fix and manual review note.</p></li>
-      <li><h3 class="font-semibold text-lg text-slate-900">Draft accessibility statements</h3><p class="mt-2">A structured starting point based on your results, for you to review.</p></li>
-      <li><h3 class="font-semibold text-lg text-slate-900">Evidence reports</h3><p class="mt-2">Clear PDF reports for management, clients or authorities.</p></li>
-      <li><h3 class="font-semibold text-lg text-slate-900">Built for agencies</h3><p class="mt-2">Manage many client sites and send white-label reports.</p></li>
-      <li><h3 class="font-semibold text-lg text-slate-900">No overlay, ever</h3><p class="mt-2">Nothing is injected into your site. We help you fix the source.</p></li>
+  <section aria-label="Key facts" class="border-y border-slate-200 bg-white">
+    <ul class="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-medium text-ink">
+      {trust.map((t) => <li class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={t.icon} /></span>{t.t}</li>)}
     </ul>
   </section>
 
-  <section aria-labelledby="pricing-heading" class="bg-slate-50">
-    <div class="mx-auto max-w-6xl px-4 py-16">
-      <h2 id="pricing-heading" class="text-3xl font-bold text-slate-900">Simple pricing</h2>
-      <p class="mt-2 text-slate-700">Monthly plans, cancel any time. <a class="text-brand-700 underline" href="/pricing">See full pricing details</a>.</p>
-      <div class="mt-8"><Plans /></div>
+  <section aria-labelledby="problem-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+    <p class="eyebrow">Why now</p>
+    <h2 id="problem-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">The EAA has applied since 28 June 2025</h2>
+    <div class="mt-10 grid gap-6 md:grid-cols-3">
+      {why.map((w) => (
+        <div class="rounded-2xl border border-slate-200 p-6">
+          <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={w.icon} /></span>
+          <h3 class="mt-5 font-semibold text-lg text-ink">{w.t}</h3>
+          <p class="mt-2 text-muted leading-relaxed">{w.d}</p>
+        </div>
+      ))}
+    </div>
+    <p class="mt-6 flex gap-3 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-5 py-4 text-sm text-muted leading-relaxed"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span><span><strong class="text-ink">Microenterprise exemption:</strong> businesses providing services with fewer than 10 staff <em>and</em> an annual turnover or balance sheet total of no more than €2 million are exempt from the EAA's service requirements. Accessibility still helps your customers – but you may not be legally required to act. This is not legal advice.</span></p>
+  </section>
+
+  <section id="how-it-works" aria-labelledby="how-heading" class="bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <p class="eyebrow">How it works</p>
+      <h2 id="how-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">From first scan to lasting evidence</h2>
+      <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map(([t, d], i) => (
+          <li class="rounded-2xl bg-white border border-slate-200 p-6">
+            <span class="grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-sm font-semibold text-white" aria-hidden="true">{i + 1}</span>
+            <h3 class="mt-4 font-semibold text-lg text-ink"><span class="sr-only">Step {i + 1}: </span>{t}</h3>
+            <p class="mt-2 text-muted leading-relaxed">{d}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="mt-6 flex gap-3 rounded-xl border-l-4 border-brand-500 bg-white px-5 py-4 text-sm text-muted leading-relaxed"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span><span><strong class="text-ink">Honest limits:</strong> automated testing finds roughly 57% of accessibility issues, according to a <a class="text-brand-700 underline" href="https://www.deque.com/automated-accessibility-testing-coverage/">Deque study of automated testing coverage</a>. The rest – such as meaningful alt text, logical focus order and understandable content – needs manual review by people.</span></p>
     </div>
   </section>
 
-  <section aria-labelledby="faq-heading" class="mx-auto max-w-3xl px-4 py-16">
-    <h2 id="faq-heading" class="text-3xl font-bold text-slate-900">Frequently asked questions</h2>
-    <div class="mt-8"><Faq /></div>
+  <section aria-labelledby="features-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+    <p class="eyebrow">Features</p>
+    <h2 id="features-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">Everything you need to show your work</h2>
+    <ul class="mt-10 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      {features.map((f) => (
+        <li class="flex gap-4">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={f.icon} /></span>
+          <div><h3 class="font-semibold text-ink">{f.t}</h3><p class="mt-1 text-muted leading-relaxed">{f.d}</p></div>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section aria-labelledby="pricing-heading" class="bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <div class="md:flex md:items-end md:justify-between gap-6">
+        <div>
+          <p class="eyebrow">Pricing</p>
+          <h2 id="pricing-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">Simple monthly plans</h2>
+          <p class="mt-3 text-muted">Cancel any time. Prices exclude VAT.</p>
+        </div>
+        <a class="mt-4 md:mt-0 inline-block font-semibold text-brand-700 underline underline-offset-4 hover:text-brand-900" href="/pricing">Compare all plans and the one-off report →</a>
+      </div>
+      <div class="mt-12"><Plans /></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24 grid gap-10 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">Frequently asked questions</h2>
+      <p class="mt-4 text-muted">Something else? Email <a class="text-brand-700 underline" href="mailto:hello@allyfolio.com">hello@allyfolio.com</a>.</p>
+    </div>
+    <div class="lg:col-span-8"><Faq /></div>
   </section>
 
   <Waitlist />

@@ -2,6 +2,7 @@
 title: "What the European Accessibility Act means for small businesses"
 description: "A plain-English overview of the EAA and the German BFSG: who is affected, the microenterprise exemption, and what automated testing can and cannot do."
 pubDate: 2026-10-01
+tags: ["EAA", "BFSG", "Testing"]
 ---
 
 The **European Accessibility Act (EAA)** has applied since **28 June 2025**. In Germany it is implemented by the **Barrierefreiheitsstärkungsgesetz (BFSG)**.
