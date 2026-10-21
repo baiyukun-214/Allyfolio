@@ -70,7 +70,8 @@ header.top .sitebar .in { min-height: 0; display: block; padding-top: 6px; paddi
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
 main { animation: af-in .28s ease-out both; }
 @keyframes af-in { from { transform: translateY(6px); } }
-header.top { position: sticky; top: 0; z-index: 20; background: rgb(255 255 255 / .82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); }
+@media (min-width: 760px) { header.top { position: sticky; top: 0; z-index: 20; } }
+header.top { background: rgb(255 255 255 / .82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); }
 html { scroll-padding-top: 88px; }
 .card { box-shadow: 0 1px 2px rgb(15 23 42 / .04); transition: box-shadow .2s, border-color .2s, transform .2s; }
 .btn { transition: background-color .15s, border-color .15s, transform .15s, box-shadow .2s; }
@@ -80,7 +81,7 @@ html { scroll-padding-top: 88px; }
 .kpi .stat { font-size: 34px; font-weight: 700; letter-spacing: -.02em; margin: 4px 0 8px; }
 .kpi .sub { color: var(--muted); font-weight: 400; }
 .kpi-score { display: flex; gap: 16px; align-items: center; background: linear-gradient(160deg, #fff, var(--tint)); border-color: var(--tint-200); }
-.kpi-score p { margin: 0; }
+.kpi-score p { margin: 0 0 4px; }
 .good { color: var(--green); font-weight: 600; }
 .ring { --p: 0; position: relative; width: 112px; height: 112px; flex-shrink: 0; }
 .ring svg { transform: rotate(-90deg); display: block; }
@@ -92,7 +93,7 @@ html { scroll-padding-top: 88px; }
 .spark { display: block; margin: 8px 0; }
 .facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .facts p { margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-.chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.chips { display: inline-flex; gap: 6px; flex-wrap: nowrap; }
 .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .chip.zero { background: #f1f5f9 !important; color: var(--muted) !important; }

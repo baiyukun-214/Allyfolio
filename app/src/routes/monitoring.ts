@@ -25,7 +25,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
   const scanBtn = plan.frequency ? html`<form method="post" action="/app/sites/${s.id}/scan" data-scan-form data-status-url="/app/sites/${s.id}/scan-status">${csrfField(req)}<button class="btn btn-primary" type="submit" ${pending ? 'disabled' : ''}>${pending ? M.queued : M.scanNow}</button></form>` : '';
   return html`
     ${latest ? html`<section class="kpis" aria-label="${M.status}" id="kpis">
-      <div class="card kpi kpi-score">${scoreRing(automatedScore(latest), M.scoreAria(automatedScore(latest)), M.scoreSub)}<p class="small muted">${M.scoreHint}</p></div>
+      <div class="card kpi kpi-score">${scoreRing(automatedScore(latest), M.scoreAria(automatedScore(latest)), M.scoreSub)}<div><p class="small"><strong>${M.score}</strong></p><p class="small muted">${M.scoreHint}</p></div></div>
       <div class="card kpi"><p class="muted small">${M.openIssues} <span class="sub">· ${M.openSub}</span></p><p class="stat" data-to="${totalIssues(latest)}">${totalIssues(latest)}</p>${sevChips(latest, Tx.impacts)}</div>
       <div class="card kpi"><p class="muted small">${M.fixedWeek} <span class="sub">· ${M.fixedSub}</span></p><p class="stat" data-to="${tr.fixedWeek}">${tr.fixedWeek}</p></div>
       <div class="card kpi"><p class="muted small">${M.trend}</p>${sparkline(tr.series, M.trendAria)}<p class="small ${tr.delta !== null && tr.delta < 0 ? 'good' : 'muted'}">${tr.delta === null ? M.trendNone : M.trendDelta(tr.delta)}</p></div>
