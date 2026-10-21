@@ -25,15 +25,15 @@ const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4h16v2H2zm0 5h16v2H2zm0 5h16v2H2z"/></svg>
       {t.nav.menu}
     </button>
-    <nav id="site-nav" aria-label={t.nav.main} class="hidden lg:block absolute lg:static left-0 right-0 top-full bg-white border-b lg:border-0 border-slate-200 shadow-lg lg:shadow-none z-40">
+    <nav id="site-nav" aria-label={t.nav.main} class="hidden lg:block absolute lg:static left-0 right-0 top-full bg-white lg:bg-transparent border-b lg:border-0 border-slate-200 shadow-lg lg:shadow-none z-40">
       <ul class="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-1 p-4 lg:p-0">
         {links.map((x) => (
           <li><a href={l(x.href)} aria-current={current === x.href ? 'page' : undefined} class={`${linkCls} aria-[current=page]:text-brand-700 aria-[current=page]:underline decoration-2 underline-offset-8`}>{x.label}</a></li>
         ))}
-        <li class="lg:ml-1 lg:pl-2 lg:border-l lg:border-slate-200 mt-2 lg:mt-0 border-t border-slate-200 pt-2 lg:pt-0"><LangSwitch class={linkCls} hasTranslation={Astro.props.hasTranslation} /></li>
-        <li data-auth="out"><a href={appLink('/login', lang)} class={linkCls}>{t.nav.login}</a></li>
+        <li class="mt-2 lg:mt-0 border-t lg:border-0 border-slate-200 pt-2 lg:pt-0"><LangSwitch class={linkCls} hasTranslation={Astro.props.hasTranslation} /></li>
+        <li data-auth="out" class="lg:ml-1 lg:pl-2 lg:border-l lg:border-slate-200"><a href={appLink('/login', lang)} class={linkCls}>{t.nav.login}</a></li>
         <li data-auth="out"><a href={appLink('/signup', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.signup}</a></li>
-        <li data-auth="in" hidden><a href={appLink('/app', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.dashboard}</a></li>
+        <li data-auth="in" hidden class="lg:ml-1 lg:pl-2 lg:border-l lg:border-slate-200"><a href={appLink('/app', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.dashboard}</a></li>
         <li class="lg:ml-1 mt-2 lg:mt-0"><a href={l('/#waitlist')} class="btn btn-primary w-full lg:w-auto py-2 text-sm">{t.nav.waitlist}</a></li>
       </ul>
     </nav>
