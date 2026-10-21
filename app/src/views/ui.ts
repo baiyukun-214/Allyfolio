@@ -1,7 +1,11 @@
 // Small server-rendered UI pieces shared by dashboard pages. Final values are in the HTML; app.js only animates them.
 import { html, type Html } from '../lib/html.ts';
-export function scoreRing(score: number, aria: string, sub: string): Html {
-  return html`<div class="ring" style="--p:${score}" data-p="${score}" role="img" aria-label="${aria}"><svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg><span class="ring-v" aria-hidden="true"><b data-to="${score}">${score}</b><small>${sub}</small></span></div>`;
+/** Score ring + visible label and caption; the caption is tied to the ring with aria-describedby. */
+export function scoreBlock(id: string, score: number, M: { score: string; scoreOutOf: string; scoreAria: (n: number) => string; scoreNote: string }): Html {
+  return html`<div class="score-block">${scoreRing(score, M.scoreAria(score), M.scoreOutOf, `${id}-note`)}<div><p class="small"><strong>${M.score}</strong></p><p class="small muted score-note" id="${id}-note">${M.scoreNote}</p></div></div>`;
+}
+export function scoreRing(score: number, aria: string, sub: string, describedBy = ''): Html {
+  return html`<div class="ring" style="--p:${score}" data-p="${score}" role="img" aria-label="${aria}" ${describedBy ? html`aria-describedby="${describedBy}"` : ''}><svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg><span class="ring-v" aria-hidden="true"><b data-to="${score}">${score}</b><small>${sub}</small></span></div>`;
 }
 export function sparkline(values: number[], aria: string): Html {
   if (values.length < 2) return html``;

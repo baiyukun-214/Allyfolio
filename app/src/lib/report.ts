@@ -8,6 +8,7 @@ import { browser } from './scanner.ts';
 import { readFileSync } from 'node:fs';
 const FONT = 'data:font/woff2;base64,' + readFileSync(new URL('../../public/inter.woff2', import.meta.url)).toString('base64');
 import { raw } from './html.ts';
+import { automatedScore } from './insights.ts';
 
 export interface Branding { name: string; color: string; logoDataUri: string | null; whiteLabel: boolean }
 /** Logo is fetched server-side through the SSRF guard and inlined, so the PDF renderer never touches the network. */
@@ -42,6 +43,7 @@ export function reportHtml(scanId: string, b: Branding, l: Locale = 'en'): strin
     .muted { color: #475569; } table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; } th { color: #475569; font-weight: 600; }
     .stats { display: flex; gap: 12px; } .stat { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; } .stat b { display: block; font-size: 22px; }
     .note { background: #eef2ff; border-left: 4px solid #3b5bdb; padding: 10px 14px; border-radius: 6px; margin: 16px 0; }
+    .score { display: flex; gap: 16px; align-items: center; border: 1px solid #c7d2fe; background: #f8faff; border-radius: 8px; padding: 12px 14px; margin: 16px 0; } .score .v { font-size: 30px; font-weight: 700; color: ${b.color}; white-space: nowrap; } .score .v small { font-size: 12px; color: #475569; font-weight: 400; } .score p { margin: 2px 0 0; }
     code { font-size: 10px; word-break: break-all; } footer { margin-top: 32px; font-size: 10px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 8px; }
   </style></head><body>
   <header><div class="brand">${b.logoDataUri ? html`<img src="${b.logoDataUri}" alt="${b.name}">` : ''}<span>${b.name}</span></div><div class="muted">${R.kind}</div></header>
@@ -49,6 +51,7 @@ export function reportHtml(scanId: string, b: Branding, l: Locale = 'en'): strin
   <h1>${scan.site_name}</h1>
   <p class="muted">${scan.origin} · ${R.finished} ${fmt(scan.finished_at, l)} · ${R.pagesChecked(scan.pages_scanned, scan.page_limit)}</p>
   <div class="stats">${IMPACTS.map((k) => html`<div class="stat"><span class="muted">${Tx.impacts[k]}</span><b>${scan[k]}</b></div>`)}</div>
+  <section class="score" aria-labelledby="score-h" aria-describedby="score-note"><div class="v">${automatedScore(scan)} <small>/ 100</small></div><div><b id="score-h">${Tx.mon.score}</b><p class="muted" id="score-note">${Tx.mon.scoreNote}</p></div></section>
   ${scan.new_issues != null ? html`<p>${R.compared(scan.new_issues, scan.fixed_issues)}</p>` : ''}
   <div class="note"><b>${R.coversH}</b> ${R.covers}</div>
   <h2>${R.byRule}</h2>

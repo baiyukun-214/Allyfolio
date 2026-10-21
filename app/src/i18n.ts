@@ -83,8 +83,8 @@ const en = {
     settings: 'Settings', language: 'Language', languageHint: 'Used for the dashboard, emails, reports and statement drafts.', save: 'Save', saved: 'Settings saved.',
   },
   mon: {
-    score: 'Automated check score', scoreSub: 'automated checks only', scoreAria: (n: number) => `Automated check score: ${n} out of 100, from automated checks only`,
-    scoreHint: 'Weighted issues per page from the latest scan. It reflects automated checks only, not full accessibility.',
+    score: 'Automated checks score', scoreOutOf: 'out of 100', scoreAria: (n: number) => `Automated checks score: ${n} out of 100`,
+    scoreNote: 'Automated testing catches only part of accessibility issues (about 57%, per Deque). This score is not a conformance rating or legal assessment.',
     openIssues: 'Open issues', openSub: 'latest scan', fixedWeek: 'Fixed', fixedSub: 'last 7 days', trend: 'Weekly trend', trendAria: 'Issues per scan, oldest to newest',
     trendDelta: (d: number) => d < 0 ? `${-d} fewer than a week ago` : d > 0 ? `${d} more than a week ago` : 'No change from a week ago', trendNone: 'Not enough history yet',
     scanStarting: 'Starting scan…', scanning: (n: number, limit: number) => `Scanning… ${n} of up to ${limit} pages`, scanDone: (n: number, f: number) => `Scan finished: ${n} new and ${f} fixed issues.`,
@@ -232,8 +232,8 @@ const zh: Dict = {
     settings: '设置', language: '语言', languageHint: '用于控制台、邮件、报告和声明草稿。', save: '保存', saved: '设置已保存。',
   },
   mon: {
-    score: '自动化检测得分', scoreSub: '仅自动化检测', scoreAria: (n) => `自动化检测得分：${n}（满分 100），仅基于自动化检测`,
-    scoreHint: '根据最近一次扫描中每个页面的加权问题数计算。仅反映自动化检测结果，并不代表完整的无障碍水平。',
+    score: '自动化检测得分', scoreOutOf: '满分 100', scoreAria: (n) => `自动化检测得分：${n}（满分 100）`,
+    scoreNote: '自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是符合性评级，也不代表法律评估。',
     openIssues: '未解决问题', openSub: '最近一次扫描', fixedWeek: '已修复', fixedSub: '最近 7 天', trend: '每周趋势', trendAria: '每次扫描的问题数，从旧到新',
     trendDelta: (d) => d < 0 ? `比一周前少 ${-d} 个` : d > 0 ? `比一周前多 ${d} 个` : '与一周前持平', trendNone: '历史记录还不够',
     scanStarting: '正在启动扫描…', scanning: (n, limit) => `正在扫描… 已完成 ${n} 个页面（上限 ${limit}）`, scanDone: (n, f) => `扫描完成：新增 ${n} 个问题，修复 ${f} 个问题。`,

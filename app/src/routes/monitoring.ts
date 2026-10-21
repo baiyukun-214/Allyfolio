@@ -9,7 +9,7 @@ import { IMPACTS, ruleHelp } from '../lib/scanner.ts';
 import { requireUser, render, back, ownSite, loc, T, fmtDate } from './guard.ts';
 import { t, type Locale } from '../i18n.ts';
 import { automatedScore, weeklyTrend, totalIssues } from '../lib/insights.ts';
-import { scoreRing, sparkline, sevChips, emptyState } from '../views/ui.ts';
+import { scoreBlock, sparkline, sevChips, emptyState } from '../views/ui.ts';
 
 export const fmt = (iso?: string | null, l: Locale = 'en') => fmtDate(iso, l);
 const note = (l: Locale) => { const M = t(l).mon; return html`<p class="notice"><strong>${M.note}</strong> ${M.noteText}</p>`; };
@@ -25,7 +25,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
   const scanBtn = plan.frequency ? html`<form method="post" action="/app/sites/${s.id}/scan" data-scan-form data-status-url="/app/sites/${s.id}/scan-status">${csrfField(req)}<button class="btn btn-primary" type="submit" ${pending ? 'disabled' : ''}>${pending ? M.queued : M.scanNow}</button></form>` : '';
   return html`
     ${latest ? html`<section class="kpis" aria-label="${M.status}" id="kpis">
-      <div class="card kpi kpi-score">${scoreRing(automatedScore(latest), M.scoreAria(automatedScore(latest)), M.scoreSub)}<div><p class="small"><strong>${M.score}</strong></p><p class="small muted">${M.scoreHint}</p></div></div>
+      <div class="card kpi kpi-score">${scoreBlock('site-score', automatedScore(latest), M)}</div>
       <div class="card kpi"><p class="muted small">${M.openIssues} <span class="sub">· ${M.openSub}</span></p><p class="stat" data-to="${totalIssues(latest)}">${totalIssues(latest)}</p>${sevChips(latest, Tx.impacts)}</div>
       <div class="card kpi"><p class="muted small">${M.fixedWeek} <span class="sub">· ${M.fixedSub}</span></p><p class="stat" data-to="${tr.fixedWeek}">${tr.fixedWeek}</p></div>
       <div class="card kpi"><p class="muted small">${M.trend}</p>${sparkline(tr.series, M.trendAria)}<p class="small ${tr.delta !== null && tr.delta < 0 ? 'good' : 'muted'}">${tr.delta === null ? M.trendNone : M.trendDelta(tr.delta)}</p></div>
@@ -98,6 +98,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
       <p class="muted">${M.finished} ${fmt(scan.finished_at, l)} · ${M.pagesN(scan.pages_scanned)} (${M.limit} ${scan.page_limit}) · ${M.hash} <code>${scan.evidence_hash}</code></p>
       <div class="row">${canPdf(plan, scan.kind === 'oneoff') ? html`<a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a>` : ''}<a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a></div>
       <dl class="grid g4" style="margin-top:16px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
+      <div class="card kpi-score" style="margin-top:16px">${scoreBlock('scan-score', automatedScore(scan), M)}</div>
       ${prev ? html`<p class="small" style="margin-top:12px"><strong>${d[0]}</strong>${d[1]}<strong>${d[2]}</strong>${d[3]}</p>` : html`<p class="small muted" style="margin-top:12px">${M.first}</p>`}
       ${note(l)}
       <h2>${M.byRule}</h2>

@@ -62,7 +62,10 @@ test('scheduled scan → evidence trail, diff, alert, immutability, retention', 
   const st = JSON.parse((await c.req('GET', sitePath + '/scan-status')).body);
   assert.equal(st.pending, false); assert.equal(st.running, null); assert.equal(st.last.id, s2.id); assert.equal(st.last.newIssues, s2.new_issues);
   const sp = (await c.req('GET', sitePath)).body;
-  assert.match(sp, /class="ring"[^>]*role="img"[^>]*aria-label="Automated check score: \d+ out of 100, from automated checks only"/);
+  assert.match(sp, /class="ring"[^>]*role="img"[^>]*aria-label="Automated checks score: \d+ out of 100"[^>]*aria-describedby="site-score-note"/);
+  assert.match(sp, /id="site-score-note">Automated testing catches only part of accessibility issues \(about 57%, per Deque\)\. This score is not a conformance rating or legal assessment\./);
+  const sd = (await c.req('GET', `/app/scans/${s2.id}`)).body;
+  assert.match(sd, /aria-describedby="scan-score-note"/); assert.match(sd, />Automated checks score</);
   assert.match(sp, /data-scan-form/); assert.doesNotMatch(sp, /action="[^"]+\/delete"/, 'no remove button on the site page');
   assert.match((await c.req('GET', '/app/settings')).body, /id="danger-h"[\s\S]*\/delete"/);
   // scan detail page renders the diff
@@ -92,6 +95,7 @@ test('reports: PDF gating, white-label branding, statement draft', async () => {
   assert.match(decodeURIComponent(r.headers.location), /Branding saved/);
   r = await c.req('GET', `/app/scans/${scan.id}/report`);
   assert.match(r.body, /Pixel Agency/); assert.match(r.body, /#7c2d12/); assert.match(r.body, /57%/);
+  assert.match(r.body, /Automated checks score<\/b>/); assert.match(r.body, /aria-describedby="score-note"/); assert.match(r.body, /not a conformance rating or legal assessment/);
   r = await c.req('GET', `/app/scans/${scan.id}/report.pdf`);
   assert.equal(r.statusCode, 200); assert.equal(r.headers['content-type'], 'application/pdf');
   assert.equal(r.rawPayload.subarray(0, 4).toString(), '%PDF');
