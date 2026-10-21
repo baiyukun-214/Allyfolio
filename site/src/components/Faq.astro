@@ -1,13 +1,14 @@
 ---
-interface Props { items?: { q: string; a: string }[] }
+interface Props { items?: { q: string; a: string }[]; icons?: string[] }
+import Tile from './Tile.astro';
 import { i18n } from '../i18n';
 const faqs = Astro.props.items ?? i18n(Astro.url.pathname).t.faq;
 ---
 <div class="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white">
-  {faqs.map((f) => (
+  {faqs.map((f, i) => (
     <details class="group px-6">
       <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-semibold text-ink hover:text-brand-700">
-        {f.q}
+        <span class="flex items-center gap-3"><Tile name={Astro.props.icons?.[i] ?? 'help'} size="sm" /><span>{f.q}</span></span>
         <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-500 transition-transform group-open:rotate-45" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4h2v12H9z"/><path d="M4 9h12v2H4z"/></svg>
       </summary>
       <p class="pb-5 -mt-1 text-muted leading-relaxed max-w-3xl">{f.a}</p>

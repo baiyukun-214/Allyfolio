@@ -103,6 +103,24 @@ export const en = {
     tags: 'Tags', minRead: (n: number) => `${n} min read`, allPosts: '← All posts', ctaH: 'Keep a record of your accessibility work', ctaP: 'Scheduled scans and a timestamped evidence trail. No overlay widget.', ctaBtn: 'Join the waitlist',
     dateLocale: 'en-GB',
   },
+  visuals: {
+    example: 'Example data',
+    score: { label: 'Automated checks score', outOf: 'out of 100', aria: 'Example automated checks score: 82 out of 100', note: 'Automated testing catches only part of accessibility issues (about 57%, per Deque). This score is not a conformance rating or legal assessment.' },
+    trend: { label: 'Open issues', value: '6', delta: '36 fewer since 1 Sep', aria: 'Example trend: open issues fell from 42 on 1 September to 6 on 22 September' },
+    fix: { label: 'Fixed on 12 pages', before: '<img src="shoe.jpg">', after: '<img src="shoe.jpg" alt="Blue running shoe">' },
+    timeline: { eyebrow: 'Timeline', h2: 'The EAA at a glance', lead: 'Key dates of the European Accessibility Act (Directive (EU) 2019/882).', items: [
+      ['2019', 'Adopted', 'The EU adopts the European Accessibility Act on 17 April 2019.'],
+      ['28 Jun 2022', 'Transposition deadline', 'Member states had to pass national laws – in Germany the BFSG.'],
+      ['28 Jun 2025', 'Applies', 'Requirements apply to products placed on the market and services provided from this date.'],
+      ['28 Jun 2030', 'Transition ends', 'End of the transitional period for service contracts concluded before 28 June 2025 and for products already used to provide services.']],
+      now: 'Now', note: 'Self-service terminals already in use may continue until the end of their economic life, up to 20 years. This is not legal advice.' },
+    affected: { eyebrow: 'Who is affected', h2: 'Consumer-facing digital services', lead: 'The EAA covers many products and services for consumers, for example:', items: [['cart', 'Online shops'], ['bank', 'Banking services'], ['book', 'E-books'], ['train', 'Passenger transport'], ['phone', 'Electronic communications'], ['building', 'Self-service terminals']],
+      exemptH: 'Microenterprise exemption', exempt: ['Fewer than 10 staff', 'Annual turnover or balance sheet total of no more than €2 million', 'Providing services (not products)'], exemptNote: 'All conditions must apply. Not legal advice.' },
+    coverage: { h: 'Coverage of accessibility issues', source: 'Deque study', aria: 'Bar chart: automated testing finds about 57% of accessibility issues; about 43% need manual review by people.', auto: '~57% automated', manual: '~43% manual review', autoH: 'Allyfolio checks automatically', autoEx: 'Colour contrast, missing labels, missing alt attributes, ARIA misuse', manualH: 'Needs people', manualEx: 'Meaningful alt text, focus order, clear and understandable content' },
+    browser: { caption: 'Illustration: issues found by automated checks on an example page', url: 'shop.example.de/products', pins: [['Image missing alt text', 'Critical'], ['Text contrast too low', 'Serious'], ['Input without a label', 'Moderate']], buy: 'Buy now' },
+    values: [['wrench', 'Fix the code, not the symptoms', 'We will never sell an overlay widget.'], ['scale', 'Be honest about automation', 'Automated testing finds roughly 57% of issues (Deque study). People still need to review the rest.'], ['archive', 'Evidence over promises', 'A dated record of real work is worth more than a badge.']],
+    valuesH: 'What we believe', toc: 'On this page',
+  },
   prose: { lastUpdated: 'Last updated', updated: 'October 2026', legal: 'Legal', about: 'About' },
 };
 export type Dict = typeof en;

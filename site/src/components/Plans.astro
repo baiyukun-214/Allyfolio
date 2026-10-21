@@ -1,5 +1,7 @@
 ---
 import Icon from './Icon.astro';
+import Tile from './Tile.astro';
+const planIcons = ['bolt', 'building', 'layers'];
 import { i18n } from '../i18n';
 interface Props { detailed?: boolean }
 const { detailed = false } = Astro.props;
@@ -21,9 +23,10 @@ const uid = detailed ? 'pd' : 'ph';
   </div>
   <div id={`${uid}-p1`} role="tabpanel" aria-labelledby={`${uid}-t1`}>
 <div class="grid gap-6 md:grid-cols-3 md:items-stretch">
-  {plans.map((p) => (
+  {plans.map((p, i) => (
     <div class={`lift relative rounded-2xl p-7 flex flex-col ${p.highlight ? 'bg-gradient-to-br from-brand-700 to-indigo-900 text-white shadow-2xl shadow-brand-900/30 md:-my-3 md:py-10' : 'bg-white border border-slate-200 shadow-sm'}`}>
       {p.highlight && <p class="absolute -top-3 left-7 rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">{P.recommended}</p>}
+      <Tile name={planIcons[i]} class={p.highlight ? 'mb-4 !bg-white/15 !text-white !shadow-none' : 'mb-4'} />
       <h3 class={`text-lg font-semibold ${p.highlight ? 'text-white' : 'text-ink'}`}>{p.name}</h3>
       <p class={`mt-1 text-sm ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{p.blurb}</p>
       <p class="mt-6 flex items-baseline gap-1.5"><span class="text-5xl font-bold tracking-tight">{p.price}</span><span class={`text-sm ${p.highlight ? 'text-brand-100' : 'text-muted'}`}>{P.perMonth}</span></p>
@@ -38,6 +41,7 @@ const uid = detailed ? 'pd' : 'ph';
   </div>
   <div id={`${uid}-p2`} role="tabpanel" aria-labelledby={`${uid}-t2`} class="mt-10">
     <div class="lift max-w-xl rounded-2xl border border-brand-200 bg-white p-7 shadow-sm">
+      <Tile name="ticket" class="mb-4" />
       <h3 class="text-lg font-semibold text-ink">{P.oneoffTitle}</h3>
       <p class="mt-1 text-sm text-muted">{P.oneoffText}</p>
       <p class="mt-6 flex items-baseline gap-1.5"><span class="text-5xl font-bold tracking-tight">€49</span><span class="text-sm text-muted">{P.oneoffPer}</span></p>

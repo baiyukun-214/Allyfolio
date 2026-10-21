@@ -1,0 +1,13 @@
+---
+// Generated blog cover from the icon set (decorative).
+import Icon from './Icon.astro';
+interface Props { tags: string[]; seed?: number }
+const map: [RegExp, string][] = [[/eaa|bfsg|law|法|法案/i, 'scale'], [/overlay|覆盖/i, 'ban'], [/check|review|审查|清单/i, 'eye'], [/sme|business|企业/i, 'building']];
+const tag = Astro.props.tags.join(' ');
+const name = map.find(([r]) => r.test(tag))?.[1] ?? 'doc';
+const hue = ['from-brand-100 to-violet-100', 'from-indigo-100 to-brand-50', 'from-violet-100 to-brand-100'][(Astro.props.seed ?? 0) % 3];
+---
+<div aria-hidden="true" class={`relative mb-5 grid h-36 place-items-center overflow-hidden rounded-xl bg-gradient-to-br ${hue}`}>
+  <svg class="absolute inset-0 h-full w-full opacity-60" viewBox="0 0 320 144" preserveAspectRatio="none"><path d="M0 110 C80 80 160 130 320 70 V144 H0z" fill="#fff" opacity=".55"/><circle cx="270" cy="30" r="40" fill="#fff" opacity=".35"/></svg>
+  <span class="tile relative grid h-16 w-16 place-items-center rounded-2xl bg-white/80 shadow-lg shadow-brand-900/10"><Icon name={name} class="h-8 w-8" /></span>
+</div>

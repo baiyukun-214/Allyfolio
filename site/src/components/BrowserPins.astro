@@ -1,0 +1,19 @@
+---
+import { i18n } from '../i18n';
+const { t } = i18n(Astro.url.pathname); const B = t.visuals.browser;
+const sev = ['bg-red-50 text-red-800', 'bg-amber-50 text-amber-900', 'bg-brand-50 text-brand-700'];
+---
+<figure class="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-xl shadow-brand-900/10">
+  <div aria-hidden="true" class="flex items-center gap-1.5 border-b border-brand-100 bg-brand-50/70 px-3 py-2.5 font-mono text-xs text-muted"><i class="h-2.5 w-2.5 rounded-full bg-brand-200"></i><i class="h-2.5 w-2.5 rounded-full bg-brand-200"></i><i class="h-2.5 w-2.5 rounded-full bg-brand-200"></i><span class="ml-2">{B.url}</span></div>
+  <div aria-hidden="true" class="relative grid grid-cols-[96px_1fr] gap-4 p-5">
+    <div class="pinned h-24 rounded-lg bg-gradient-to-br from-brand-100 to-violet-100"><span class="pin">1</span></div>
+    <div><div class="h-3 w-3/4 rounded bg-slate-200"></div><div class="mt-2 h-2.5 w-1/2 rounded bg-slate-100"></div><span class="pinned mt-4 inline-block rounded-lg bg-slate-100 px-3 py-1.5 text-xs text-slate-400">{B.buy}<span class="pin">2</span></span></div>
+    <div class="pinned col-span-2 h-9 rounded-lg border border-slate-200"><span class="pin">3</span></div>
+  </div>
+  <figcaption class="border-t border-slate-100 px-5 py-4">
+    <ol class="space-y-1.5 text-sm">
+      {B.pins.map(([name, s], i) => <li class="flex items-center gap-2"><span aria-hidden="true" class="grid h-5 w-5 place-items-center rounded-full bg-red-700 text-[11px] font-bold text-white">{i + 1}</span><span class="text-ink">{name}</span><span class={`rounded-full px-2 py-0.5 text-xs font-semibold ${sev[i]}`}>{s}</span></li>)}
+    </ol>
+    <p class="mt-2 text-xs text-muted">{B.caption}</p>
+  </figcaption>
+</figure>

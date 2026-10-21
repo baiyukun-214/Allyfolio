@@ -2,10 +2,12 @@
 // Served by Cloudflare (assets.not_found_handling = "404-page") for any unknown path, in both languages.
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
+import Spot from '../components/Spot.astro';
 ---
 <Base title="Page not found" description="This page does not exist.">
   <PageHeader eyebrow="404" title="Page not found" lead="The page you are looking for does not exist or has moved." narrow />
   <div class="mx-auto max-w-3xl px-4 pb-12 space-y-6">
+    <Spot kind="browser" class="w-full max-w-[260px]" />
     <p><a class="font-semibold text-brand-700 underline underline-offset-4" href="/">Go to the homepage</a></p>
     <div lang="zh-CN">
       <h2 class="text-xl font-semibold text-ink">页面未找到</h2>

@@ -1,0 +1,15 @@
+---
+import { i18n } from '../i18n';
+const { t } = i18n(Astro.url.pathname); const T = t.visuals.timeline;
+---
+<ol class="timeline relative mt-10 grid gap-6 md:grid-cols-4">
+  {T.items.map(([date, title, text], i) => (
+    <li class={`rv relative md:pt-10 ${i === 2 ? 'is-now' : ''}`} data-d={i * 90}>
+      <span aria-hidden="true" class="tl-dot"></span>
+      <p class="text-sm font-bold text-brand-700"><time>{date}</time>{i === 2 && <span class="ml-2 rounded-full bg-brand-700 px-2 py-0.5 text-[11px] font-semibold text-white">{T.now}</span>}</p>
+      <h3 class="mt-1 font-semibold text-ink">{title}</h3>
+      <p class="mt-1 text-sm leading-relaxed text-muted">{text}</p>
+    </li>
+  ))}
+</ol>
+<p class="rv mt-6 text-sm text-muted">{T.note}</p>

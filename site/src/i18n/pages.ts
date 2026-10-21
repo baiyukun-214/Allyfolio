@@ -7,12 +7,6 @@ export const prosePages: Record<Locale, Pages> = {
   en: {
     about: { eyebrow: 'about', title: 'About Allyfolio', description: 'Why we are building Allyfolio: honest, evidence-based accessibility monitoring for EU SMEs and web agencies.', html: `
 <p>Allyfolio is a small, independent side project built for European SMEs and web agencies facing the European Accessibility Act (EAA) and Germany's BFSG.</p>
-<h2>What we believe</h2>
-<ul>
-<li><strong>Fix the code, not the symptoms.</strong> We will never sell an overlay widget.</li>
-<li><strong>Be honest about automation.</strong> Automated testing finds roughly 57% of issues (<a href="${DEQUE}">Deque study</a>). People still need to review the rest.</li>
-<li><strong>Evidence over promises.</strong> A dated record of real work is worth more than a badge.</li>
-</ul>
 <h2>Contact</h2>
 <p>Questions or feedback? Email ${MAIL}.</p>
 <!-- TODO: add founder name/bio if desired -->` },
@@ -150,12 +144,6 @@ export const prosePages: Record<Locale, Pages> = {
   'zh-CN': {
     about: { eyebrow: 'about', title: '关于 Allyfolio', description: '我们为什么打造 Allyfolio：为欧盟中小企业和网页代理商提供诚实、以证据为基础的无障碍监测。', html: `
 <p>Allyfolio 是一个小型独立项目，服务于面临《欧洲无障碍法案》（EAA）和德国 BFSG 要求的欧洲中小企业和网页代理商。</p>
-<h2>我们的理念</h2>
-<ul>
-<li><strong>修复代码，而不是掩盖症状。</strong>我们永远不会销售覆盖层插件。</li>
-<li><strong>如实说明自动化的局限。</strong>自动化测试大约能发现 57% 的问题（<a href="${DEQUE}">Deque 研究</a>），其余部分仍需人工审查。</li>
-<li><strong>证据胜于承诺。</strong>一份带日期的真实工作记录，比一枚徽章更有价值。</li>
-</ul>
 <h2>联系我们</h2>
 <p>有问题或建议？请发送邮件至 ${MAIL}。</p>` },
     privacy: { eyebrow: 'legal', title: '隐私政策', description: 'Allyfolio 如何处理个人数据：网站、候补名单、账户、扫描、付款和电子邮件；处理方、保存期限以及您的 GDPR 权利。', html: `

@@ -1,0 +1,9 @@
+---
+// Lavender icon tile (decorative). size: sm 36px, md 44px, lg 56px.
+import Icon from './Icon.astro';
+interface Props { name: string; size?: 'sm' | 'md' | 'lg'; class?: string; solid?: boolean }
+const { name, size = 'md', solid = false } = Astro.props;
+const box = { sm: 'h-9 w-9 rounded-lg', md: 'h-11 w-11 rounded-xl', lg: 'h-14 w-14 rounded-2xl' }[size];
+const ic = { sm: 'h-[18px] w-[18px]', md: 'h-[22px] w-[22px]', lg: 'h-7 w-7' }[size];
+---
+<span aria-hidden="true" class={`tile grid shrink-0 place-items-center ${box} ${solid ? 'tile-solid' : ''} ${Astro.props.class ?? ''}`}><Icon name={name} class={ic} /></span>

@@ -1,0 +1,16 @@
+---
+import Icon from './Icon.astro';
+import { i18n } from '../i18n';
+const { t } = i18n(Astro.url.pathname); const C = t.visuals.coverage;
+---
+<figure class="rounded-2xl border border-brand-200 bg-white p-6 shadow-sm">
+  <figcaption class="text-sm"><span class="font-semibold text-ink">{C.h}</span> <span class="text-muted">({C.source})</span></figcaption>
+  <div role="img" aria-label={C.aria} class="mt-4 flex h-12 overflow-hidden rounded-xl text-sm font-semibold">
+    <div class="grid place-items-center bg-brand-700 text-white" style="width:57%">{C.auto}</div>
+    <div class="cov-manual grid flex-1 place-items-center text-brand-900">{C.manual}</div>
+  </div>
+  <ul class="mt-5 grid gap-4 sm:grid-cols-2 text-sm">
+    <li class="flex gap-3"><span class="mt-0.5 text-brand-700"><Icon name="radar" /></span><div><p class="font-semibold text-ink">{C.autoH}</p><p class="mt-1 text-muted">{C.autoEx}</p></div></li>
+    <li class="flex gap-3"><span class="mt-0.5 text-brand-700"><Icon name="eye" /></span><div><p class="font-semibold text-ink">{C.manualH}</p><p class="mt-1 text-muted">{C.manualEx}</p></div></li>
+  </ul>
+</figure>

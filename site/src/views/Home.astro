@@ -4,10 +4,18 @@ import Plans from '../components/Plans.astro';
 import Faq from '../components/Faq.astro';
 import Waitlist from '../components/Waitlist.astro';
 import Icon from '../components/Icon.astro';
+import Tile from '../components/Tile.astro';
+import Snippet from '../components/Snippet.astro';
+import Timeline from '../components/Timeline.astro';
+import Coverage from '../components/Coverage.astro';
+import BrowserPins from '../components/BrowserPins.astro';
+import Spot from '../components/Spot.astro';
 import { i18n } from '../i18n';
 const { t, l } = i18n(Astro.url.pathname);
 const H = t.home;
-const D = H.demo, F = H.fix;
+const D = H.demo, F = H.fix, V = t.visuals;
+const stepIcons = ['plus', 'radar', 'wrench', 'archive'];
+const faqIcons = ['scale', 'ban', 'building', 'globe', 'radar', 'doc'];
 const sevCls = ['bg-red-50 text-red-800', 'bg-amber-50 text-amber-900', 'bg-brand-50 text-brand-700', 'bg-brand-50 text-brand-700'];
 const trailMeta = [
   { d: '2026-09-01', cls: 'text-red-700 bg-red-50', h: 100 },
@@ -35,7 +43,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
         </div>
         <p class="mt-5 text-sm text-muted">{H.trustLine}</p>
       </div>
-      <figure data-demo class="rv glass relative lg:col-span-6 rounded-3xl border border-brand-100 p-6 sm:p-7 shadow-2xl shadow-brand-900/15" data-d="120">
+      <div class="relative lg:col-span-6"><figure data-demo class="rv glass relative rounded-3xl border border-brand-100 p-6 sm:p-7 shadow-2xl shadow-brand-900/15" data-d="120">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <figcaption class="font-semibold text-ink">{D.caption}</figcaption>
           <span class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">{D.note}</span>
@@ -65,12 +73,14 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
           ))}
         </ul>
       </figure>
+      <Snippet kind="fix" idp="hero" class="rv hidden xl:block absolute -left-20 -bottom-12 w-60" data-d="300" />
+      </div>
     </div>
   </section>
 
   <section aria-label={H.trustAria} class="border-y border-slate-200 bg-white">
     <ul class="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-medium text-ink">
-      {H.trust.map((x, i) => <li class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={trustIcons[i]} /></span>{x}</li>)}
+      {H.trust.map((x, i) => <li class="flex items-center gap-3"><Tile name={trustIcons[i]} size="sm" />{x}</li>)}
     </ul>
   </section>
 
@@ -80,31 +90,52 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
     <div class="mt-10 grid gap-6 md:grid-cols-3">
       {H.why.items.map(([title, d], i) => (
         <div class="rv lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={i * 90}>
-          <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={whyIcons[i]} /></span>
+          <Tile name={whyIcons[i]} />
           <h3 class="mt-5 font-semibold text-lg text-ink">{title}</h3>
           <p class="mt-2 text-muted leading-relaxed">{d}</p>
         </div>
       ))}
     </div>
-    <p class="mt-6 flex gap-3 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-5 py-4 text-sm text-muted leading-relaxed"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span><span><strong class="text-ink">{H.micro.label}</strong> <Fragment set:html={H.micro.html} /></span></p>
+    <div class="mt-16"><p class="eyebrow rv">{V.timeline.eyebrow}</p><h3 class="mt-2 text-2xl font-bold tracking-tight text-ink rv">{V.timeline.h2}</h3><p class="mt-2 text-muted rv">{V.timeline.lead}</p><Timeline /></div>
+  </section>
+
+  <section aria-labelledby="affected-heading" class="bg-gradient-to-b from-white to-brand-50/50 border-t border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24 grid gap-12 lg:grid-cols-12 lg:items-center">
+      <div class="lg:col-span-7">
+        <p class="eyebrow rv">{V.affected.eyebrow}</p>
+        <h2 id="affected-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{V.affected.h2}</h2>
+        <p class="mt-3 text-muted rv">{V.affected.lead}</p>
+        <ul class="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {V.affected.items.map(([ic, label], i) => <li class="rv lift flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-ink shadow-sm" data-d={i * 60}><Tile name={ic} size="sm" />{label}</li>)}
+        </ul>
+      </div>
+      <div class="lg:col-span-5">
+        <div class="rv rounded-2xl border border-brand-200 bg-white p-6 shadow-lg shadow-brand-900/5">
+          <div class="flex justify-center"><Spot kind="shop" class="w-full max-w-[220px]" /></div>
+          <h3 class="mt-2 font-semibold text-ink">{V.affected.exemptH}</h3>
+          <ul class="mt-3 space-y-2 text-sm text-muted">{V.affected.exempt.map((x) => <li class="flex gap-2"><span class="text-brand-700"><Icon name="check" /></span>{x}</li>)}</ul>
+          <p class="mt-3 text-xs text-muted">{V.affected.exemptNote}</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="how-it-works" aria-labelledby="how-heading" class="bg-slate-50 border-y border-slate-200">
     <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
       <p class="eyebrow rv">{H.how.eyebrow}</p>
       <h2 id="how-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.how.h2}</h2>
-      <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <ol class="steps-line mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {H.how.steps.map(([title, d], i) => (
           <li class="rv lift rounded-2xl bg-white border border-slate-200 p-6 shadow-sm" data-d={i * 80}>
-            <span class="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-brand-700 to-indigo-600 text-sm font-semibold text-white shadow-md shadow-brand-900/20" aria-hidden="true">{i + 1}</span>
+            <span class="flex items-center gap-3"><Tile name={stepIcons[i]} size="lg" solid /><span aria-hidden="true" class="text-xs font-bold tracking-wider text-brand-700">0{i + 1}</span></span>
             <h3 class="mt-4 font-semibold text-lg text-ink"><span class="sr-only">{H.how.step === '第' ? `第 ${i + 1} 步：` : `Step ${i + 1}: `}</span>{title}</h3>
             <p class="mt-2 text-muted leading-relaxed">{d}</p>
           </li>
         ))}
       </ol>
-      <div class="rv mt-8 grid gap-6 rounded-2xl border border-brand-200 bg-white p-6 shadow-sm md:grid-cols-12 md:items-center">
-        <p class="md:col-span-4 flex items-baseline gap-3"><span class="text-6xl font-bold tracking-tight text-gradient">~<span data-to={H.stat.value}>{H.stat.value}</span>{H.stat.suffix}</span></p>
-        <div class="md:col-span-8 text-sm text-muted leading-relaxed"><p class="font-medium text-ink">{H.stat.label}</p><p class="mt-2"><strong class="text-ink">{H.limits.label}</strong> <Fragment set:html={H.limits.html} /></p></div>
+      <div class="mt-12 grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div class="rv"><Coverage /></div>
+        <div class="rv text-muted leading-relaxed"><p class="text-5xl font-bold tracking-tight text-gradient">~<span data-to={H.stat.value}>{H.stat.value}</span>{H.stat.suffix}</p><p class="mt-3 font-medium text-ink">{H.stat.label}</p><p class="mt-3 text-sm"><strong class="text-ink">{H.limits.label}</strong> <Fragment set:html={H.limits.html} /></p></div>
       </div>
     </div>
   </section>
@@ -112,15 +143,16 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
   <section aria-labelledby="features-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
     <p class="eyebrow rv">{H.features.eyebrow}</p>
     <h2 id="features-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.features.h2}</h2>
-    <ul class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-10 grid gap-6 lg:grid-cols-3"><ul class="grid gap-5 sm:grid-cols-2 lg:col-span-2">
       {H.features.items.map(([title, d], i) => (
-        <li class="rv lift group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={(i % 3) * 90}>
+        <li class="rv lift group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={(i % 2) * 90}>
           <span aria-hidden="true" class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-brand-100 to-violet-100 opacity-70 transition-transform duration-500 group-hover:scale-125"></span>
-          <span class="relative grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-indigo-600 text-white shadow-md shadow-brand-900/20"><Icon name={featIcons[i]} /></span>
+          <Tile name={featIcons[i]} class="relative" />
           <h3 class="relative mt-5 font-semibold text-lg text-ink">{title}</h3><p class="relative mt-2 text-muted leading-relaxed">{d}</p>
         </li>
       ))}
     </ul>
+    <div class="grid content-start gap-5"><Snippet kind="score" idp="feat" class="rv" /><Snippet kind="trend" class="rv" /></div></div>
   </section>
 
   <section aria-labelledby="fix-heading" class="bg-gradient-to-b from-white to-brand-50/60 border-t border-slate-200">
@@ -128,7 +160,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
       <p class="eyebrow rv">{F.eyebrow}</p>
       <h2 id="fix-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{F.h2}</h2>
       <p class="mt-3 max-w-2xl text-muted rv">{F.lead}</p>
-      <div class="mt-10 grid gap-5 md:grid-cols-2">
+      <div class="mt-10 grid gap-6 lg:grid-cols-2 lg:items-start"><div class="rv"><BrowserPins /></div><div class="grid gap-5">
         <div class="rv lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <p class="flex items-center justify-between gap-3"><span class="font-semibold text-ink">{F.before}</span><span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">{F.beforeNote}</span></p>
           <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100"><code><span class="text-red-300">- &lt;img src="shoe.jpg"&gt;</span></code></pre>
@@ -137,6 +169,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
           <p class="flex items-center justify-between gap-3"><span class="font-semibold text-ink">{F.after}</span><span class="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-800">{F.afterNote}</span></p>
           <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100"><code><span class="text-green-300">+ &lt;img src="shoe.jpg" alt="Blue running shoe, side view"&gt;</span></code></pre>
         </div>
+      </div>
       </div>
       <p class="rv mt-6 flex gap-3 text-sm text-muted"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span>{F.caveat}</p>
     </div>
@@ -162,7 +195,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
       <h2 id="faq-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.faq.h2}</h2>
       <p class="mt-4 text-muted">{H.faq.more} <a class="text-brand-700 underline" href="mailto:hello@allyfolio.com">hello@allyfolio.com</a>.</p>
     </div>
-    <div class="lg:col-span-8"><Faq /></div>
+    <div class="lg:col-span-8"><Faq icons={faqIcons} /></div>
   </section>
 
   <Waitlist />
