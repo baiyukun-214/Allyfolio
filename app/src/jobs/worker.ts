@@ -4,7 +4,7 @@ import { get } from '../db.ts';
 const handlers: Record<string, (p: any, log: any) => Promise<unknown>> = {
   site_scan: (p, log) => runSiteScan(p, log),
   retention: async () => applyRetention(),
-  apply_downgrades: async () => (await import('../lib/billing.ts')).applyDueDowngrades(),
+  apply_downgrades: async () => (await import('../lib/billing/index.ts')).applyDueDowngrades(),
 };
 let stopped = false;
 export async function workOnce(log: any = console): Promise<boolean> {

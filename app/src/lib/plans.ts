@@ -6,7 +6,7 @@ export const PLANS: Record<PlanId, Plan> = {
   business: { id: 'business', name: 'Business', priceCents: 3900, sites: 3, pagesPerSite: 500, frequency: 'daily', retentionMonths: 24, seats: 3, pdf: true, whiteLabel: false, statement: true },
   agency:   { id: 'agency', name: 'Agency', priceCents: 9900, sites: 15, pagesPerSite: 1000, frequency: 'daily', retentionMonths: 24, seats: 10, pdf: true, whiteLabel: true, statement: true },
 };
-export const ONE_OFF = { priceCents: 3900, sites: 1, pages: 100, pdf: true };
+export const ONE_OFF = { priceCents: 4900, sites: 1, pages: 100, pdf: true };
 export const PAID: PlanId[] = ['starter', 'business', 'agency'];
 export const planOf = (id: string | null | undefined): Plan => PLANS[(id as PlanId)] ?? PLANS.none;
 export const rank = (id: PlanId) => ['none', 'starter', 'business', 'agency'].indexOf(id);

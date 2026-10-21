@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL 
 CREATE TABLE IF NOT EXISTS login_tokens (token_hash TEXT PRIMARY KEY, email TEXT NOT NULL, expires_at TEXT NOT NULL, used_at TEXT);
 CREATE TABLE IF NOT EXISTS teams (
   id TEXT PRIMARY KEY, name TEXT NOT NULL, plan TEXT NOT NULL DEFAULT 'none', created_at TEXT NOT NULL,
-  stripe_customer_id TEXT, stripe_subscription_id TEXT, subscription_status TEXT, current_period_end TEXT, pending_plan TEXT,
+  billing_customer_id TEXT, billing_subscription_id TEXT, subscription_status TEXT, current_period_end TEXT, pending_plan TEXT, cancel_at TEXT,
   oneoff_credits INTEGER NOT NULL DEFAULT 0,
   brand_name TEXT, brand_color TEXT, brand_logo_url TEXT
 );
@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE INDEX IF NOT EXISTS jobs_ready ON jobs(status, run_at);
 CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, scan_id TEXT NOT NULL REFERENCES scans(id) ON DELETE CASCADE, path TEXT NOT NULL, created_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS stripe_events (id TEXT PRIMARY KEY, type TEXT NOT NULL, received_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS billing_events (id TEXT PRIMARY KEY, type TEXT NOT NULL, received_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS password_resets (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL);
 `;
 
 let _db: DatabaseSync | undefined;
@@ -60,7 +61,12 @@ export function db(): DatabaseSync {
   _db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
   _db.exec(SCHEMA);
   // Additive migrations (idempotent).
-  for (const m of ["ALTER TABLE users ADD COLUMN locale TEXT", "ALTER TABLE waitlist ADD COLUMN locale TEXT"]) { try { _db.exec(m); } catch { /* column exists */ } }
+  for (const m of [
+    "ALTER TABLE users ADD COLUMN locale TEXT", "ALTER TABLE waitlist ADD COLUMN locale TEXT",
+    // Stripe → provider-neutral billing columns (Paddle)
+    "ALTER TABLE teams RENAME COLUMN stripe_customer_id TO billing_customer_id", "ALTER TABLE teams RENAME COLUMN stripe_subscription_id TO billing_subscription_id",
+    "ALTER TABLE teams ADD COLUMN cancel_at TEXT", "DROP TABLE IF EXISTS stripe_events",
+  ]) { try { _db.exec(m); } catch { /* already applied */ } }
   return _db;
 }
 export const now = () => new Date().toISOString();

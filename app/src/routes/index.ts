@@ -5,7 +5,7 @@ import { authRoutes } from './auth.ts';
 import { dashboardRoutes } from './app.ts';
 import { monitoringRoutes } from './monitoring.ts';
 import { reportRoutes } from './reports.ts';
-import { billingRoutes, stripeWebhook } from './billing.ts';
+import { billingRoutes, billingWebhook } from './billing.ts';
 export default async function appRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (req, reply) => {
     if (req.method === 'POST' && !req.url.startsWith('/api/') && req.url !== '/logout' && !csrfOk(req)) return reply.code(403).type('text/plain').send(t(req.locale).errors.csrf);
@@ -16,5 +16,5 @@ export default async function appRoutes(app: FastifyInstance) {
   await app.register(monitoringRoutes);
   await app.register(reportRoutes);
   await app.register(billingRoutes);
-  await app.register(stripeWebhook);
+  await app.register(billingWebhook);
 }

@@ -13,15 +13,24 @@ export const config = {
   scanConcurrency: Number(e.SCAN_CONCURRENCY ?? 2),
   freeScanPerHour: Number(e.FREE_SCAN_PER_IP_PER_HOUR ?? 5),
   allowPrivateTargets: e.ALLOW_PRIVATE_TARGETS === '1',
-  mailer: e.MAILER ?? 'console',
+  mailer: e.MAILER ?? (e.RESEND_API_KEY ? 'resend' : 'console'),
   mailFrom: e.MAIL_FROM ?? 'Allyfolio <hello@allyfolio.com>',
-  smtpUrl: e.SMTP_URL ?? '',
-  stripe: {
-    secretKey: e.STRIPE_SECRET_KEY ?? '',
-    webhookSecret: e.STRIPE_WEBHOOK_SECRET ?? '',
-    prices: { starter: e.STRIPE_PRICE_STARTER ?? '', business: e.STRIPE_PRICE_BUSINESS ?? '', agency: e.STRIPE_PRICE_AGENCY ?? '', oneoff: e.STRIPE_PRICE_ONEOFF ?? '' },
-    earlyBirdCoupon: e.STRIPE_COUPON_EARLYBIRD ?? '',
+  billing: {
+    provider: (e.BILLING_PROVIDER ?? 'paddle') as 'paddle' | 'creem' | 'none',
+    paddle: {
+      env: (e.PADDLE_ENV === 'production' ? 'production' : 'sandbox') as 'sandbox' | 'production',
+      apiKey: e.PADDLE_API_KEY ?? '',
+      apiBase: e.PADDLE_API_BASE ?? '', // override for tests; default derived from PADDLE_ENV
+      webhookSecret: e.PADDLE_WEBHOOK_SECRET ?? '',
+      clientToken: e.PADDLE_CLIENT_TOKEN ?? '',
+      prices: { starter: e.PADDLE_PRICE_STARTER ?? '', business: e.PADDLE_PRICE_BUSINESS ?? '', agency: e.PADDLE_PRICE_AGENCY ?? '', oneoff: e.PADDLE_PRICE_ONEOFF ?? '' },
+      earlyBirdDiscount: e.PADDLE_DISCOUNT_EARLYBIRD ?? '',
+    },
+    creem: { apiKey: e.CREEM_API_KEY ?? '', webhookSecret: e.CREEM_WEBHOOK_SECRET ?? '' },
   },
+  resendApiKey: e.RESEND_API_KEY ?? '',
+  resendApiUrl: (e.RESEND_API_URL ?? 'https://api.resend.com').replace(/\/$/, ''),
+  sentryDsn: e.SENTRY_DSN ?? '',
+  scanProxy: e.SCAN_PROXY ?? '', // e.g. http://egress:3128 – the egress proxy that blocks private ranges at connect time
   workerEnabled: e.WORKER !== '0',
 };
-export const stripeConfigured = () => config.stripe.secretKey.startsWith('sk_test_') && config.stripe.secretKey.length > 12;

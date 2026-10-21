@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { previewChange } from '../../src/lib/billing.ts';
+import { previewChange } from '../../src/lib/billing/index.ts';
 const start = new Date('2026-10-01T00:00:00Z'), end = new Date('2026-10-31T00:00:00Z'); // 30-day period
 
 test('upgrade halfway through charges half the price difference, immediately', () => {
@@ -24,3 +24,16 @@ test('downgrades apply at period end with no charge', () => {
   assert.deepEqual([p.kind, p.effective, p.chargeCents, p.effectiveAt], ['downgrade', 'period_end', 0, end.toISOString()]);
 });
 test('same plan is a no-op', () => { assert.equal(previewChange('business', 'business', start, end).kind, 'none'); });
+
+import { verifyPaddleSignature, signPaddle } from '../../src/lib/billing/paddle.ts';
+test('Paddle signature: valid, tampered, wrong secret, stale, rotated secrets', () => {
+  const raw = '{"event_id":"evt_1"}', ts = 1_800_000_000;
+  const h = signPaddle(raw, 'sec', ts);
+  assert.ok(verifyPaddleSignature(Buffer.from(raw), h, 'sec', 300, ts + 10));
+  assert.ok(!verifyPaddleSignature(Buffer.from(raw + ' '), h, 'sec', 300, ts));
+  assert.ok(!verifyPaddleSignature(Buffer.from(raw), h, 'other', 300, ts));
+  assert.ok(!verifyPaddleSignature(Buffer.from(raw), h, 'sec', 300, ts + 301), 'replay outside tolerance');
+  assert.ok(!verifyPaddleSignature(Buffer.from(raw), 'garbage', 'sec', 300, ts));
+  const rotated = `ts=${ts};h1=${'0'.repeat(64)};${h.split(';')[1]}`;
+  assert.ok(verifyPaddleSignature(Buffer.from(raw), rotated, 'sec', 300, ts));
+});

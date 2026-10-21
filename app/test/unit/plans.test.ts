@@ -7,7 +7,7 @@ test('plan limits match the published pricing', () => {
   assert.deepEqual([s.priceCents, s.sites, s.pagesPerSite, s.frequency, s.retentionMonths, s.seats, s.pdf, s.whiteLabel], [1900, 1, 100, 'weekly', 12, 1, false, false]);
   assert.deepEqual([b.priceCents, b.sites, b.pagesPerSite, b.frequency, b.retentionMonths, b.seats, b.pdf, b.whiteLabel], [3900, 3, 500, 'daily', 24, 3, true, false]);
   assert.deepEqual([a.priceCents, a.sites, a.pagesPerSite, a.frequency, a.retentionMonths, a.seats, a.pdf, a.whiteLabel], [9900, 15, 1000, 'daily', 24, 10, true, true]);
-  assert.deepEqual([ONE_OFF.priceCents, ONE_OFF.sites, ONE_OFF.pages, ONE_OFF.pdf], [3900, 1, 100, true]);
+  assert.deepEqual([ONE_OFF.priceCents, ONE_OFF.sites, ONE_OFF.pages, ONE_OFF.pdf], [4900, 1, 100, true]);
 });
 test('site and seat limits enforce at the boundary', () => {
   assert.doesNotThrow(() => assertCanAddSite(PLANS.business, 2));
