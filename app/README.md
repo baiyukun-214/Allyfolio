@@ -70,11 +70,18 @@ npm run typecheck
 
 ## Billing: Paddle (sandbox first)
 
-1. Create a Paddle **sandbox** account (sandbox-vendors.paddle.com) and an API key with product/price/discount/customer/subscription/transaction permissions.
-2. `PADDLE_ENV=sandbox PADDLE_API_KEY=… npm run paddle:setup` creates products, EUR monthly prices (€19/€39/€99), the €49 one-off price and the early-bird discount, and prints the `PADDLE_PRICE_*` / `PADDLE_DISCOUNT_EARLYBIRD` lines for `.env`.
-3. Paddle → Developer tools → Notifications: destination `<PUBLIC_APP_URL>/api/billing/webhook`, events `subscription.created|updated|activated|past_due|paused|resumed|canceled`, `transaction.completed`, `transaction.payment_failed`; copy the secret into `PADDLE_WEBHOOK_SECRET`.
-4. Create a client-side token (`PADDLE_CLIENT_TOKEN`) and set the default payment link (Checkout settings) to `<PUBLIC_APP_URL>/app/billing`; approve the domains in Paddle.
-5. Going live: Paddle verifies the business and website (it needs the published Terms, Privacy, refund policy and pricing), then repeat with `PADDLE_ENV=production` keys.
+Env names: `PADDLE_ENV` (`sandbox`|`production`), `PADDLE_API_KEY`, `PADDLE_CLIENT_TOKEN` (client-side token for Paddle.js), plus the IDs written by the setup script.
+
+1. In the Paddle **sandbox** dashboard create an API key (permissions: products, prices, discounts, customers, subscriptions, transactions, customer portal sessions, notification settings) and a client-side token. Put `PADDLE_ENV=sandbox`, `PADDLE_API_KEY`, `PADDLE_CLIENT_TOKEN` into `.env`.
+2. `npm run paddle:setup` – **idempotent**: finds or creates (tagged with `custom_data.allyfolio_key`) the products, monthly EUR prices Starter €19 / Business €39 / Agency €99, the one-off report price €49, and the early-bird discount (30%, recurring for 12 billing periods, max 100 redemptions, subscription prices only, not enterable as a code). A price whose amount changed is archived and replaced. The IDs are written into `.env` (`PADDLE_PRICE_*`, `PADDLE_DISCOUNT_EARLYBIRD`); existing lines are updated in place. Only IDs are printed – never keys or secrets. Safe to run again any time.
+3. Paddle → Checkout settings: set the default payment link to `<PUBLIC_APP_URL>/app/billing` and approve your domain (sandbox accepts `localhost`).
+4. Webhooks:
+   - **Local, no tunnel:** nothing to do. After the overlay checkout, Paddle.js redirects to `/app/billing?paid=1&txn=<transaction id>`; the app reads that transaction (and its subscription) from the Paddle API, checks it belongs to the user's team and applies it. Re-loading is harmless (one-off credits are counted once per transaction, also if the webhook arrives too). Renewals, cancellations in the Paddle portal and failed payments still need the webhook.
+   - **Local with webhooks:** `cloudflared tunnel --url http://localhost:8787` prints `https://<name>.trycloudflare.com`; run `PADDLE_WEBHOOK_URL=https://<name>.trycloudflare.com/api/billing/webhook npm run paddle:setup`. This creates (or reuses) the notification destination with the required events and writes `PADDLE_WEBHOOK_SECRET` into `.env` (hidden in the output). Quick tunnels get a new name on each start – re-run the command (a new destination is created for the new URL; delete old ones in the dashboard). Use Paddle's webhook simulator to send test events.
+   - **Production:** `PADDLE_WEBHOOK_URL=https://app.allyfolio.com/api/billing/webhook npm run paddle:setup -- --production` with `PADDLE_ENV=production` keys.
+5. Going live: Paddle reviews the business and website (published Terms, Privacy, refund policy and pricing), then repeat steps 1–4 with production keys.
+
+Events used: `subscription.created|updated|activated|past_due|paused|resumed|canceled`, `transaction.completed`, `transaction.payment_failed`. Webhooks are verified with `PADDLE_WEBHOOK_SECRET`; without it the webhook endpoint rejects every call, while checkout and the return-URL sync keep working.
 
 `BILLING_PROVIDER=creem` selects a stub that reports "not configured"; `none` disables billing.
 

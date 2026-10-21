@@ -16,6 +16,8 @@ export interface BillingProvider {
   configured(): boolean;
   /** Public, non-secret settings for the client-side checkout (e.g. Paddle.js token). */
   clientConfig(): { script: string; token: string; environment: string } | null;
+  /** Optional: read a finished checkout from the provider API (return-URL fallback when no webhook can reach this server, e.g. local sandbox). */
+  syncTransaction?(team: any, transactionId: string): Promise<{ state: 'done' | 'pending' | 'foreign'; events: BillingEvent[] }>;
   checkout(team: any, email: string, what: Purchase, opts: { earlyBird: boolean; locale: Locale }): Promise<CheckoutSpec>;
   /** Upgrades: immediately with a prorated charge. Downgrades: price changes for the next period, no charge or credit. */
   changePrice(team: any, to: PlanId, mode: 'prorated_now' | 'next_period'): Promise<SubscriptionPeriod>;
@@ -31,7 +33,7 @@ export class BillingNotConfigured extends Error {}
 export type BillingEvent =
   | { kind: 'subscription'; teamId: string | null; subscriptionId: string; customerId: string | null; status: string; plan: PlanId | null; periodEnd: string | null; cancelAt: string | null }
   | { kind: 'subscription_canceled'; subscriptionId: string }
-  | { kind: 'oneoff_paid'; teamId: string; customerId: string | null }
+  | { kind: 'oneoff_paid'; teamId: string; customerId: string | null; transactionId?: string }
   | { kind: 'payment_failed'; subscriptionId: string };
 
 let _provider: BillingProvider | null | undefined;
@@ -103,6 +105,8 @@ export function applyBillingEvents(eventId: string, type: string, events: Billin
 function applyOne(ev: BillingEvent) {
   switch (ev.kind) {
     case 'oneoff_paid':
+      // The same purchase can arrive by webhook and by the return-URL sync: credit each transaction once.
+      if (ev.transactionId && !run('INSERT OR IGNORE INTO billing_events (id, type, received_at) VALUES (?,?,?)', `oneoff:${ev.transactionId}`, 'oneoff_credit', now()).changes) return;
       run('UPDATE teams SET oneoff_credits = oneoff_credits + 1, billing_customer_id = COALESCE(billing_customer_id, ?) WHERE id = ?', ev.customerId, ev.teamId);
       return;
     case 'subscription': {
@@ -134,4 +138,12 @@ function scheduleSites(teamId: string, planId: PlanId) {
     run('INSERT INTO jobs (type, payload, run_at, created_at) VALUES (?,?,?,?)', 'site_scan', JSON.stringify({ siteId: s.id, kind: 'scheduled' }), now(), now());
     run('UPDATE sites SET next_scan_at = ? WHERE id = ?', new Date(Date.now() + (plan.frequency === 'daily' ? 1 : 7) * 86400_000).toISOString(), s.id);
   }
+}
+
+/** Apply what the provider reports for a checkout the user just returned from. Safe to repeat. */
+export async function syncCheckout(team: any, transactionId: string) {
+  const prov = await provider(); if (!prov?.configured() || !prov.syncTransaction || !/^[\w-]{3,64}$/.test(transactionId)) return 'skipped' as const;
+  const r = await prov.syncTransaction(team, transactionId);
+  if (r.state === 'done' && r.events.length) tx(() => { for (const ev of r.events) applyOne(ev); });
+  return r.state;
 }

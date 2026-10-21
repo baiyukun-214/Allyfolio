@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+// Load .env (or ENV_FILE) for local runs. Real environment variables win; skipped under the test runner.
+{ const f = process.env.ENV_FILE ?? '.env'; if (!process.env.NODE_TEST_CONTEXT && existsSync(f)) process.loadEnvFile(f); }
 const e = process.env;
 export const config = {
   port: Number(e.PORT ?? 8787),

@@ -41,7 +41,7 @@ const periodOf = (sub: any): SubscriptionPeriod => ({ start: new Date(sub.curren
 
 export class PaddleProvider implements BillingProvider {
   readonly id = 'paddle' as const;
-  configured() { const p = P(); return !!(p.apiKey && p.webhookSecret && p.prices.starter && p.prices.business && p.prices.agency && p.prices.oneoff); }
+  configured() { const p = P(); return !!(p.apiKey && p.prices.starter && p.prices.business && p.prices.agency && p.prices.oneoff); }
   clientConfig() { const p = P(); return p.clientToken ? { script: 'https://cdn.paddle.com/paddle/v2/paddle.js', token: p.clientToken, environment: p.env } : null; }
 
   /** Server-side transaction (price, discount and team binding are decided here, not in the browser); Paddle.js opens it as an overlay. */
@@ -76,6 +76,17 @@ export class PaddleProvider implements BillingProvider {
     return s.urls.general.overview as string;
   }
 
+  async syncTransaction(team: any, transactionId: string) {
+    const t = await api('GET', `/transactions/${encodeURIComponent(transactionId)}`);
+    if (t.custom_data?.team_id !== team.id) return { state: 'foreign' as const, events: [] };
+    if (!['paid', 'completed'].includes(t.status)) return { state: 'pending' as const, events: [] };
+    if (!t.subscription_id) return { state: 'done' as const, events: t.custom_data?.kind === 'oneoff' || t.items?.some((i: any) => i.price?.id === paddlePrice('oneoff'))
+      ? [{ kind: 'oneoff_paid' as const, teamId: team.id, customerId: t.customer_id ?? null, transactionId: t.id }] : [] };
+    const d = await api('GET', `/subscriptions/${t.subscription_id}`);
+    return { state: 'done' as const, events: [{ kind: 'subscription' as const, teamId: team.id, subscriptionId: d.id, customerId: d.customer_id ?? null, status: d.status,
+      plan: planForPaddlePrice(d.items?.[0]?.price?.id), periodEnd: d.current_billing_period?.ends_at ?? null, cancelAt: d.scheduled_change?.action === 'cancel' ? d.scheduled_change.effective_at : null }] };
+  }
+
   parseWebhook(raw: Buffer, headers: Record<string, string | string[] | undefined>) {
     const sig = headers['paddle-signature']; if (!verifyPaddleSignature(raw, Array.isArray(sig) ? sig[0] : sig, P().webhookSecret)) throw new WebhookSignatureError('invalid signature');
     const n = JSON.parse(raw.toString('utf8'));
@@ -90,7 +101,7 @@ export class PaddleProvider implements BillingProvider {
       case 'transaction.completed':
         // One-off report: a completed transaction without a subscription for the one-off price.
         if (!d.subscription_id && d.custom_data?.team_id && (d.custom_data?.kind === 'oneoff' || d.items?.some((i: any) => i.price?.id === paddlePrice('oneoff'))))
-          events.push({ kind: 'oneoff_paid', teamId: d.custom_data.team_id, customerId: d.customer_id ?? null });
+          events.push({ kind: 'oneoff_paid', teamId: d.custom_data.team_id, customerId: d.customer_id ?? null, transactionId: d.id });
         break;
       case 'transaction.payment_failed':
         if (d.subscription_id) events.push({ kind: 'payment_failed', subscriptionId: d.subscription_id });

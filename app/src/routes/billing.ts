@@ -1,8 +1,9 @@
+import { get } from '../db.ts';
 import type { FastifyInstance } from 'fastify';
 import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { PLANS, PAID, planOf, ONE_OFF, rank, LimitError, type PlanId } from '../lib/plans.ts';
-import { provider, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
+import { provider, syncCheckout, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
 import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
 import { requireUser, render, back, loc } from './guard.ts';
@@ -13,6 +14,14 @@ const eur = (c: number) => `€${(c / 100).toFixed(0)}`;
 export async function billingRoutes(app: FastifyInstance) {
   app.get('/app/billing', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
+    // Return from Paddle checkout: read the transaction from the Paddle API (works without a reachable webhook, e.g. local sandbox).
+    let flash: { kind: 'ok' | 'error'; msg: string } | undefined;
+    const txn = String((req.query as any).txn ?? '');
+    if (txn && ctx.role === 'owner') {
+      const st = await syncCheckout(ctx.team, txn).catch((e) => { req.log.warn(e, 'checkout sync failed'); return 'pending' as const; });
+      if (st === 'pending') flash = { kind: 'ok', msg: tr(loc(req, ctx)).bill.processing };
+      ctx.team = get<any>('SELECT * FROM teams WHERE id = ?', ctx.team.id);
+    }
     const t = ctx.team, plan = planOf(t.plan), owner = ctx.role === 'owner';
     const prov = await provider(); const ready = !!prov?.configured(); const client = ready ? prov!.clientConfig() : null;
     const eb = isEarlyBird(ctx.user.email) && !t.billing_subscription_id;
@@ -20,7 +29,7 @@ export async function billingRoutes(app: FastifyInstance) {
     const pend = t.pending_plan ? B.pending(pn(t.pending_plan), pn(plan.id)) : null;
     const buy = (what: Purchase, label: string, cls: string) => html`<form method="post" action="/app/billing/checkout" data-checkout>${csrfField(req)}<input type="hidden" name="plan" value="${what}">
       <button class="btn ${cls}" type="submit" ${ready ? '' : 'disabled'}>${label}</button></form>`;
-    return render(reply, ctx, { title: B.title, current: '/app/billing', body: html`
+    return render(reply, ctx, { title: B.title, current: '/app/billing', ...(flash ? { flash } : {}), body: html`
       <h1>${B.title}</h1>
       ${!ready ? html`<p class="alert alert-error" role="note">${B.notConfigured}</p>` : ''}
       <div class="card"><p class="muted small">${B.current}</p><p class="stat">${pn(plan.id)}</p>

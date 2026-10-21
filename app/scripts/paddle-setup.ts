@@ -1,20 +1,23 @@
-// Creates Allyfolio products, monthly EUR prices, the one-off price and the early-bird discount in the Paddle SANDBOX.
-// Usage: PADDLE_ENV=sandbox PADDLE_API_KEY=... npm run paddle:setup   → prints env lines to paste into .env
+// Idempotent Paddle setup: finds or creates products, monthly EUR prices (19/39/99), the €49 one-off price, the early-bird
+// discount (30%, first 12 billing periods, max 100 uses) and – if PADDLE_WEBHOOK_URL is a public https URL – the notification
+// destination. Writes the IDs (and the webhook secret) into .env. Prints IDs only, never secrets.
+// Usage: npm run paddle:setup            (reads .env: PADDLE_ENV=sandbox, PADDLE_API_KEY)
+//        PADDLE_WEBHOOK_URL=https://<tunnel>/api/billing/webhook npm run paddle:setup
+//        npm run paddle:setup -- --production   (only with PADDLE_ENV=production)
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { runPaddleSetup } from '../src/lib/billing/paddleSetup.ts';
+const envPath = resolve(process.env.ENV_FILE ?? '.env');
+if (existsSync(envPath)) process.loadEnvFile(envPath);
+const env = process.env.PADDLE_ENV ?? 'sandbox';
 const key = process.env.PADDLE_API_KEY ?? '';
-if (process.env.PADDLE_ENV !== 'sandbox' || !key) { console.error('Refusing to run: set PADDLE_ENV=sandbox and a sandbox PADDLE_API_KEY.'); process.exit(1); }
-const api = async (path: string, body: unknown) => {
-  const r = await fetch('https://sandbox-api.paddle.com' + path, { method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
-  const j: any = await r.json(); if (!r.ok) throw new Error(`${path}: ${r.status} ${JSON.stringify(j.error)}`); return j.data;
-};
-const out: string[] = [];
-for (const [env, name, cents] of [['STARTER', 'Allyfolio Starter', 1900], ['BUSINESS', 'Allyfolio Business', 3900], ['AGENCY', 'Allyfolio Agency', 9900]] as const) {
-  const p = await api('/products', { name, tax_category: 'saas' });
-  const price = await api('/prices', { product_id: p.id, description: `${name} monthly`, name: 'Monthly', unit_price: { amount: String(cents), currency_code: 'EUR' }, billing_cycle: { interval: 'month', frequency: 1 }, tax_mode: 'account_setting' });
-  out.push(`PADDLE_PRICE_${env}=${price.id}`);
-}
-const one = await api('/products', { name: 'Allyfolio one-off report', tax_category: 'saas' });
-out.push(`PADDLE_PRICE_ONEOFF=${(await api('/prices', { product_id: one.id, description: 'One-off report', name: 'One-off report', unit_price: { amount: '4900', currency_code: 'EUR' }, tax_mode: 'account_setting' })).id}`);
-const d = await api('/discounts', { description: 'Early bird – 30% off the first year', type: 'percentage', amount: '30', recur: true, maximum_recurring_intervals: 12, usage_limit: 100, enabled_for_checkout: false });
-out.push(`PADDLE_DISCOUNT_EARLYBIRD=${d.id}`);
-console.log(out.join('\n'));
-console.log('\nNext: in the Paddle sandbox dashboard create a notification destination for <APP_URL>/api/billing/webhook (events: subscription.created/updated/activated/past_due/paused/resumed/canceled, transaction.completed, transaction.payment_failed), copy its secret into PADDLE_WEBHOOK_SECRET, create a client-side token (PADDLE_CLIENT_TOKEN) and set a default payment link (Checkout settings) to <APP_URL>/app/billing.');
+if (!key) { console.error(`PADDLE_API_KEY is not set (looked in ${envPath} and the environment).`); process.exit(1); }
+if (env === 'production' && !process.argv.includes('--production')) { console.error('PADDLE_ENV=production: re-run with -- --production to confirm.'); process.exit(1); }
+if (env !== 'production' && env !== 'sandbox') { console.error('PADDLE_ENV must be sandbox or production.'); process.exit(1); }
+const apiBase = process.env.PADDLE_API_BASE || (env === 'production' ? 'https://api.paddle.com' : 'https://sandbox-api.paddle.com');
+console.log(`Paddle ${env} setup → ${envPath}`);
+try {
+  await runPaddleSetup({ apiKey: key, apiBase, webhookUrl: process.env.PADDLE_WEBHOOK_URL || undefined, envPath });
+  if (!process.env.PADDLE_CLIENT_TOKEN) console.log('Note: PADDLE_CLIENT_TOKEN is not set – create a client-side token in Paddle (Developer tools → Authentication) for the overlay checkout.');
+  if (!process.env.PADDLE_WEBHOOK_URL) console.log('No PADDLE_WEBHOOK_URL given: no webhook destination created. Local checkouts are still applied via the return-URL sync.');
+} catch (e: any) { console.error(String(e.message ?? e).replaceAll(key, '***')); process.exit(1); }
