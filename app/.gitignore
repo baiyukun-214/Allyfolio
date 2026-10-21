@@ -1,0 +1,6 @@
+node_modules
+data/*.db*
+data/reports
+.env
+backups/
+deploy/rclone/rclone.conf

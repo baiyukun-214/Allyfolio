@@ -1,0 +1,18 @@
+# Replace the domains. allyfolio.com = marketing site + /api; app.allyfolio.com = dashboard.
+allyfolio.com, www.allyfolio.com {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy app:8787
+	}
+	handle {
+		root * /srv/site
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}
+app.allyfolio.com {
+	encode zstd gzip
+	reverse_proxy app:8787
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}
