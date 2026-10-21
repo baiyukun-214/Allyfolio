@@ -84,7 +84,13 @@ html { scroll-padding-top: 5rem; }
   .timeline .tl-dot { display: block; }
 }
 @media (max-width: 767px) { .timeline li { padding-left: 20px; border-left: 2px solid #c7d2fe; } .timeline li.is-now { border-color: #4f46e5; } }
-.cov-manual { background: repeating-linear-gradient(45deg, #eef2ff 0 8px, #e0e7ff 8px 16px); }
+.cov-manual { background: repeating-linear-gradient(45deg, #eef2ff 0 8px, #e0e7ff 8px 16px); background-size: 22.63px 22.63px; animation: cov-flow 2.6s linear infinite; }
+@keyframes cov-flow { to { background-position: 22.63px 0; } }
+/* Fill once on scroll-in; without JS (no .js) the bars are simply full. */
+.cov-seg { transition: clip-path 1.1s cubic-bezier(.2,.7,.2,1); }
+.cov-seg + .cov-seg { transition-delay: .35s; }
+.js .cov-anim:not(.in) .cov-seg { clip-path: inset(0 100% 0 0); }
+@media (prefers-reduced-motion: reduce) { .cov-manual { animation: none; } .cov-seg { transition: none; } .js .cov-anim:not(.in) .cov-seg { clip-path: none; } }
 .pinned { position: relative; outline: 2px dashed #dc2626; outline-offset: 3px; }
 .pin { position: absolute; right: -10px; top: -12px; width: 22px; height: 22px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
 .steps-line { position: relative; }

@@ -7,7 +7,7 @@
     el.querySelectorAll<HTMLElement>('[data-to]').forEach(countUp);
     el.dispatchEvent(new CustomEvent('af:in'));
   }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll<HTMLElement>('.rv').forEach((el) => { if (el.dataset.d) el.style.transitionDelay = el.dataset.d + 'ms'; io.observe(el); });
+  document.querySelectorAll<HTMLElement>('.rv, .cov-anim').forEach((el) => { if (el.dataset.d) el.style.transitionDelay = el.dataset.d + 'ms'; io.observe(el); });
   function countUp(el: HTMLElement) {
     const to = Number(el.dataset.to); if (RM || !to) return;
     let t0 = 0; const step = (n: number) => { t0 ||= n; const k = Math.min(1, (n - t0) / 1100); el.textContent = String(Math.round(to * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };

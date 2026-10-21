@@ -73,7 +73,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
           ))}
         </ul>
       </figure>
-      <Snippet kind="fix" idp="hero" class="rv hidden xl:block absolute -left-20 -bottom-12 w-60" data-d="300" />
+      <Snippet kind="fix" idp="hero" class="rv relative mt-6 sm:mx-auto sm:max-w-md lg:mr-0 lg:-mt-10 lg:ml-auto lg:max-w-sm" data-d="300" />
       </div>
     </div>
   </section>
@@ -160,16 +160,31 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
       <p class="eyebrow rv">{F.eyebrow}</p>
       <h2 id="fix-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{F.h2}</h2>
       <p class="mt-3 max-w-2xl text-muted rv">{F.lead}</p>
-      <div class="mt-10 grid gap-6 lg:grid-cols-2 lg:items-start"><div class="rv"><BrowserPins /></div><div class="grid gap-5">
-        <div class="rv lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p class="flex items-center justify-between gap-3"><span class="font-semibold text-ink">{F.before}</span><span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">{F.beforeNote}</span></p>
-          <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100"><code><span class="text-red-300">- &lt;img src="shoe.jpg"&gt;</span></code></pre>
+      <div class="mt-10 grid gap-6 lg:grid-cols-12 lg:items-start">
+        <div class="grid min-w-0 gap-5 lg:col-span-7">
+          <div class="rv lift rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
+            <p class="flex flex-wrap items-center justify-between gap-2"><span class="font-semibold text-ink">{F.before}</span><span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-700">{F.example}</span></p>
+            <ul class="mt-4 grid gap-2 text-sm">
+              {F.issues.map(([rule, wcag, impact, desc]) => <li class="rounded-xl border border-slate-100 bg-slate-50/70 p-3"><span class="flex flex-wrap items-center gap-1.5 text-xs"><code class="rounded-md bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-800">{rule}</code><span class="text-slate-700">{wcag}</span><span class="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-800">{impact}</span></span><span class="mt-1 block text-ink">{desc}</span></li>)}
+            </ul>
+            <p class="sr-only">{F.diffSr}</p>
+            <pre class="mt-4 overflow-hidden whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 py-2 font-mono text-xs leading-relaxed text-slate-800"><code>{F.beforeCode.map(([m, l]) => <span class={`block px-3 ${m === '-' ? 'bg-red-50 text-red-800' : ''}`}><span aria-hidden="true" class="select-none">{m === ' ' ? '\u00a0' : m} </span>{l}</span>)}</code></pre>
+          </div>
+          <div class="rv lift rounded-2xl border border-brand-200 bg-white p-5 sm:p-6 shadow-lg shadow-brand-900/10" data-d="120">
+            <p class="flex flex-wrap items-center justify-between gap-2"><span class="font-semibold text-ink">{F.after}</span><span class="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-800">{F.trail[3][2]}</span></p>
+            <pre class="mt-4 overflow-hidden whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 py-2 font-mono text-xs leading-relaxed text-slate-800"><code>{F.afterCode.map(([m, l]) => <span class={`block px-3 ${m === '+' ? 'bg-green-50 text-green-900' : ''}`}><span aria-hidden="true" class="select-none">{m === ' ' ? '\u00a0' : m} </span>{l}</span>)}</code></pre>
+            <p class="mt-3 text-xs text-slate-700">color-contrast · {F.fixedNote}</p>
+          </div>
         </div>
-        <div class="rv lift rounded-2xl border border-brand-200 bg-white p-6 shadow-lg shadow-brand-900/10" data-d="120">
-          <p class="flex items-center justify-between gap-3"><span class="font-semibold text-ink">{F.after}</span><span class="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-800">{F.afterNote}</span></p>
-          <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100"><code><span class="text-green-300">+ &lt;img src="shoe.jpg" alt="Blue running shoe, side view"&gt;</span></code></pre>
+        <div class="grid min-w-0 gap-5 lg:col-span-5">
+          <div class="rv rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm" data-d="200">
+            <h3 class="flex items-center gap-2 font-semibold text-ink"><span class="text-brand-700"><Icon name="archive" /></span>{F.trailH}</h3>
+            <ol aria-label={F.trailAria} class="mt-4 space-y-4 border-l-2 border-brand-100 pl-5">
+              {F.trail.map(([date, title, detail, id, st]) => <li class="relative"><span aria-hidden="true" class={`absolute -left-[27px] top-1 h-3 w-3 rounded-full ring-4 ring-white ${st === 'done' ? 'bg-green-700' : st === 'manual' ? 'bg-amber-600' : st === 'partial' ? 'bg-brand-500' : 'bg-red-700'}`}></span><p class="flex flex-wrap items-baseline gap-x-2 text-sm"><span class="font-semibold text-ink">{date}</span><span class="text-ink">{title}</span><code class="text-xs text-slate-600">{id}</code></p><p class="mt-0.5 text-sm text-muted">{detail}</p></li>)}
+            </ol>
+          </div>
+          <div class="rv" data-d="260"><BrowserPins /></div>
         </div>
-      </div>
       </div>
       <p class="rv mt-6 flex gap-3 text-sm text-muted"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span>{F.caveat}</p>
     </div>
