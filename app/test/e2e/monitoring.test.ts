@@ -58,6 +58,13 @@ test('scheduled scan → evidence trail, diff, alert, immutability, retention', 
   const s2 = db.get("SELECT * FROM scans WHERE kind = 'manual'");
   assert.ok(s2.new_issues >= 1); assert.equal(s2.fixed_issues, 0); assert.equal(s2.prev_hash, s1.evidence_hash, 'hash chain links to previous scan');
   assert.ok(sentMail.slice(before).some((m) => /new serious accessibility issue/.test(m.subject)), 'alert email sent');
+  // dashboard polish: status JSON for the progress bar, score ring + KPIs, danger zone lives in Settings
+  const st = JSON.parse((await c.req('GET', sitePath + '/scan-status')).body);
+  assert.equal(st.pending, false); assert.equal(st.running, null); assert.equal(st.last.id, s2.id); assert.equal(st.last.newIssues, s2.new_issues);
+  const sp = (await c.req('GET', sitePath)).body;
+  assert.match(sp, /class="ring"[^>]*role="img"[^>]*aria-label="Automated check score: \d+ out of 100, from automated checks only"/);
+  assert.match(sp, /data-scan-form/); assert.doesNotMatch(sp, /action="[^"]+\/delete"/, 'no remove button on the site page');
+  assert.match((await c.req('GET', '/app/settings')).body, /id="danger-h"[\s\S]*\/delete"/);
   // scan detail page renders the diff
   const detail = await c.req('GET', `/app/scans/${s2.id}`);
   assert.match(detail.body, /<\/strong> new and <strong>/); assert.match(detail.body, /57%/);

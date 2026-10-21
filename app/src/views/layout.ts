@@ -15,14 +15,14 @@ export function page({ title, body, user, current, flash, locale = 'en', path = 
   const siteNav = html`<nav class="sitebar" aria-label="${L.site}"><div class="in"><ul>
     <li><a href="${siteLink(locale)}">${L.website}</a></li><li><a href="${siteLink(locale, '/blog')}">${L.blog}</a></li><li><a href="${siteLink(locale, '/pricing')}">${L.pricing}</a></li></ul></div></nav>`;
   return '<!doctype html>' + html`<html lang="${T.htmlLang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} | Allyfolio</title><link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/app.css"></head>
+<title>${title} | Allyfolio</title><link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/app.css"><script src="/static/app.js" defer></script></head>
 <body><a class="skip" href="#main">${L.skip}</a>
 <header class="top">${user ? siteNav : ''}<div class="in"><a class="brand" href="${siteLink(locale)}" aria-label="${L.homeAria}">${logo}<span>Allyfolio</span></a>
 <nav class="main" aria-label="${L.main}"><ul>${links.map(([h, l]) => html`<li><a href="${h}" ${current === h ? html`aria-current="page"` : ''}>${l}</a></li>`)}
 <li>${langSwitch(locale, path)}</li>
 ${user ? html`<li><form method="post" action="/logout"><button class="btn btn-secondary" type="submit">${L.logout}<span class="sr-only"> ${user.email}</span></button></form></li>` : html`<li><a href="/login">${L.login}</a></li><li><a class="btn btn-primary" href="/signup">${L.signup}</a></li>`}
 </ul></nav></div></header>
-<main id="main" tabindex="-1">${backToSite ? html`<p class="back-site"><a href="${siteLink(locale)}">${L.backToSite}</a></p>` : ''}${flash ? html`<div class="alert alert-${flash.kind}" role="${flash.kind === 'error' ? 'alert' : 'status'}">${flash.msg}</div>` : ''}${body}</main>
+<main id="main" tabindex="-1">${backToSite ? html`<p class="back-site"><a href="${siteLink(locale)}">${L.backToSite}</a></p>` : ''}${flash ? html`<div class="alert alert-${flash.kind}" role="${flash.kind === 'error' ? 'alert' : 'status'}">${flash.msg}</div>` : ''}${body}<div class="toasts" id="toasts" role="status" aria-live="polite"></div></main>
 <footer><div class="in"><p>${L.footer}</p><ul class="footlinks"><li><a href="${siteLink(locale)}">${L.website}</a></li><li><a href="${siteLink(locale, '/blog')}">${L.blog}</a></li><li><a href="${siteLink(locale, '/pricing')}">${L.pricing}</a></li></ul></div></footer>
 </body></html>`.__html;
 }

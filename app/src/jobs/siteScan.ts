@@ -37,6 +37,7 @@ export async function runSiteScan(p: SiteScanPayload, log: any = console): Promi
         issues.push(...r.issues);
         for (const l of r.links) { const n = normaliseLink(l, site.origin); if (n && !seen.has(n)) queue.push(n); }
       }
+      run('UPDATE scans SET pages_scanned = ? WHERE id = ?', pages.length, id); // live page counter for the dashboard
     }
     const prev = get<any>("SELECT id, evidence_hash FROM scans WHERE site_id = ? AND status = 'done' AND id != ? ORDER BY finished_at DESC LIMIT 1", site.id, id);
     const prevFps = new Set(prev ? all<any>('SELECT DISTINCT fingerprint FROM scan_issues WHERE scan_id = ?', prev.id).map((r) => r.fingerprint) : []);

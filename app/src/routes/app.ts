@@ -13,6 +13,7 @@ import { requireUser, render, back, ownSite, T, loc, fmtDate } from './guard.ts'
 import { LOCALES, normLocale, t, trError } from '../i18n.ts';
 import { siteDetailExtras } from './monitoring.ts';
 import { accountSection } from './account.ts';
+import { emptyState } from '../views/ui.ts';
 
 
 export async function dashboardRoutes(app: FastifyInstance) {
@@ -27,7 +28,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       ${ctx.team.plan === 'none' ? html`<p class="notice"><strong>${D.noPlanH}</strong> ${D.noPlan} <a href="/app/billing">${D.noPlanLink}</a>${D.noPlanEnd}</p>` : ''}
       ${sites.length ? html`<div class="table-wrap card" style="padding:8px 16px"><table><caption class="sr-only">${D.yourSites}</caption><thead><tr><th scope="col">${D.colSite}</th><th scope="col">${D.colOwner}</th><th scope="col">${D.colLast}</th><th scope="col">${D.colSerious}</th></tr></thead><tbody>
         ${sites.map((s) => html`<tr><td><a href="/app/sites/${s.id}">${s.name}</a><br><span class="muted small">${s.origin}</span></td><td>${s.verified_at ? html`<span class="pill ok">${D.verified}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</td><td>${fmtDate(s.last_scan, l)}</td><td>${s.last_serious ?? '–'}</td></tr>`)}
-      </tbody></table></div>` : html`<p class="muted">${D.noSites}</p>`}
+      </tbody></table></div>` : emptyState(D.emptySitesH, D.emptySitesText, html`<a class="btn btn-primary" href="#name">${D.addH}</a>`)}
       <h2>${D.addH}</h2>
       <form class="card" method="post" action="/app/sites">${csrfField(req)}
         <div class="grid g2"><div class="field"><label for="name">${D.name}</label><input id="name" name="name" type="text" required maxlength="80" placeholder="${D.namePh}"></div>
@@ -64,8 +65,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
           <h3>${D.opt2}</h3><p class="small">${D.opt2Text}</p><p><code>&lt;meta name="${META_NAME}" content="${s.verify_token}"&gt;</code></p>
           <form method="post" action="/app/sites/${s.id}/verify">${csrfField(req)}<button class="btn btn-primary" type="submit">${D.checkNow}</button></form>
         </section>`}
-      <h2>${D.danger}</h2>
-      <form method="post" action="/app/sites/${s.id}/delete">${csrfField(req)}<button class="btn btn-danger" type="submit">${D.remove}</button></form>` });
+` });
   });
 
   app.post('/app/sites/:id/verify', async (req, reply) => {
@@ -132,6 +132,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
   app.get('/app/settings', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
     const l = loc(req, ctx), D = t(l).dash;
+    const sites = all<any>('SELECT id, name, origin FROM sites WHERE team_id = ? ORDER BY created_at', ctx.team.id);
     return render(reply, ctx, { title: D.settings, current: '/app/settings', body: html`
       <h1>${D.settings}</h1>
       <form class="card narrow" style="margin:0" method="post" action="/app/settings">${csrfField(req)}
@@ -139,7 +140,9 @@ export async function dashboardRoutes(app: FastifyInstance) {
           <select id="locale" name="locale" aria-describedby="locale-hint">${LOCALES.map((x) => html`<option value="${x}" lang="${x}" ${x === l ? html`selected` : ''}>${t(x).langName}</option>`)}</select></div>
         <button class="btn btn-primary" type="submit">${D.save}</button>
       </form>
-      ${accountSection(req, ctx)}` });
+      ${accountSection(req, ctx)}
+      ${ctx.role === 'owner' && sites.length ? html`<section class="card danger-zone" aria-labelledby="danger-h"><h2 id="danger-h" style="margin-top:0">${D.danger}</h2><p class="muted small">${D.dangerLead}</p>
+        <ul class="danger-list">${sites.map((x) => html`<li><span><strong>${x.name}</strong> <span class="muted small">${x.origin}</span></span><form method="post" action="/app/sites/${x.id}/delete">${csrfField(req)}<button class="btn btn-danger" type="submit">${D.remove}<span class="sr-only"> – ${x.name}</span></button></form></li>`)}</ul></section>` : ''}` });
   });
 
   app.post('/app/settings', async (req, reply) => {
