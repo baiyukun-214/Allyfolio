@@ -27,8 +27,9 @@ const link = 'text-muted hover:text-brand-700 hover:underline underline-offset-4
     <nav aria-label={t.nav.account}>
       <h2 class="font-semibold text-ink">{t.nav.account}</h2>
       <ul class="mt-3 space-y-2">
-        <li><a class={link} href={appLink('/login', lang)}>{t.nav.login}</a></li>
-        <li><a class={link} href={appLink('/signup', lang)}>{t.nav.signup}</a></li>
+        <li data-auth="out"><a class={link} href={appLink('/login', lang)}>{t.nav.login}</a></li>
+        <li data-auth="out"><a class={link} href={appLink('/signup', lang)}>{t.nav.signup}</a></li>
+        <li data-auth="in" hidden><a class={link} href={appLink('/app', lang)}>{t.nav.dashboard}</a></li>
         <li><LangSwitch class={link} hasTranslation={Astro.props.hasTranslation} /></li>
       </ul>
     </nav>

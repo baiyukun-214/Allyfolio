@@ -31,14 +31,17 @@ const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover
           <li><a href={l(x.href)} aria-current={current === x.href ? 'page' : undefined} class={`${linkCls} aria-[current=page]:text-brand-700 aria-[current=page]:underline decoration-2 underline-offset-8`}>{x.label}</a></li>
         ))}
         <li class="lg:ml-1 lg:pl-2 lg:border-l lg:border-slate-200 mt-2 lg:mt-0 border-t border-slate-200 pt-2 lg:pt-0"><LangSwitch class={linkCls} hasTranslation={Astro.props.hasTranslation} /></li>
-        <li><a href={appLink('/login', lang)} class={linkCls}>{t.nav.login}</a></li>
-        <li><a href={appLink('/signup', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.signup}</a></li>
+        <li data-auth="out"><a href={appLink('/login', lang)} class={linkCls}>{t.nav.login}</a></li>
+        <li data-auth="out"><a href={appLink('/signup', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.signup}</a></li>
+        <li data-auth="in" hidden><a href={appLink('/app', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.dashboard}</a></li>
         <li class="lg:ml-1 mt-2 lg:mt-0"><a href={l('/#waitlist')} class="btn btn-primary w-full lg:w-auto py-2 text-sm">{t.nav.waitlist}</a></li>
       </ul>
     </nav>
   </div>
 </header>
 <script>
+  // Logged-in hint: the app sets a non-HttpOnly af_logged_in=1 cookie on the shared domain. Without JS, Log in / Sign up stay visible.
+  if (/(?:^|;\s*)af_logged_in=1(?:;|$)/.test(document.cookie)) document.querySelectorAll<HTMLElement>('[data-auth]').forEach((el) => { el.hidden = el.dataset.auth === 'out'; });
   const btn = document.getElementById('nav-toggle');
   const nav = document.getElementById('site-nav');
   if (btn && nav) {

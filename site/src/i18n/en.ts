@@ -3,7 +3,7 @@ export const en = {
   langName: 'English',
   meta: { siteTitle: 'Allyfolio – EAA & BFSG accessibility monitoring', ogAlt: 'Allyfolio – Show your accessibility work, not just promise it. EAA in force since 28 June 2025.', ogLocale: 'en_GB' },
   skip: 'Skip to main content',
-  nav: { how: 'How it works', pricing: 'Pricing', freeScan: 'Free scan', blog: 'Blog', about: 'About', waitlist: 'Join the waitlist', menu: 'Menu', main: 'Main', login: 'Log in', signup: 'Sign up', account: 'Account', language: 'Language' },
+  nav: { how: 'How it works', pricing: 'Pricing', freeScan: 'Free scan', blog: 'Blog', about: 'About', waitlist: 'Join the waitlist', menu: 'Menu', main: 'Main', login: 'Log in', signup: 'Sign up', dashboard: 'Dashboard', account: 'Account', language: 'Language' },
   switcher: { label: '中文', aria: '切换到简体中文', hreflang: 'zh-CN' },
   footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', imprint: 'Imprint', statement: 'Accessibility statement', copyright: 'A testing and documentation tool, not legal advice.' },
   waitlist: {

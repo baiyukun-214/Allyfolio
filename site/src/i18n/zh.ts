@@ -4,7 +4,7 @@ export const zh: Dict = {
   langName: '简体中文',
   meta: { siteTitle: 'Allyfolio – 面向 EAA 与 BFSG 的无障碍监测', ogAlt: 'Allyfolio – 用证据展示您的无障碍工作，而不只是承诺。《欧洲无障碍法案》已于 2025 年 6 月 28 日生效。', ogLocale: 'zh_CN' },
   skip: '跳到主要内容',
-  nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', account: '账户', language: '语言' },
+  nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', dashboard: '控制台', account: '账户', language: '语言' },
   switcher: { label: 'English', aria: 'Switch to English', hreflang: 'en' },
   footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', imprint: '网站信息（Impressum）', statement: '无障碍声明', copyright: '一款测试与记录工具，不构成法律建议。' },
   waitlist: {
