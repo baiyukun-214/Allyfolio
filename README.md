@@ -32,6 +32,8 @@ SMEs (online shops, service providers) and web agencies preparing for the **Euro
 
 Billing runs through Paddle (Merchant of Record).
 
+**Operator:** Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司), Room 907, No. 221 Jiahe Road, Siming District, Xiamen, Fujian, China · managing director Bai Yukun (白宇堃) · Unified Social Credit Code 91350203MAK7GQ50XC · hello@allyfolio.com (see the site imprint).
+
 ## Honest limits
 
 - Automated testing finds only **roughly 57%** of accessibility issues ([Deque study](https://www.deque.com/automated-accessibility-testing-coverage/)). Meaningful alt text, focus order, understandable content and more need **manual review by people**.
@@ -85,7 +87,7 @@ English and Simplified Chinese (zh-CN) everywhere: the site under `/zh`, the das
 
 ## Copy rules (both packages, en + zh)
 
-Never describe the product or its output as making a site meet legal requirements or as a certification; always state that automated testing finds roughly 57% of issues (Deque) and that manual review is needed; no overlay widgets; mention the microenterprise exemption honestly.
+Never describe the product or its output as making a site meet legal requirements or as certifying it; always state that automated testing finds roughly 57% of issues (Deque) and that manual review is needed; no overlay widgets; mention the microenterprise exemption honestly.
 
 ## More
 

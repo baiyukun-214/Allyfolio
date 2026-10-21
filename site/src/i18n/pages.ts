@@ -20,7 +20,7 @@ export const prosePages: Record<Locale, Pages> = {
 <!-- TODO: have this policy reviewed (GDPR / DSGVO) before launch. -->
 <p>This policy explains what personal data Allyfolio processes on allyfolio.com and app.allyfolio.com, why, and for how long.</p>
 <h2>Controller</h2>
-<p>The controller is the operator named in the <a href="/imprint">imprint</a>. Contact: ${MAIL}.</p>
+<p>The controller is Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司), Room 907, No. 221 Jiahe Road, Siming District, Xiamen, Fujian, China, represented by its managing director Bai Yukun (see the <a href="/imprint">imprint</a>). Contact: ${MAIL}.</p>
 <h2>Cookies</h2>
 <p>We use <strong>only essential cookies</strong>, so there is no cookie banner. There are no analytics, advertising or tracking cookies or scripts.</p>
 <ul>
@@ -55,7 +55,7 @@ export const prosePages: Record<Locale, Pages> = {
 <p>Under the GDPR you have the right to access, rectify, erase, restrict and port your data, to object to processing based on legitimate interests and to withdraw consent. You can also complain to a data protection supervisory authority. Contact ${MAIL}.</p>` },
     terms: { eyebrow: 'legal', title: 'Terms of Service', description: 'Terms of Service for Allyfolio: what the service does and does not do, ownership verification, payment via Paddle, liability and termination.', html: `
 <!-- TODO: have these terms reviewed by a lawyer before launch. -->
-<p>These terms apply to the use of Allyfolio (allyfolio.com and app.allyfolio.com), operated by the provider named in the <a href="/imprint">imprint</a> (“we”). They apply to business customers only; Allyfolio is not offered to consumers.</p>
+<p>These terms apply to the use of Allyfolio (allyfolio.com and app.allyfolio.com), operated by Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司) (see the <a href="/imprint">imprint</a>; “we”). They apply to business customers only; Allyfolio is not offered to consumers.</p>
 <h2>1. What Allyfolio does</h2>
 <p>Allyfolio runs automated accessibility checks (axe-core, against WCAG 2.2 success criteria) on web pages, keeps a dated history of the results and helps you create reports and a draft accessibility statement.</p>
 <h2>2. What Allyfolio does not do</h2>
@@ -91,7 +91,7 @@ export const prosePages: Record<Locale, Pages> = {
 <p>German law applies, excluding the UN Convention on Contracts for the International Sale of Goods. Place of jurisdiction for merchants is the registered seat of the provider. If a provision is invalid, the rest remains effective.</p>` },
     dpa: { eyebrow: 'legal', title: 'Data processing agreement (template)', description: 'Template data processing agreement (Art. 28 GDPR) between Allyfolio customers and Allyfolio for personal data contained in scanned web pages.', html: `
 <!-- TODO: have this DPA template reviewed before launch. -->
-<p><em>Template.</em> This agreement under Art. 28 GDPR applies between you as a customer (“controller”) and the provider named in the <a href="/imprint">imprint</a> (“processor”) when you use Allyfolio. It becomes part of the contract when you accept the <a href="/terms">Terms of Service</a>. If you need a signed copy, email ${MAIL}.</p>
+<p><em>Template.</em> This agreement under Art. 28 GDPR applies between you as a customer (“controller”) and Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司), Room 907, No. 221 Jiahe Road, Siming District, Xiamen, Fujian, China (see the <a href="/imprint">imprint</a>; “processor”) when you use Allyfolio. It becomes part of the contract when you accept the <a href="/terms">Terms of Service</a>. If you need a signed copy, email ${MAIL}.</p>
 <h2>1. Subject, duration and nature of processing</h2>
 <p>The processor scans web pages that the controller has verified, stores the results and creates reports for the controller. Processing lasts as long as the contract, plus the retention periods below.</p>
 <h2>2. Types of data and data subjects</h2>
@@ -122,14 +122,13 @@ export const prosePages: Record<Locale, Pages> = {
 <h2>10. Audits</h2>
 <p>The processor makes available the information needed to show that the obligations under Art. 28 GDPR are met and allows reasonable audits, normally by providing written information, with at least 30 days' notice.</p>` },
     imprint: { eyebrow: 'legal', title: 'Imprint', description: 'Legal notice (Impressum) for allyfolio.com.', html: `
-<!-- TODO: fill in legal details required by § 5 DDG (name, postal address, contact, VAT ID if any, responsible person). -->
-<p><strong>Placeholder.</strong> Legal details will be added before launch.</p>
 <h2>Provider</h2>
-<p>[Name – TODO]<br />[Street and number – TODO]<br />[Postcode and city – TODO]<br />[Country – TODO]</p>
+<p>Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司)<br />Room 907, No. 221 Jiahe Road<br />Siming District, Xiamen, Fujian<br />China</p>
+<p>Limited liability company registered in the People's Republic of China.<br />Unified Social Credit Code: 91350203MAK7GQ50XC</p>
+<h2>Managing director / legal representative</h2>
+<p>Bai Yukun (白宇堃)</p>
 <h2>Contact</h2>
-<p>Email: ${MAIL}</p>
-<h2>VAT ID</h2>
-<p>[TODO, if applicable]</p>` },
+<p>Email: ${MAIL}</p>` },
     statement: { eyebrow: 'legal', title: 'Accessibility statement', description: 'Accessibility statement for allyfolio.com: our target standard, testing methods, known limitations and how to give feedback.', html: `
 <p>We want allyfolio.com to be usable by everyone. We aim to meet WCAG 2.2 level AA.</p>
 <h2>How we test</h2>
@@ -163,7 +162,7 @@ export const prosePages: Record<Locale, Pages> = {
 <!-- TODO: have this policy reviewed (GDPR / DSGVO) before launch. -->
 <p>本政策说明 Allyfolio 在 allyfolio.com 和 app.allyfolio.com 上处理哪些个人数据、出于什么目的以及保存多长时间。</p>
 <h2>控制者</h2>
-<p>控制者为<a href="/zh/imprint">网站信息</a>中列明的运营者。联系方式：${MAIL}。</p>
+<p>控制者为厦门妙尔多商贸有限公司（地址：福建省厦门市思明区嘉禾路221号907室；法定代表人：白宇堃；详见<a href="/zh/imprint">网站信息</a>）。联系方式：${MAIL}。</p>
 <h2>Cookie</h2>
 <p>我们<strong>仅使用必要的 Cookie</strong>，因此没有 Cookie 横幅。我们不使用任何分析、广告或跟踪 Cookie 或脚本。</p>
 <ul>
@@ -198,7 +197,7 @@ export const prosePages: Record<Locale, Pages> = {
 <p>根据 GDPR，您有权访问、更正、删除、限制处理和携带您的数据，有权反对基于正当利益的处理，并可撤回同意。您也可以向数据保护监管机构投诉。联系方式：${MAIL}。</p>` },
     terms: { eyebrow: 'legal', title: '服务条款', description: 'Allyfolio 服务条款：服务的作用与局限、所有权验证、通过 Paddle 付款、责任和终止。', html: `
 <!-- TODO: have these terms reviewed by a lawyer before launch. -->
-<p>本条款适用于使用 Allyfolio（allyfolio.com 和 app.allyfolio.com），运营者为<a href="/zh/imprint">网站信息</a>中列明的提供方（“我们”）。本条款仅适用于企业客户；Allyfolio 不面向消费者提供。如中文版本与英文版本有出入，以英文版本为准。</p>
+<p>本条款适用于使用 Allyfolio（allyfolio.com 和 app.allyfolio.com），运营者为厦门妙尔多商贸有限公司（详见<a href="/zh/imprint">网站信息</a>；“我们”）。本条款仅适用于企业客户；Allyfolio 不面向消费者提供。如中文版本与英文版本有出入，以英文版本为准。</p>
 <h2>1. Allyfolio 的作用</h2>
 <p>Allyfolio 对网页进行自动化无障碍检查（axe-core，依据 WCAG 2.2 成功标准），保存带日期的结果历史，并帮助您创建报告和无障碍声明草稿。</p>
 <h2>2. Allyfolio 不做什么</h2>
@@ -234,7 +233,7 @@ export const prosePages: Record<Locale, Pages> = {
 <p>适用德国法律，但排除《联合国国际货物销售合同公约》。对商人而言，管辖地为提供方的注册地。如某项条款无效，其余条款仍然有效。</p>` },
     dpa: { eyebrow: 'legal', title: '数据处理协议（模板）', description: 'Allyfolio 客户与 Allyfolio 之间关于被扫描网页中个人数据的数据处理协议模板（GDPR 第 28 条）。', html: `
 <!-- TODO: have this DPA template reviewed before launch. -->
-<p><em>模板。</em>当您使用 Allyfolio 时，本协议（依据 GDPR 第 28 条）适用于作为客户的您（“控制者”）与<a href="/zh/imprint">网站信息</a>中列明的提供方（“处理者”）之间。接受<a href="/zh/terms">服务条款</a>后，本协议即成为合同的一部分。如需签署版本，请发送邮件至 ${MAIL}。如中文版本与英文版本有出入，以英文版本为准。</p>
+<p><em>模板。</em>当您使用 Allyfolio 时，本协议（依据 GDPR 第 28 条）适用于作为客户的您（“控制者”）与厦门妙尔多商贸有限公司（福建省厦门市思明区嘉禾路221号907室，详见<a href="/zh/imprint">网站信息</a>；“处理者”）之间。接受<a href="/zh/terms">服务条款</a>后，本协议即成为合同的一部分。如需签署版本，请发送邮件至 ${MAIL}。如中文版本与英文版本有出入，以英文版本为准。</p>
 <h2>1. 处理的对象、期限和性质</h2>
 <p>处理者扫描控制者已验证的网页，保存结果并为控制者创建报告。处理期限与合同期限相同，另加下述保存期限。</p>
 <h2>2. 数据类型和数据主体</h2>
@@ -265,13 +264,13 @@ export const prosePages: Record<Locale, Pages> = {
 <h2>10. 审计</h2>
 <p>处理者提供证明其遵守 GDPR 第 28 条所需的信息，并允许合理的审计，通常以书面信息的方式进行，须至少提前 30 天通知。</p>` },
     imprint: { eyebrow: 'legal', title: '网站信息（Impressum）', description: 'allyfolio.com 的法定网站信息（Impressum）。', html: `
-<p><strong>占位内容。</strong>法定信息将在正式上线前补充。具有法律效力的是德文/英文版本。</p>
 <h2>提供者</h2>
-<p>[名称 – 待补充]<br />[街道和门牌号 – 待补充]<br />[邮编和城市 – 待补充]<br />[国家 – 待补充]</p>
+<p>厦门妙尔多商贸有限公司（Xiamen Miaoerduo Trading Co., Ltd.）<br />福建省厦门市思明区嘉禾路221号907室</p>
+<p>在中华人民共和国注册的有限责任公司。<br />统一社会信用代码：91350203MAK7GQ50XC</p>
+<h2>法定代表人</h2>
+<p>白宇堃（Bai Yukun）</p>
 <h2>联系方式</h2>
-<p>邮箱：${MAIL}</p>
-<h2>增值税号</h2>
-<p>[待补充，如适用]</p>` },
+<p>邮箱：${MAIL}</p>` },
     statement: { eyebrow: 'legal', title: '无障碍声明', description: 'allyfolio.com 的无障碍声明：目标标准、测试方法、已知局限以及反馈方式。', html: `
 <p>我们希望每个人都能使用 allyfolio.com。我们的目标是达到 WCAG 2.2 AA 级。</p>
 <h2>我们如何测试</h2>
