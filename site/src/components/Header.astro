@@ -15,7 +15,7 @@ const links = [
 const current = basePath(Astro.url.pathname);
 const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover:bg-brand-50 hover:text-brand-700';
 ---
-<header class="border-b border-slate-200/80 bg-white">
+<header class="glass sticky top-0 z-40 border-b border-slate-200/70">
   <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
     <a href={l('/')} class="flex items-center gap-2.5 font-semibold text-lg tracking-tight text-ink">
       <Logo size={30} />

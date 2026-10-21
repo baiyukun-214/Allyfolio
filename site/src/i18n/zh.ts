@@ -19,7 +19,7 @@ export const zh: Dict = {
   },
   plans: {
     recommended: '推荐', perMonth: '/月', exVat: '不含增值税', join: '加入候补名单', joinFor: '–',
-    oneoffTitle: '单次报告', oneoffText: '1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。', oneoffSr: '– 单次报告',
+    oneoffTitle: '单次报告', oneoffText: '1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。', tabsLabel: '方案类型', tabSubs: '订阅套餐', tabOneoff: '一次性报告', oneoffPer: '一次性', oneoffFeatures: ['1 个网站', '最多 100 个页面', '单次扫描', 'PDF 报告', '无需订阅'], oneoffSr: '– 单次报告',
     items: {
       starter: { name: '入门版', blurb: '适合单个小型企业网站。', features: ['1 个网站', '最多 100 个页面', '每周扫描', '12 个月证据历史', '1 个席位'], extra: ['带时间戳的审计记录', '无障碍声明草稿'] },
       business: { name: '商业版', blurb: '适合规模更大的网店和服务网站。', features: ['3 个网站', '每个网站最多 500 个页面', '每日扫描', '24 个月证据历史', 'PDF 报告导出', '3 个席位'], extra: ['包含入门版全部功能'] },
@@ -41,6 +41,9 @@ export const zh: Dict = {
     h1: '用证据展示您的无障碍工作，而不只是承诺。',
     lead: 'Allyfolio 定期扫描您的网站，持续跟踪每个问题，并保留带时间戳的证据记录，让您能够证明在满足 EAA 和德国 BFSG 要求方面取得的真实进展。',
     ctaPrimary: '加入候补名单', ctaSecondary: '免费扫描一个页面', trustLine: '不使用覆盖层插件 · 不向您的网站注入任何脚本',
+    demo: { caption: '示意图：一次示例扫描', note: '示例数据 · 仅自动化检测', url: 'https://shop.example.de', scanning: '正在扫描…', pages: '个页面', done: '示例扫描已完成', scoreLabel: '示例得分：82（满分 100），仅基于自动化检测', score: '得分', scoreSub: '仅自动化检测', issues: [['图片缺少替代文本', '严重', '12'], ['颜色对比度不足', '较严重', '7'], ['表单字段缺少标签', '中等', '3'], ['链接名称不清晰', '中等', '1']] },
+    fix: { eyebrow: '修复前 / 修复后', h2: '一次修复，有据可查', lead: '每次扫描都会与上一次进行比较，因此每项修复都会作为带日期的条目出现在您的证据记录中。', before: '修复前 · 9月1日扫描', after: '修复后 · 9月22日扫描', beforeNote: '12 个页面：图片缺少替代文本', afterNote: '12 个页面上已不再检测到该问题', caveat: '自动化检测只能确认属性存在——文本是否有意义仍需人工审查。' },
+    stat: { value: '57', suffix: '%', label: '的无障碍问题大约可由自动化测试发现（Deque 研究）。我们事先如实说明。' },
     card: { title: '审计记录', illustrative: '示意数据', rows: [['9月1日', '每周扫描', '42 个问题'], ['9月8日', '每周扫描', '27 个问题'], ['9月15日', '记录人工审查', '已添加备注'], ['9月22日', '每周扫描', '6 个问题']] },
     trustAria: '关键信息', trust: ['不使用覆盖层插件', '为欧盟团队打造', '对照 WCAG 2.2 与 EN 301 549 的检测', '带时间戳的证据'],
     why: { eyebrow: '为什么是现在', h2: 'EAA 已于 2025 年 6 月 28 日开始适用', items: [

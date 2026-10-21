@@ -20,6 +20,8 @@ for (const vp of [{ width: 1280, height: 800 }, { width: 375, height: 740 }]) {
   const page = await ctx.newPage();
   for (const p of pages) {
     const res = await page.goto(base + p);
+    // Let one-time entrance motion (reveals, hero scan illustration) settle so axe checks the resting state.
+    await page.waitForTimeout(p === '/' || p === '/zh' ? 5000 : 900);
     const r = await new AxeBuilder({ page }).withTags(tags).analyze();
     const sc = r.violations.filter((v) => ['serious', 'critical'].includes(v.impact));
     bad += sc.length; total += r.violations.length;

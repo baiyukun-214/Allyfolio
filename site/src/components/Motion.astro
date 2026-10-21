@@ -1,0 +1,62 @@
+<script>
+  // Small progressive-enhancement layer: reveals, count-ups, sliding tabs, hero demo. No libraries, no tracking.
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const el = e.target as HTMLElement; el.classList.add('in'); io.unobserve(el);
+    el.querySelectorAll<HTMLElement>('[data-to]').forEach(countUp);
+    el.dispatchEvent(new CustomEvent('af:in'));
+  }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll<HTMLElement>('.rv').forEach((el) => { if (el.dataset.d) el.style.transitionDelay = el.dataset.d + 'ms'; io.observe(el); });
+  function countUp(el: HTMLElement) {
+    const to = Number(el.dataset.to); if (RM || !to) return;
+    let t0 = 0; const step = (n: number) => { t0 ||= n; const k = Math.min(1, (n - t0) / 1100); el.textContent = String(Math.round(to * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  // Tabs (WAI-ARIA tabs pattern, automatic activation). Without JS the tablist stays hidden and all panels show.
+  document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((root) => {
+    const list = root.querySelector<HTMLElement>('[role=tablist]')!; const pill = list.querySelector<HTMLElement>('.seg-pill')!;
+    const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role=tab]')];
+    const panels = tabs.map((t) => document.getElementById(t.getAttribute('aria-controls')!)!);
+    const select = (i: number, focus = false, anim = true) => {
+      tabs.forEach((t, j) => { const on = i === j; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; panels[j].hidden = !on; if (on && anim && !RM) { panels[j].classList.remove('tabpanel-in'); void panels[j].offsetWidth; panels[j].classList.add('tabpanel-in'); } });
+      pill.style.width = tabs[i].offsetWidth + 'px'; pill.style.transform = `translateX(${tabs[i].offsetLeft}px)`;
+      if (focus) tabs[i].focus();
+    };
+    list.hidden = false;
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const k = e.key; let n = -1;
+        if (k === 'ArrowRight') n = (i + 1) % tabs.length; else if (k === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length; else if (k === 'Home') n = 0; else if (k === 'End') n = tabs.length - 1;
+        if (n >= 0) { e.preventDefault(); select(n, true); }
+      });
+    });
+    select(0, false, false);
+    addEventListener('resize', () => select(tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'), false, false));
+  });
+  // Hero scan illustration. Final state is already in the HTML; JS only replays it once when motion is allowed.
+  const demo = document.querySelector<HTMLElement>('[data-demo]');
+  if (demo && !RM) {
+    const url = demo.querySelector<HTMLElement>('[data-url]')!, full = url.textContent ?? '';
+    const bar = demo.querySelector<HTMLElement>('[data-bar]')!, count = demo.querySelector<HTMLElement>('[data-count]')!, status = demo.querySelector<HTMLElement>('[data-status]')!;
+    const ring = demo.querySelector<HTMLElement>('.ring')!, num = demo.querySelector<HTMLElement>('[data-score]')!;
+    const items = [...demo.querySelectorAll<HTMLElement>('.demo-issue')], total = Number(count.dataset.total), done = status.textContent, scanning = status.dataset.scanning ?? '';
+    const counters = [...demo.querySelectorAll<HTMLElement>('[data-n]')];
+    demo.classList.add('demo-run'); ring.style.setProperty('--p', '0'); num.textContent = '0'; bar.style.width = '0%'; count.textContent = '0'; url.textContent = ''; status.textContent = scanning;
+    let i = 0;
+    const typing = setInterval(() => { url.textContent = full.slice(0, ++i); if (i >= full.length) { clearInterval(typing); scan(); } }, 55);
+    function scan() {
+      let p = 0;
+      const s = setInterval(() => {
+        p += 2; bar.style.width = p + '%'; count.textContent = String(Math.round(total * p / 100));
+        if (p % 24 === 0) items[p / 24 - 1]?.classList.add('on');
+        if (p >= 100) {
+          clearInterval(s); items.forEach((x) => x.classList.add('on')); status.textContent = done;
+          ring.style.setProperty('--p', ring.dataset.p!); num.dataset.to = ring.dataset.p; countUp(num);
+          counters.forEach((c) => { c.dataset.to = c.dataset.n; countUp(c); });
+        }
+      }, 45);
+    }
+  }
+</script>

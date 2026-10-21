@@ -18,7 +18,7 @@ export const en = {
   },
   plans: {
     recommended: 'Recommended', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
-    oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', oneoffSr: 'for the one-off report',
+    oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-off', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
     items: {
       starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },
       business: { name: 'Business', blurb: 'For shops and services with bigger sites.', features: ['3 websites', 'Up to 500 pages per site', 'Daily scans', '24-month evidence history', 'PDF report export', '3 seats'], extra: ['Everything in Starter'] },
@@ -40,6 +40,9 @@ export const en = {
     h1: 'Show your accessibility work, not just promise it.',
     lead: 'Allyfolio scans your website on a schedule, tracks every issue over time and keeps a timestamped evidence trail – so you can prove real progress towards the EAA and the German BFSG.',
     ctaPrimary: 'Join the waitlist', ctaSecondary: 'Run a free scan', trustLine: 'No overlay widget · No scripts injected into your site',
+    demo: { caption: 'Illustration: an example scan', note: 'Example data · automated checks only', url: 'https://shop.example.de', scanning: 'Scanning…', pages: 'pages', done: 'Example scan finished', scoreLabel: 'Example score: 82 out of 100 from automated checks only', score: 'Score', scoreSub: 'automated checks only', issues: [['Images missing alt text', 'Critical', '12'], ['Low colour contrast', 'Serious', '7'], ['Form field without label', 'Moderate', '3'], ['Unclear link names', 'Moderate', '1']] },
+    fix: { eyebrow: 'Before / after', h2: 'One fix, documented', lead: 'Each scan is compared with the previous one, so a fix shows up as a dated entry in your evidence trail.', before: 'Before · 1 Sep scan', after: 'After · 22 Sep scan', beforeNote: '12 pages: image without alt text', afterNote: 'Issue no longer detected on 12 pages', caveat: 'Automated checks confirm the attribute exists – whether the text is meaningful still needs a person to review.' },
+    stat: { value: '57', suffix: '%', label: 'of accessibility issues are found by automated testing, roughly (Deque study). We say so upfront.' },
     card: { title: 'Audit trail', illustrative: 'Illustrative data', rows: [['1 Sep', 'Weekly scan', '42 issues'], ['8 Sep', 'Weekly scan', '27 issues'], ['15 Sep', 'Manual review logged', 'Note added'], ['22 Sep', 'Weekly scan', '6 issues']] },
     trustAria: 'Key facts', trust: ['No overlay widget', 'Built for EU teams', 'WCAG 2.2 & EN 301 549 aligned checks', 'Timestamped evidence'],
     why: { eyebrow: 'Why now', h2: 'The EAA has applied since 28 June 2025', items: [
