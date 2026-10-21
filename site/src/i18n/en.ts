@@ -5,7 +5,7 @@ export const en = {
   skip: 'Skip to main content',
   nav: { how: 'How it works', pricing: 'Pricing', freeScan: 'Free scan', blog: 'Blog', about: 'About', waitlist: 'Join the waitlist', menu: 'Menu', main: 'Main', login: 'Log in', signup: 'Sign up', dashboard: 'Dashboard', account: 'Account', language: 'Language' },
   switcher: { label: '中文', aria: '切换到简体中文', hreflang: 'zh-CN' },
-  footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', imprint: 'Imprint', statement: 'Accessibility statement', copyright: 'A testing and documentation tool, not legal advice.' },
+  footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', terms: 'Terms of Service', dpa: 'Data processing agreement', imprint: 'Imprint', statement: 'Accessibility statement', copyright: 'A testing and documentation tool, not legal advice.' },
   waitlist: {
     heading: 'Join the waitlist', lead: 'Be first to try Allyfolio. The first 100 waitlist members get 30% off their first year.',
     label: 'Work email', placeholder: 'you@company.eu', button: 'Join the waitlist', sending: 'Sending…',
@@ -64,7 +64,7 @@ export const en = {
     faq: { eyebrow: 'FAQ', h2: 'Frequently asked questions', more: 'Something else? Email' },
   },
   pricing: {
-    title: 'Pricing', description: 'Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €39.',
+    title: 'Pricing', description: 'Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €49.',
     eyebrow: 'Pricing', h1: 'Plans for every size of site', lead: 'Pick the plan that fits your site. All prices are in euros and exclude VAT. Plans and limits may change before launch.',
     plansSr: 'Plans', includedH: 'Included in every plan',
     included: ['Automated scans with Playwright and axe-core', 'Manual review checklist for issues automation cannot detect', 'Timestamped history of scans and fixes', 'Built for EU teams', 'No overlay widget and no scripts on your site'],

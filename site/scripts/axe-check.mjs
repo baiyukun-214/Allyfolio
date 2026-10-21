@@ -4,7 +4,7 @@ import { AxeBuilder } from '@axe-core/playwright';
 import { spawn } from 'node:child_process';
 
 const base = process.env.BASE_URL ?? 'http://localhost:4321';
-const en = ['/', '/pricing', '/free-scan', '/blog', '/blog/what-the-eaa-means-for-smes', '/about', '/privacy', '/imprint', '/accessibility-statement', '/waitlist-check-email', '/waitlist-error'];
+const en = ['/', '/pricing', '/free-scan', '/blog', '/blog/what-the-eaa-means-for-smes', '/about', '/privacy', '/terms', '/dpa', '/imprint', '/accessibility-statement', '/waitlist-check-email', '/waitlist-error'];
 const zh = en.map((p) => (p === '/' ? '/zh' : '/zh' + p));
 const pages = process.env.PAGES ? process.env.PAGES.split(',') : [...en, ...zh];
 const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];

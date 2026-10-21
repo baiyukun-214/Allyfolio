@@ -6,7 +6,7 @@ export const zh: Dict = {
   skip: '跳到主要内容',
   nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', dashboard: '控制台', account: '账户', language: '语言' },
   switcher: { label: 'English', aria: 'Switch to English', hreflang: 'en' },
-  footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', imprint: '网站信息（Impressum）', statement: '无障碍声明', copyright: '一款测试与记录工具，不构成法律建议。' },
+  footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', terms: '服务条款', dpa: '数据处理协议', imprint: '网站信息（Impressum）', statement: '无障碍声明', copyright: '一款测试与记录工具，不构成法律建议。' },
   waitlist: {
     heading: '加入候补名单', lead: '抢先试用 Allyfolio。前 100 位候补名单成员首年享 7 折优惠。',
     label: '工作邮箱', placeholder: 'you@company.eu', button: '加入候补名单', sending: '正在提交…',
@@ -65,7 +65,7 @@ export const zh: Dict = {
     faq: { eyebrow: '常见问题', h2: '常见问题', more: '还有其他问题？请发送邮件至' },
   },
   pricing: {
-    title: '价格', description: 'Allyfolio 价格：入门版 €19/月，商业版 €39/月，代理商版 €99/月，或 €39 的单次无障碍报告。',
+    title: '价格', description: 'Allyfolio 价格：入门版 €19/月，商业版 €39/月，代理商版 €99/月，或 €49 的单次无障碍报告。',
     eyebrow: '价格', h1: '适合各种规模网站的方案', lead: '选择适合您网站的方案。所有价格均以欧元计价，不含增值税。正式上线前方案和限额可能会有调整。',
     plansSr: '方案', includedH: '所有方案均包含',
     included: ['使用 Playwright 和 axe-core 进行自动化扫描', '针对自动化无法发现的问题的人工审查清单', '带时间戳的扫描与修复历史', '为欧盟团队打造', '不使用覆盖层插件，不在您的网站上运行脚本'],
