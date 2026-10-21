@@ -1,0 +1,130 @@
+---
+import Base from '../layouts/Base.astro';
+import Plans from '../components/Plans.astro';
+import Faq from '../components/Faq.astro';
+import Waitlist from '../components/Waitlist.astro';
+import Icon from '../components/Icon.astro';
+import { i18n } from '../i18n';
+const { t, l } = i18n(Astro.url.pathname);
+const H = t.home;
+const trailMeta = [
+  { d: '2026-09-01', cls: 'text-red-700 bg-red-50', h: 100 },
+  { d: '2026-09-08', cls: 'text-amber-800 bg-amber-50', h: 64 },
+  { d: '2026-09-15', cls: 'text-brand-700 bg-brand-50', h: 0 },
+  { d: '2026-09-22', cls: 'text-green-800 bg-green-50', h: 14 },
+];
+const trail = trailMeta.map((m, i) => ({ ...m, label: H.card.rows[i][0], what: H.card.rows[i][1], val: H.card.rows[i][2] }));
+// TODO: switch "Built for EU teams" to "EU data hosting" once backend hosting in the EU is confirmed.
+const trustIcons = ['ban', 'globe', 'check', 'clock'];
+const whyIcons = ['scale', 'chart', 'ban'];
+const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
+---
+<Base title={H.title} description={H.description}>
+  <section class="bg-gradient-to-b from-brand-50 via-brand-50/60 to-white">
+    <div class="mx-auto max-w-6xl px-4 pt-14 pb-16 md:pt-24 md:pb-24 grid gap-12 lg:grid-cols-12 items-center">
+      <div class="lg:col-span-6">
+        <p class="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700"><span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>{H.pill}</p>
+        <h1 class="mt-6 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.15] text-ink">{H.h1}</h1>
+        <p class="mt-6 text-lg text-muted leading-relaxed max-w-xl">{H.lead}</p>
+        <div class="mt-8 grid grid-cols-1 sm:flex gap-3">
+          <a href="#waitlist" class="btn btn-primary px-6">{H.ctaPrimary}</a>
+          <a href={l('/free-scan')} class="btn btn-secondary px-6">{H.ctaSecondary}</a>
+        </div>
+        <p class="mt-5 text-sm text-muted">{H.trustLine}</p>
+      </div>
+      <figure class="lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-2xl shadow-brand-900/10">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <figcaption class="font-semibold text-ink">{H.card.title} <span class="font-normal text-muted">· shop.example.de</span></figcaption>
+          <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-muted">{H.card.illustrative}</span>
+        </div>
+        <div aria-hidden="true" class="mt-6 flex h-28 items-end gap-3 border-b border-slate-200">
+          {trail.map((x) => <div class="flex-1 rounded-t-md bg-brand-500/85" style={`height:${x.h || 3}%`}></div>)}
+        </div>
+        <ol class="mt-2 divide-y divide-slate-100 text-sm">
+          {trail.map((x) => (
+            <li class="flex items-center justify-between gap-3 py-3">
+              <span class="min-w-0"><time datetime={x.d} class="inline-block w-16 font-medium text-ink">{x.label}</time><span class="text-muted">{x.what}</span></span>
+              <span class={`shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-semibold ${x.cls}`}>{x.val}</span>
+            </li>
+          ))}
+        </ol>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-label={H.trustAria} class="border-y border-slate-200 bg-white">
+    <ul class="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-medium text-ink">
+      {H.trust.map((x, i) => <li class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={trustIcons[i]} /></span>{x}</li>)}
+    </ul>
+  </section>
+
+  <section aria-labelledby="problem-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+    <p class="eyebrow">{H.why.eyebrow}</p>
+    <h2 id="problem-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">{H.why.h2}</h2>
+    <div class="mt-10 grid gap-6 md:grid-cols-3">
+      {H.why.items.map(([title, d], i) => (
+        <div class="rounded-2xl border border-slate-200 p-6">
+          <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={whyIcons[i]} /></span>
+          <h3 class="mt-5 font-semibold text-lg text-ink">{title}</h3>
+          <p class="mt-2 text-muted leading-relaxed">{d}</p>
+        </div>
+      ))}
+    </div>
+    <p class="mt-6 flex gap-3 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-5 py-4 text-sm text-muted leading-relaxed"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span><span><strong class="text-ink">{H.micro.label}</strong> <Fragment set:html={H.micro.html} /></span></p>
+  </section>
+
+  <section id="how-it-works" aria-labelledby="how-heading" class="bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <p class="eyebrow">{H.how.eyebrow}</p>
+      <h2 id="how-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">{H.how.h2}</h2>
+      <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {H.how.steps.map(([title, d], i) => (
+          <li class="rounded-2xl bg-white border border-slate-200 p-6">
+            <span class="grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-sm font-semibold text-white" aria-hidden="true">{i + 1}</span>
+            <h3 class="mt-4 font-semibold text-lg text-ink"><span class="sr-only">{H.how.step === '第' ? `第 ${i + 1} 步：` : `Step ${i + 1}: `}</span>{title}</h3>
+            <p class="mt-2 text-muted leading-relaxed">{d}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="mt-6 flex gap-3 rounded-xl border-l-4 border-brand-500 bg-white px-5 py-4 text-sm text-muted leading-relaxed"><span class="mt-0.5 text-brand-700"><Icon name="info" /></span><span><strong class="text-ink">{H.limits.label}</strong> <Fragment set:html={H.limits.html} /></span></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="features-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+    <p class="eyebrow">{H.features.eyebrow}</p>
+    <h2 id="features-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">{H.features.h2}</h2>
+    <ul class="mt-10 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      {H.features.items.map(([title, d], i) => (
+        <li class="flex gap-4">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700"><Icon name={featIcons[i]} /></span>
+          <div><h3 class="font-semibold text-ink">{title}</h3><p class="mt-1 text-muted leading-relaxed">{d}</p></div>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section aria-labelledby="pricing-heading" class="bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto max-w-6xl px-4 py-20 md:py-24">
+      <div class="md:flex md:items-end md:justify-between gap-6">
+        <div>
+          <p class="eyebrow">{H.pricing.eyebrow}</p>
+          <h2 id="pricing-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">{H.pricing.h2}</h2>
+          <p class="mt-3 text-muted">{H.pricing.lead}</p>
+        </div>
+        <a class="mt-4 md:mt-0 inline-block font-semibold text-brand-700 underline underline-offset-4 hover:text-brand-900" href={l('/pricing')}>{H.pricing.link}</a>
+      </div>
+      <div class="mt-12"><Plans /></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq-heading" class="mx-auto max-w-6xl px-4 py-20 md:py-24 grid gap-10 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <p class="eyebrow">{H.faq.eyebrow}</p>
+      <h2 id="faq-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink">{H.faq.h2}</h2>
+      <p class="mt-4 text-muted">{H.faq.more} <a class="text-brand-700 underline" href="mailto:hello@allyfolio.com">hello@allyfolio.com</a>.</p>
+    </div>
+    <div class="lg:col-span-8"><Faq /></div>
+  </section>
+
+  <Waitlist />
+</Base>

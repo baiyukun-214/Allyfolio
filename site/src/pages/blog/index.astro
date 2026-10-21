@@ -1,23 +1,4 @@
 ---
-import Base from '../../layouts/Base.astro';
-import PageHeader from '../../components/PageHeader.astro';
-import { getCollection } from 'astro:content';
-import { readingTime } from '../../lib/reading';
-const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+import V from '../../views/BlogIndex.astro';
 ---
-<Base title="Blog" description="Practical articles on the European Accessibility Act, BFSG and web accessibility testing for SMEs and agencies.">
-  <PageHeader eyebrow="Blog" title="Notes on the EAA and accessibility testing" lead="Practical, plain-English articles on the EAA, BFSG and accessibility testing." />
-  <div class="mx-auto max-w-6xl px-4 py-14">
-    <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {posts.map((p) => (
-        <li class="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 hover:border-brand-200 hover:shadow-lg hover:shadow-brand-900/5 transition">
-          <ul class="flex flex-wrap gap-2" aria-label="Tags">{p.data.tags.map((t) => <li class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">{t}</li>)}</ul>
-          <h2 class="mt-4 text-xl font-semibold tracking-tight text-ink"><a class="after:absolute after:inset-0 group-hover:text-brand-700" href={`/blog/${p.id}`}>{p.data.title}</a></h2>
-          <p class="mt-3 flex-1 text-muted leading-relaxed">{p.data.description}</p>
-          <p class="mt-6 text-sm text-muted"><time datetime={p.data.pubDate.toISOString()}>{fmt(p.data.pubDate)}</time> · {readingTime(p.body)} min read</p>
-        </li>
-      ))}
-    </ul>
-  </div>
-</Base>
+<V />

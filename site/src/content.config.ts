@@ -11,6 +11,7 @@ const blog = defineCollection({
     author: z.string().default('The Allyfolio team'),
     draft: z.boolean().default(false),
     tags: z.array(z.string()).default([]),
+    lang: z.enum(['en', 'zh-CN']).default('en'),
   }),
 });
 

@@ -1,0 +1,111 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { API_BASE } from '../lib/api';
+import { i18n } from '../i18n';
+const { t, l, lang } = i18n(Astro.url.pathname);
+const S = t.scan;
+const cls: Record<string, string> = { critical: 'text-red-700 bg-red-50', serious: 'text-red-700 bg-red-50', moderate: 'text-amber-800 bg-amber-50', minor: 'text-muted bg-slate-100' };
+const strings = {
+  button: S.button, scanning: S.scanning, status: S.status, empty: S.empty, fail: S.fail, network: S.network, scanned: S.scanned, none: S.none,
+  done: [S.done(0), S.done(1), S.done(2)], element: [S.element(1), S.element(2)], impacts: S.impacts, dateLocale: t.blog.dateLocale,
+};
+---
+<Base title={S.title} description={S.description}>
+  <PageHeader eyebrow={S.eyebrow} title={S.h1} lead={S.lead} />
+  <div class="mx-auto max-w-6xl px-4 py-14 grid gap-10 lg:grid-cols-2 lg:items-start">
+    <div>
+      <div class="rounded-2xl border border-slate-200 p-6 sm:p-8">
+        <form id="scan-form" class="space-y-4" data-api={API_BASE} data-lang={lang} data-i18n={JSON.stringify(strings)} novalidate>
+          <div>
+            <label for="scan-url" class="block font-medium text-ink">{S.label}</label>
+            <p id="scan-url-hint" class="text-sm text-muted">{S.hint}</p>
+            <input id="scan-url" name="url" type="url" inputmode="url" required aria-describedby="scan-url-hint scan-error" autocomplete="url" placeholder="https://" class="mt-2 h-12 w-full rounded-lg border border-slate-400 bg-white px-4 text-ink" />
+          </div>
+          <p id="scan-error" class="text-sm font-medium text-red-700 empty:hidden" role="alert"></p>
+          <button id="scan-submit" type="submit" class="btn btn-primary w-full sm:w-auto disabled:opacity-70">{S.button}</button>
+        </form>
+        <p id="scan-status" role="status" aria-live="polite" class="mt-4 text-sm text-muted empty:hidden"></p>
+      </div>
+      <p class="mt-6 text-sm text-muted leading-relaxed"><Fragment set:html={S.caveatHtml} /></p>
+    </div>
+
+    <section id="scan-result" aria-labelledby="result-heading" tabindex="-1" class="hidden rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl shadow-brand-900/5 focus:outline-none">
+      <h2 id="result-heading" class="text-xl font-semibold text-ink">{S.results}</h2>
+      <p id="result-url" class="mt-1 text-sm text-muted break-all"></p>
+      <dl id="result-counts" class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center"></dl>
+      <div id="result-groups" class="mt-6 space-y-6"></div>
+      <p class="mt-6 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-4 py-3 text-sm text-muted"><strong class="text-ink">{S.partLabel}</strong> {S.partText}</p>
+      <p class="mt-4 text-sm"><a class="font-semibold text-brand-700 underline underline-offset-4" href={l('/#waitlist')}>{S.cta}</a></p>
+    </section>
+
+    <figure id="sample-report" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl shadow-brand-900/5">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <figcaption class="font-semibold text-ink">{S.sampleTitle} <span class="font-normal text-muted">· www.example.com</span></figcaption>
+        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-muted">{S.sampleBadge}</span>
+      </div>
+      <table class="mt-6 w-full text-sm">
+        <caption class="sr-only">{S.sampleCaption}</caption>
+        <thead><tr class="text-left text-muted border-b border-slate-200"><th scope="col" class="py-2 font-medium">{S.colIssue}</th><th scope="col" class="py-2 font-medium">{S.colImpact}</th><th scope="col" class="py-2 font-medium text-right">{S.colCount}</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          {S.sample.map(([imp, txt, n]) => <tr><td class="py-3 pr-2 text-ink">{txt}</td><td class="py-3"><span class={`rounded-md px-2 py-0.5 text-xs font-semibold ${cls[imp]}`}>{(S.impacts as any)[imp]}</span></td><td class="py-3 text-right text-ink">{n}</td></tr>)}
+        </tbody>
+      </table>
+    </figure>
+  </div>
+</Base>
+<script>
+  const form = document.getElementById('scan-form') as HTMLFormElement;
+  const T = JSON.parse(form.dataset.i18n!);
+  const input = document.getElementById('scan-url') as HTMLInputElement;
+  const btn = document.getElementById('scan-submit') as HTMLButtonElement;
+  const err = document.getElementById('scan-error')!;
+  const status = document.getElementById('scan-status')!;
+  const result = document.getElementById('scan-result')!;
+  const sample = document.getElementById('sample-report')!;
+  const CLS: Record<string, string> = { critical: 'text-red-700 bg-red-50', serious: 'text-red-700 bg-red-50', moderate: 'text-amber-800 bg-amber-50', minor: 'text-muted bg-slate-100' };
+  const el = (tag: string, cls = '', text = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+  const done = (n: number) => (n === 0 ? T.done[0] : n === 1 ? T.done[1] : T.done[2].replace(/\d+/, String(n)));
+  const elements = (n: number) => (n === 1 ? T.element[0] : T.element[1].replace(/\d+/, String(n)));
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.textContent = ''; input.removeAttribute('aria-invalid');
+    const url = input.value.trim();
+    if (!url) { err.textContent = T.empty; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
+    btn.disabled = true; btn.textContent = T.scanning; form.setAttribute('aria-busy', 'true');
+    status.textContent = T.status;
+    try {
+      const res = await fetch(`${form.dataset.api}/api/scan`, { method: 'POST', headers: { 'content-type': 'application/json', 'accept-language': form.dataset.lang! }, body: JSON.stringify({ url, lang: form.dataset.lang }) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) { status.textContent = ''; err.textContent = j.error ?? T.fail; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
+      render(j);
+      status.textContent = done(j.total);
+    } catch {
+      status.textContent = ''; err.textContent = T.network;
+    } finally { btn.disabled = false; btn.textContent = T.button; form.removeAttribute('aria-busy'); }
+  });
+
+  function render(j: any) {
+    document.getElementById('result-url')!.textContent = `${j.url} · ${T.scanned} ${new Date(j.scannedAt).toLocaleString(T.dateLocale)}`;
+    const counts = document.getElementById('result-counts')!; counts.replaceChildren();
+    for (const k of ['critical', 'serious', 'moderate', 'minor']) {
+      const d = el('div', `rounded-xl p-3 ${CLS[k]}`); d.append(el('dt', 'text-xs', T.impacts[k]), el('dd', 'text-2xl font-bold', String(j.counts[k] ?? 0))); counts.append(d);
+    }
+    const groups = document.getElementById('result-groups')!; groups.replaceChildren();
+    if (!j.total) groups.append(el('p', 'text-ink', T.none));
+    for (const g of j.byImpact) {
+      if (!g.rules.length) continue;
+      const sec = el('div'); sec.append(el('h3', 'font-semibold text-ink', `${g.label ?? T.impacts[g.impact]} (${g.count})`));
+      const ul = el('ul', 'mt-2 divide-y divide-slate-100 text-sm');
+      for (const r of g.rules) {
+        const li = el('li', 'py-3');
+        const a = el('a', 'font-medium text-brand-700 underline underline-offset-2', r.help) as HTMLAnchorElement; a.href = r.helpUrl; a.rel = 'noopener';
+        const meta = el('p', 'mt-1 text-muted', `${elements(r.count)}${r.wcag.length ? ' · ' + r.wcag.join(', ') : ''}`);
+        li.append(a, meta); ul.append(li);
+      }
+      sec.append(ul); groups.append(sec);
+    }
+    sample.classList.add('hidden'); result.classList.remove('hidden'); result.focus();
+  }
+</script>

@@ -7,6 +7,6 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'never',
   build: { format: 'file' }, // clean URLs: /pricing -> pricing.html (Cloudflare Pages serves without .html)
-  integrations: [sitemap()],
+  integrations: [sitemap({ i18n: { defaultLocale: 'en', locales: { en: 'en', zh: 'zh-CN' } } })],
   vite: { plugins: [tailwindcss()] },
 });

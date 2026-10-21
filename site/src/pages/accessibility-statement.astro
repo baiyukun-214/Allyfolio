@@ -1,22 +1,4 @@
 ---
-import Prose from '../layouts/Prose.astro';
+import V from '../views/ProsePage.astro';
 ---
-<Prose eyebrow="Legal" title="Accessibility statement" description="Accessibility statement for allyfolio.com: our target standard, testing methods, known limitations and how to give feedback.">
-  
-  <p>We want allyfolio.com to be usable by everyone. We aim to meet WCAG 2.2 level AA.</p>
-  <h2>How we test</h2>
-  <ul>
-    <li>Automated checks with axe-core on every page before each release.</li>
-    <li>Keyboard-only navigation checks.</li>
-    <li>Checks for reduced motion, zoom up to 200% and colour contrast.</li>
-  </ul>
-  <p>Automated testing finds only part of the issues, so we also review pages manually. <!-- TODO: add screen-reader testing (NVDA, VoiceOver) results --></p>
-  <h2>Known limitations</h2>
-  <ul>
-    <li>The waitlist and free scan forms need JavaScript for inline results; without it, the waitlist form still submits and shows a confirmation page.</li>
-  </ul>
-  <h2>No overlay</h2>
-  <p>This site does not use an accessibility overlay widget.</p>
-  <h2>Feedback</h2>
-  <p>If you find a barrier, please email <a href="mailto:hello@allyfolio.com">hello@allyfolio.com</a>. We aim to reply within 5 working days.</p>
-</Prose>
+<V page="statement" />
