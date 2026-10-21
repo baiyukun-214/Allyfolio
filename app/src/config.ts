@@ -3,6 +3,10 @@ export const config = {
   port: Number(e.PORT ?? 8787),
   appUrl: (e.APP_URL ?? 'http://localhost:8787').replace(/\/$/, ''),
   siteOrigins: (e.SITE_ORIGINS ?? 'http://localhost:4321').split(',').map((s) => s.trim()).filter(Boolean),
+  /** Marketing site (links from the dashboard back to it). */
+  siteUrl: (e.SITE_URL ?? 'http://localhost:4321').replace(/\/$/, ''),
+  /** Optional shared cookie domain (e.g. .allyfolio.com) for the af_logged_in hint cookie read by the marketing site. */
+  cookieDomain: e.COOKIE_DOMAIN || undefined,
   dbPath: e.DATABASE_PATH ?? './data/allyfolio.db',
   sessionSecret: e.SESSION_SECRET ?? 'dev-insecure-secret',
   scanTimeoutMs: Number(e.SCAN_TIMEOUT_MS ?? 30000),

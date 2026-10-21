@@ -16,7 +16,7 @@ const field = (id: string, label: string, type: string, extra: any = '', hint = 
 
 export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '') {
   const signup = mode === 'signup'; const A = T(req).auth;
-  return pg(req, { title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : null, body: html`
+  return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : null, body: html`
   <div class="narrow">
     <div class="card">
       <h1>${signup ? A.signupH : A.loginH}</h1>

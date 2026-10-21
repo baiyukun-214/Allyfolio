@@ -109,3 +109,23 @@ test('waitlist in Chinese: message, email, non-JS redirect and confirmation page
   r = await app.inject({ method: 'POST', url: '/api/waitlist', headers: { 'content-type': 'application/x-www-form-urlencoded' }, payload: 'email=form-zh%40example.com&lang=zh-CN' });
   assert.equal(r.statusCode, 303); assert.match(r.headers.location, /\/zh\/waitlist-check-email$/);
 });
+
+test('links back to the marketing site (locale-aware) and the logged-in hint cookie', async () => {
+  let r = await get('/login?lang=zh-CN');
+  assert.match(r.body, /<a href="http:\/\/localhost:4321\/zh">← 返回官网<\/a>/);
+  assert.match(r.body, /class="brand" href="http:\/\/localhost:4321\/zh"/);
+  r = await get('/signup?lang=en');
+  assert.match(r.body, /<a href="http:\/\/localhost:4321\/">← Back to website<\/a>/);
+  const c = client(app);
+  r = await c.post('/signup', { email: 'hint@example.com', password: 'correct horse battery' }, '/signup');
+  const hint = r.cookies.find((x: any) => x.name === 'af_logged_in');
+  assert.equal(hint?.value, '1'); assert.ok(!hint.httpOnly, 'hint must be readable by the marketing site');
+  r = await c.req('GET', '/app');
+  for (const h of ['http://localhost:4321/"', 'http://localhost:4321/blog"', 'http://localhost:4321/pricing"']) assert.ok(r.body.includes(`href="${h}`), h);
+  assert.match(r.body, />Website</); assert.match(r.body, />Blog</); assert.match(r.body, />Pricing</);
+  c.jar.set('af_lang', 'zh-CN'); await c.post('/app/settings', { locale: 'zh-CN' }, '/app/settings');
+  r = await c.req('GET', '/app');
+  assert.match(r.body, /href="http:\/\/localhost:4321\/zh\/blog">博客/); assert.match(r.body, />官网</); assert.match(r.body, />价格</);
+  r = await c.req('POST', '/logout');
+  assert.ok(r.cookies.some((x: any) => x.name === 'af_logged_in' && !x.value), 'hint cleared on logout');
+});

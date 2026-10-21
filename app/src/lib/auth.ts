@@ -27,10 +27,18 @@ export function startSession(reply: FastifyReply, userId: string) {
   const id = randomBytes(32).toString('base64url');
   run('INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?,?,?,?)', sha256(id), userId, now(), new Date(Date.now() + SESSION_DAYS * 86400_000).toISOString());
   reply.setCookie(SESSION_COOKIE, id, { path: '/', httpOnly: true, sameSite: 'lax', secure: config.appUrl.startsWith('https'), signed: true, maxAge: SESSION_DAYS * 86400 });
+  setLoggedInHint(reply, true);
 }
 export function endSession(req: FastifyRequest, reply: FastifyReply) {
   const sid = readSid(req); if (sid) run('DELETE FROM sessions WHERE id = ?', sha256(sid));
   reply.clearCookie(SESSION_COOKIE, { path: '/' });
+  setLoggedInHint(reply, false);
+}
+/** Non-HttpOnly, non-secret hint so the marketing site can show “Dashboard” instead of Log in. Carries no identity. */
+export const HINT_COOKIE = 'af_logged_in';
+export function setLoggedInHint(reply: FastifyReply, on: boolean) {
+  const o = { path: '/', domain: config.cookieDomain, sameSite: 'lax' as const, secure: config.appUrl.startsWith('https') };
+  if (on) reply.setCookie(HINT_COOKIE, '1', { ...o, maxAge: SESSION_DAYS * 86400 }); else reply.clearCookie(HINT_COOKIE, o);
 }
 function readSid(req: FastifyRequest) { const c = req.cookies[SESSION_COOKIE]; if (!c) return null; const u = req.unsignCookie(c); return u.valid ? u.value : null; }
 export interface Ctx { user: { id: string; email: string; name: string; locale?: string | null }; team: any; role: string }

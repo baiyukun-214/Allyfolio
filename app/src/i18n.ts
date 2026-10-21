@@ -25,7 +25,7 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 const en = {
   langName: 'English', htmlLang: 'en', dateLocale: 'en-GB',
   switchLabel: '中文', switchAria: '切换到简体中文',
-  layout: { skip: 'Skip to main content', main: 'Main', sites: 'Sites', team: 'Team', billing: 'Billing', settings: 'Settings', logout: 'Log out', login: 'Log in', signup: 'Create account', footer: 'Allyfolio is a testing and documentation tool, not legal advice. Automated checks find only part of all accessibility issues.' },
+  layout: { skip: 'Skip to main content', main: 'Main', sites: 'Sites', team: 'Team', billing: 'Billing', settings: 'Settings', logout: 'Log out', login: 'Log in', signup: 'Create account', website: 'Website', blog: 'Blog', pricing: 'Pricing', site: 'Allyfolio website', backToSite: '← Back to website', homeAria: 'Allyfolio website home', footer: 'Allyfolio is a testing and documentation tool, not legal advice. Automated checks find only part of all accessibility issues.' },
   impacts: { critical: 'Critical', serious: 'Serious', moderate: 'Moderate', minor: 'Minor' } as Record<string, string>,
   automationNote: 'Automated testing finds roughly 57% of accessibility issues (Deque study). A clean result does not mean the page is fully accessible – manual review by people is still needed.',
   errors: {
@@ -143,7 +143,7 @@ export type Dict = typeof en;
 const zh: Dict = {
   langName: '简体中文', htmlLang: 'zh-CN', dateLocale: 'zh-CN',
   switchLabel: 'English', switchAria: 'Switch to English',
-  layout: { skip: '跳到主要内容', main: '主导航', sites: '网站', team: '团队', billing: '账单', settings: '设置', logout: '退出登录', login: '登录', signup: '注册账户', footer: 'Allyfolio 是一款测试与记录工具，不构成法律建议。自动化检测只能发现部分无障碍问题。' },
+  layout: { skip: '跳到主要内容', main: '主导航', sites: '网站', team: '团队', billing: '账单', settings: '设置', logout: '退出登录', login: '登录', signup: '注册账户', website: '官网', blog: '博客', pricing: '价格', site: 'Allyfolio 官网', backToSite: '← 返回官网', homeAria: 'Allyfolio 官网首页', footer: 'Allyfolio 是一款测试与记录工具，不构成法律建议。自动化检测只能发现部分无障碍问题。' },
   impacts: { critical: '严重', serious: '较严重', moderate: '中等', minor: '轻微' },
   automationNote: '自动化测试大约能发现 57% 的无障碍问题（Deque 研究）。结果中没有问题并不代表页面已完全无障碍，仍需要人工审查。',
   errors: {
