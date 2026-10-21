@@ -108,7 +108,7 @@ export const zh: Dict = {
     example: '示例数据',
     score: { label: '自动化检测得分', outOf: '满分 100', aria: '示例自动化检测得分：82（满分 100）', note: '自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是符合性评级，也不代表法律评估。' },
     trend: { label: '未解决问题', value: '6', delta: '比 9月1日 少 36 个', aria: '示例趋势：未解决问题从 9月1日的 42 个降至 9月22日的 6 个' },
-    fix: { wcag: 'WCAG 4.1.2 名称、角色、值', footer: '已在 12 个页面修复 · 复扫已验证', srDiff: '示例差异：仅含图标的可点击 div 被替换为带可访问名称的原生按钮，图标对辅助技术隐藏。', lines: [['-', '<div class="btn" onclick="addToCart(42)">'], ['-', '  <svg viewBox="0 0 24 24">…</svg>'], ['-', '</div>'], ['+', '<button type="button" onclick="addToCart(42)"'], ['+', '  aria-label="将蓝色跑鞋加入购物车">'], ['+', '  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">…</svg>'], ['+', '</button>']] as [string, string][] },
+    fix: { wcag: 'WCAG 4.1.2 名称、角色、值', footer: '已在 12 个页面修复 · 复扫已验证', srDiff: '示例差异：仅含图标的可点击 div 被替换为带可访问名称的原生按钮，图标对辅助技术隐藏。', lines: [["-", "<div class=\"btn\" onclick=\"addToCart(42)\">"], ["-", "  <svg viewBox=\"…\">…</svg>"], ["-", "</div>"], ["+", "<button type=\"button\""], ["+", "  onclick=\"addToCart(42)\""], ["+", "  aria-label=\"将蓝色跑鞋加入购物车\">"], ["+", "  <svg aria-hidden=\"true\""], ["+", "    focusable=\"false\">…</svg>"], ["+", "</button>"]] as [string, string][] },
     timeline: { eyebrow: '时间线', h2: 'EAA 一览', lead: '《欧洲无障碍法案》（指令 (EU) 2019/882）的关键日期。', items: [
       ['2019', '通过', '欧盟于 2019 年 4 月 17 日通过《欧洲无障碍法案》。'],
       ['2022年6月28日', '转化截止', '成员国须通过本国法律——在德国为 BFSG。'],
