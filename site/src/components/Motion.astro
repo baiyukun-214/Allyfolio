@@ -38,12 +38,12 @@
   // Hero scan illustration. Final state is already in the HTML; JS only replays it once when motion is allowed.
   const demo = document.querySelector<HTMLElement>('[data-demo]');
   const stage = document.querySelector<HTMLElement>('.hero-stage');
-  const layer = document.querySelector<HTMLButtonElement>('[data-layer-fix]');
+  const layer = document.querySelector<HTMLElement>('[data-layer-fix]');
   // Layered fix card: front on load → tuck behind near end of score count-up; hover/focus/tap bring forward.
   if (stage && layer) {
     let ready = false, hold = false, leaveTimer = 0;
     const mq = matchMedia('(min-width: 1024px)');
-    const setExpanded = (front: boolean) => layer.setAttribute('aria-expanded', String(front));
+    const setExpanded = (front: boolean) => { layer.dataset.front = String(front); };
     const goFront = (instant = false) => {
       if (!mq.matches) return;
       hold = true; clearTimeout(leaveTimer);
@@ -76,10 +76,11 @@
     layer.addEventListener('pointerleave', release);
     layer.addEventListener('focus', () => { if (ready) goFront(RM); });
     layer.addEventListener('blur', release);
+    layer.addEventListener('keydown', (e) => { if (e.key === 'Escape' && layer.dataset.front === 'true' && ready) { hold = false; goBehind(RM); } });
     layer.addEventListener('click', (e) => {
       if (!mq.matches || !ready) return;
       e.preventDefault();
-      if (layer.getAttribute('aria-expanded') === 'true') { hold = false; goBehind(RM); }
+      if (layer.dataset.front === 'true') { hold = false; goBehind(RM); }
       else goFront(RM);
     });
     if (RM && mq.matches) goBehind(true);
