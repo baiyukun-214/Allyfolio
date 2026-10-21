@@ -3,9 +3,9 @@ export const en = {
   langName: 'English',
   meta: { siteTitle: 'Allyfolio – EAA & BFSG accessibility monitoring', ogAlt: 'Allyfolio – Show your accessibility work, not just promise it. EAA in force since 28 June 2025.', ogLocale: 'en_GB' },
   skip: 'Skip to main content',
-  nav: { how: 'How it works', pricing: 'Pricing', freeScan: 'Free scan', blog: 'Blog', about: 'About', waitlist: 'Join the waitlist', menu: 'Menu', main: 'Main', login: 'Log in', signup: 'Sign up', dashboard: 'Dashboard', account: 'Account', language: 'Language' },
+  nav: { how: 'How it works', pricing: 'Pricing', freeScan: 'Free scan', blog: 'Blog', resources: 'Resources', features: 'Features', about: 'About', waitlist: 'Join the waitlist', menu: 'Menu', main: 'Main', login: 'Log in', signup: 'Sign up', dashboard: 'Dashboard', account: 'Account', language: 'Language' },
   switcher: { label: '中文', aria: '切换到简体中文', hreflang: 'zh-CN' },
-  footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', terms: 'Terms of Service', dpa: 'Data processing agreement', imprint: 'Imprint', statement: 'Accessibility statement', copyright: 'A testing and documentation tool, not legal advice.' },
+  footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', terms: 'Terms of Service', dpa: 'Data processing agreement', imprint: 'Imprint', statement: 'Accessibility statement', allResources: 'All resources', copyright: 'A testing and documentation tool, not legal advice.' },
   waitlist: {
     heading: 'Join the waitlist', lead: 'Be first to try Allyfolio. The first 100 waitlist members get 30% off their first year.',
     label: 'Work email', placeholder: 'you@company.eu', button: 'Join the waitlist', sending: 'Sending…',
@@ -120,6 +120,11 @@ export const en = {
     browser: { caption: 'Illustration: issues found by automated checks on an example page', url: 'shop.example.de/products', pins: [['Image missing alt text', 'Critical'], ['Text contrast too low', 'Serious'], ['Input without a label', 'Moderate']], buy: 'Buy now' },
     values: [['wrench', 'Fix the code, not the symptoms', 'We will never sell an overlay widget.'], ['scale', 'Be honest about automation', 'Automated testing finds roughly 57% of issues (Deque study). People still need to review the rest.'], ['archive', 'Evidence over promises', 'A dated record of real work is worth more than a badge.']],
     valuesH: 'What we believe', toc: 'On this page',
+  },
+  featuresPage: {
+    title: 'Features', description: 'Allyfolio features: scheduled accessibility scans with axe-core, a timestamped audit trail, PDF evidence reports on every plan, draft accessibility statements and white-label reports for agencies. No overlay widget.',
+    h1: 'Features for showing real accessibility work', lead: 'Scheduled scans, a timestamped evidence trail, PDF reports on every plan and draft accessibility statements – for SMEs and agencies preparing for the EAA and BFSG.',
+    nextH: 'Next steps', pricing: 'Compare plans and prices →', scan: 'Run a free scan of one page →', resources: 'Read the EAA and BFSG guides →',
   },
   prose: { lastUpdated: 'Last updated', updated: 'October 2026', legal: 'Legal', about: 'About' },
 };

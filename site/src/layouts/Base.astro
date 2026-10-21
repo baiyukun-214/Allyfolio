@@ -6,8 +6,8 @@ import Footer from '../components/Footer.astro';
 import Motion from '../components/Motion.astro';
 import SvgDefs from '../components/SvgDefs.astro';
 import { i18n, basePath, localize, LOCALES } from '../i18n';
-interface Props { title: string; description: string; ogType?: 'website' | 'article'; hasTranslation?: boolean }
-const { title, description, ogType = 'website', hasTranslation = true } = Astro.props;
+interface Props { title: string; description: string; ogType?: 'website' | 'article'; hasTranslation?: boolean; noindex?: boolean }
+const { title, description, ogType = 'website', hasTranslation = true, noindex = false } = Astro.props;
 const { lang, t } = i18n(Astro.url.pathname);
 const site = Astro.site ?? new URL('https://allyfolio.com');
 const base = basePath(Astro.url.pathname);
@@ -24,6 +24,7 @@ const ogImage = new URL('/og-image.png', site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonical} />
     {alternates.map((a) => <link rel="alternate" hreflang={a.l} href={a.href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0].href} />}

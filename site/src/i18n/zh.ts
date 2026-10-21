@@ -4,9 +4,9 @@ export const zh: Dict = {
   langName: '简体中文',
   meta: { siteTitle: 'Allyfolio – 面向 EAA 与 BFSG 的无障碍监测', ogAlt: 'Allyfolio – 用证据展示您的无障碍工作，而不只是承诺。《欧洲无障碍法案》已于 2025 年 6 月 28 日生效。', ogLocale: 'zh_CN' },
   skip: '跳到主要内容',
-  nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', dashboard: '控制台', account: '账户', language: '语言' },
+  nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', resources: '资源', features: '功能', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', dashboard: '控制台', account: '账户', language: '语言' },
   switcher: { label: 'English', aria: 'Switch to English', hreflang: 'en' },
-  footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', terms: '服务条款', dpa: '数据处理协议', imprint: '网站信息（Impressum）', statement: '无障碍声明', copyright: '一款测试与记录工具，不构成法律建议。' },
+  footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', terms: '服务条款', dpa: '数据处理协议', imprint: '网站信息（Impressum）', statement: '无障碍声明', allResources: '全部资源', copyright: '一款测试与记录工具，不构成法律建议。' },
   waitlist: {
     heading: '加入候补名单', lead: '抢先试用 Allyfolio。前 100 位候补名单成员首年享 7 折优惠。',
     label: '工作邮箱', placeholder: 'you@company.eu', button: '加入候补名单', sending: '正在提交…',
@@ -121,6 +121,11 @@ export const zh: Dict = {
     browser: { caption: '示意图：自动化检测在示例页面上发现的问题', url: 'shop.example.de/products', pins: [['图片缺少替代文本', '严重'], ['文本对比度过低', '较严重'], ['输入框缺少标签', '中等']], buy: '立即购买' },
     values: [['wrench', '修复代码，而不是掩盖症状', '我们绝不会出售覆盖层插件。'], ['scale', '如实说明自动化的局限', '自动化测试大约只能发现 57% 的问题（Deque 研究），其余部分仍需人工审查。'], ['archive', '证据胜于承诺', '有日期的真实工作记录比任何徽章都更有价值。']],
     valuesH: '我们的理念', toc: '本页内容',
+  },
+  featuresPage: {
+    title: '功能', description: 'Allyfolio 功能：基于 axe-core 的定期无障碍扫描、带时间戳的审计记录、所有方案均含 PDF 证据报告、无障碍声明草稿，以及面向代理商的白标报告。不使用覆盖层插件。',
+    h1: '用功能展示真实的无障碍工作', lead: '定期扫描、带时间戳的证据记录、所有方案均含 PDF 报告以及无障碍声明草稿，帮助中小企业和代理商为 EAA 和 BFSG 做准备。',
+    nextH: '下一步', pricing: '比较方案和价格 →', scan: '免费扫描一个页面 →', resources: '阅读 EAA 和 BFSG 指南 →',
   },
   prose: { lastUpdated: '最后更新', updated: '2026 年 10 月', legal: '法律信息', about: '关于我们' },
 };

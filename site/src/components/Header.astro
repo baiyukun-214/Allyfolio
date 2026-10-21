@@ -1,7 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import LangSwitch from './LangSwitch.astro';
-import { appLink } from '../lib/api';
+import { appLink, APP_LIVE } from '../lib/api';
 import { i18n, basePath } from '../i18n';
 interface Props { hasTranslation?: boolean }
 const { lang, t, l } = i18n(Astro.url.pathname);
@@ -9,10 +9,12 @@ const links = [
   { href: '/#how-it-works', label: t.nav.how },
   { href: '/pricing', label: t.nav.pricing },
   { href: '/free-scan', label: t.nav.freeScan },
+  { href: '/resources', label: t.nav.resources },
   { href: '/blog', label: t.nav.blog },
   { href: '/about', label: t.nav.about },
 ];
 const current = basePath(Astro.url.pathname);
+const isCurrent = (href: string) => current === href || (href === '/resources' && ['/eaa', '/bfsg', '/microenterprise-exemption', '/who-is-affected', '/en-301-549-wcag'].includes(current));
 const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover:bg-brand-50 hover:text-brand-700';
 ---
 <header id="site-header" class="site-header glass sticky top-0 z-40 border-b border-slate-200/70">
@@ -28,12 +30,14 @@ const linkCls = 'block rounded-md px-3 py-2 text-sm font-medium text-muted hover
     <nav id="site-nav" aria-label={t.nav.main} class="hidden lg:block absolute lg:static left-0 right-0 top-full bg-white lg:bg-transparent border-b lg:border-0 border-slate-200 shadow-lg lg:shadow-none z-40">
       <ul class="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-1 p-4 lg:p-0">
         {links.map((x) => (
-          <li><a href={l(x.href)} aria-current={current === x.href ? 'page' : undefined} class={`${linkCls} aria-[current=page]:text-brand-700 aria-[current=page]:underline decoration-2 underline-offset-8`}>{x.label}</a></li>
+          <li><a href={l(x.href)} aria-current={isCurrent(x.href) ? (current === x.href ? 'page' : 'true') : undefined} class={`${linkCls} aria-[current=page]:text-brand-700 aria-[current=true]:text-brand-700 aria-[current=page]:underline decoration-2 underline-offset-8`}>{x.label}</a></li>
         ))}
         <li class="mt-2 lg:mt-0 border-t lg:border-0 border-slate-200 pt-2 lg:pt-0"><LangSwitch class={linkCls} hasTranslation={Astro.props.hasTranslation} /></li>
+        {APP_LIVE && (<>
         <li data-auth="out" class="lg:ml-1 lg:pl-2 lg:border-l lg:border-slate-200"><a href={appLink('/login', lang)} class={linkCls}>{t.nav.login}</a></li>
         <li data-auth="out"><a href={appLink('/signup', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.signup}</a></li>
         <li data-auth="in" hidden class="lg:ml-1 lg:pl-2 lg:border-l lg:border-slate-200"><a href={appLink('/app', lang)} class="btn btn-secondary w-full lg:w-auto py-2 text-sm">{t.nav.dashboard}</a></li>
+        </>)}
         <li class="lg:ml-1 mt-2 lg:mt-0"><a href={l('/#waitlist')} class="btn btn-primary w-full lg:w-auto py-2 text-sm">{t.nav.waitlist}</a></li>
       </ul>
     </nav>
