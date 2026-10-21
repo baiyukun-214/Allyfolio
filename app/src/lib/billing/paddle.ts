@@ -76,6 +76,17 @@ export class PaddleProvider implements BillingProvider {
     return s.urls.general.overview as string;
   }
 
+  async syncTransaction(team: any, transactionId: string) {
+    const t = await api('GET', `/transactions/${encodeURIComponent(transactionId)}`);
+    if (t.custom_data?.team_id !== team.id) return { state: 'foreign' as const, events: [] };
+    if (!['paid', 'completed'].includes(t.status)) return { state: 'pending' as const, events: [] };
+    if (!t.subscription_id) return { state: 'done' as const, events: t.custom_data?.kind === 'oneoff' || t.items?.some((i: any) => i.price?.id === paddlePrice('oneoff'))
+      ? [{ kind: 'oneoff_paid' as const, teamId: team.id, customerId: t.customer_id ?? null, transactionId: t.id }] : [] };
+    const d = await api('GET', `/subscriptions/${t.subscription_id}`);
+    return { state: 'done' as const, events: [{ kind: 'subscription' as const, teamId: team.id, subscriptionId: d.id, customerId: d.customer_id ?? null, status: d.status,
+      plan: planForPaddlePrice(d.items?.[0]?.price?.id), periodEnd: d.current_billing_period?.ends_at ?? null, cancelAt: d.scheduled_change?.action === 'cancel' ? d.scheduled_change.effective_at : null }] };
+  }
+
   parseWebhook(raw: Buffer, headers: Record<string, string | string[] | undefined>) {
     const sig = headers['paddle-signature']; if (!verifyPaddleSignature(raw, Array.isArray(sig) ? sig[0] : sig, P().webhookSecret)) throw new WebhookSignatureError('invalid signature');
     const n = JSON.parse(raw.toString('utf8'));

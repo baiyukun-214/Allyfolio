@@ -1,9 +1,10 @@
 import { config } from '../config.ts';
+import { get } from '../db.ts';
 import type { FastifyInstance } from 'fastify';
 import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { PLANS, PAID, planOf, ONE_OFF, rank, LimitError, type PlanId } from '../lib/plans.ts';
-import { provider, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
+import { provider, syncCheckout, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
 import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
 import { requireUser, render, back, loc } from './guard.ts';
@@ -11,9 +12,21 @@ import { fmt } from './monitoring.ts';
 import { t as tr } from '../i18n.ts';
 const eur = (c: number) => `€${(c / 100).toFixed(0)}`;
 
+/**
+ * Return from Paddle checkout (?txn=<transaction id>): read the transaction and its subscription from the Paddle API and apply
+ * them, so local sandbox checkout works without a reachable webhook. Idempotent with the webhook (state updates are absolute,
+ * one-off credits are counted once per transaction). Only the team owner; transactions of other teams are ignored.
+ */
+async function syncReturn(req: any, ctx: any) {
+  const txn = String((req.query as any).txn ?? '');
+  if (!txn || ctx.role !== 'owner') return;
+  await syncCheckout(ctx.team, txn).catch((e) => req.log.warn(e, 'checkout sync failed'));
+  ctx.team = get<any>('SELECT * FROM teams WHERE id = ?', ctx.team.id);
+}
 export async function billingRoutes(app: FastifyInstance) {
   app.get('/app/billing', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
+    await syncReturn(req, ctx);
     const t = ctx.team, plan = planOf(t.plan), owner = ctx.role === 'owner';
     const prov = await provider(); const ready = !!prov?.configured(); const client = ready ? prov!.clientConfig() : null;
     const eb = isEarlyBird(ctx.user.email) && !t.billing_subscription_id;
@@ -58,6 +71,7 @@ export async function billingRoutes(app: FastifyInstance) {
   // Small JSON status for the post-checkout poll (billing-status.js).
   app.get('/app/billing/status', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
+    await syncReturn(req, ctx);
     const t = ctx.team;
     return reply.header('cache-control', 'no-store').send({ plan: t.plan, status: t.subscription_status ?? null, credits: t.oneoff_credits ?? 0 });
   });

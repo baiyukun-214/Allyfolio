@@ -7,7 +7,8 @@
   function done(msg) { el.textContent = msg; }
   function tick() {
     tries++;
-    fetch('/app/billing/status', { headers: { accept: 'application/json' }, credentials: 'same-origin', cache: 'no-store' })
+    var txn = new URLSearchParams(location.search).get('txn');
+    fetch('/app/billing/status' + (txn ? '?txn=' + encodeURIComponent(txn) : ''), { headers: { accept: 'application/json' }, credentials: 'same-origin', cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (s) {
         if (s && ((s.plan !== plan && s.plan !== 'none') || s.credits > credits)) {

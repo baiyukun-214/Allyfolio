@@ -16,6 +16,11 @@ before(async () => {
       if (req.url === '/subscriptions/sub_1' && req.method === 'GET') return ok(SUB('pri_s'));
       if (req.url === '/subscriptions/sub_1' && req.method === 'PATCH') return ok(SUB(body.items[0].price_id));
       if (req.url === '/subscriptions/sub_1/cancel') return ok(SUB('pri_s', { scheduled_change: { action: 'cancel', effective_at: '2030-01-01T00:00:00Z' } }));
+      if (req.url === '/transactions/txn_sub') return ok({ id: 'txn_sub', status: 'completed', subscription_id: 'sub_9', customer_id: 'ctm_9', custom_data: { team_id: 'tsync', kind: 'business' } });
+      if (req.url === '/transactions/txn_one') return ok({ id: 'txn_one', status: 'completed', subscription_id: null, customer_id: 'ctm_9', custom_data: { team_id: 'tsync', kind: 'oneoff' }, items: [{ price: { id: 'pri_o' } }] });
+      if (req.url === '/transactions/txn_wait') return ok({ id: 'txn_wait', status: 'ready', custom_data: { team_id: 'tsync' } });
+      if (req.url === '/transactions/txn_other') return ok({ id: 'txn_other', status: 'completed', subscription_id: 'sub_9', custom_data: { team_id: 'someone-else' } });
+      if (req.url === '/subscriptions/sub_9') return ok({ ...SUB('pri_b'), id: 'sub_9', customer_id: 'ctm_9' });
       if (req.url === '/customers/ctm_1/portal-sessions') return ok({ urls: { general: { overview: 'https://portal.example.test/ov' } } });
       res.writeHead(404); res.end('{}');
     });
@@ -115,4 +120,26 @@ test('post-checkout status poll: explicit successUrl, live region, status endpoi
   r = await c.req('GET', '/app/billing/status');
   assert.equal(r.headers['cache-control'], 'no-store'); assert.deepEqual(JSON.parse(r.body), { plan: 'none', status: null, credits: 0 });
   assert.match(String((await client(app).req('GET', '/app/billing/status')).statusCode), /^30[23]$/);
+});
+
+test('return-URL sync applies a checkout without a webhook (local sandbox), idempotently, only for the own team', async () => {
+  const { client } = await import('./helpers.ts');
+  const c = client(app);
+  await c.post('/signup', { email: 'sync@example.com', password: 'sync password long' }, '/signup');
+  const uid = db.get("SELECT id FROM users WHERE email = 'sync@example.com'").id;
+  db.run("INSERT INTO teams (id, name, created_at) VALUES ('tsync', 'Sync', '2026-01-01')");
+  db.run("DELETE FROM memberships WHERE user_id = ?", uid);
+  db.run("INSERT INTO memberships (team_id, user_id, role, created_at) VALUES ('tsync', ?, 'owner', '2026-01-01')", uid);
+  let r = await c.req('GET', '/app/billing?paid=1&txn=txn_other'); assert.equal(team('tsync').plan, 'none', 'foreign transaction ignored');
+  r = await c.req('GET', '/app/billing?paid=1&txn=txn_wait'); assert.match(r.body, /id="pay-status"/); assert.equal(team('tsync').plan, 'none');
+  // the poll endpoint runs the same sync
+  r = await c.req('GET', '/app/billing/status?txn=txn_wait'); assert.equal(JSON.parse(r.body).plan, 'none');
+  r = await c.req('GET', '/app/billing/status?txn=txn_sub'); assert.equal(JSON.parse(r.body).plan, 'business');
+  r = await c.req('GET', '/app/billing?paid=1&txn=txn_sub');
+  assert.equal(team('tsync').plan, 'business'); assert.equal(team('tsync').billing_subscription_id, 'sub_9'); assert.match(r.body, /Payment received/);
+  await c.req('GET', '/app/billing?paid=1&txn=txn_one'); await c.req('GET', '/app/billing?paid=1&txn=txn_one');
+  // the webhook for the same one-off transaction arrives later: still one credit
+  await send('transaction.completed', { id: 'txn_one', subscription_id: null, customer_id: 'ctm_9', custom_data: { team_id: 'tsync', kind: 'oneoff' }, items: [{ price: { id: 'pri_o' } }] });
+  assert.equal(team('tsync').oneoff_credits, 1);
+  assert.match((await c.req('GET', '/app/billing')).body, /txn=|paddle-config|billing\.js/);
 });
