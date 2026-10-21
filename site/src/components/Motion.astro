@@ -37,6 +37,58 @@
   });
   // Hero scan illustration. Final state is already in the HTML; JS only replays it once when motion is allowed.
   const demo = document.querySelector<HTMLElement>('[data-demo]');
+  const stage = document.querySelector<HTMLElement>('.hero-stage');
+  const layer = document.querySelector<HTMLButtonElement>('[data-layer-fix]');
+  // Layered fix card: front on load → tuck behind near end of score count-up; hover/focus/tap bring forward.
+  if (stage && layer) {
+    let ready = false, hold = false, leaveTimer = 0;
+    const mq = matchMedia('(min-width: 1024px)');
+    const setExpanded = (front: boolean) => layer.setAttribute('aria-expanded', String(front));
+    const goFront = (instant = false) => {
+      if (!mq.matches) return;
+      hold = true; clearTimeout(leaveTimer);
+      if (instant || RM) {
+        stage.classList.add('is-front'); stage.classList.remove('is-tucked', 'is-tucking', 'is-untucking');
+        layer.classList.add('is-front'); layer.classList.remove('is-behind'); setExpanded(true); return;
+      }
+      stage.classList.add('is-untucking', 'is-front'); stage.classList.remove('is-tucking', 'is-tucked');
+      layer.classList.add('is-front'); layer.classList.remove('is-behind'); setExpanded(true);
+      setTimeout(() => stage.classList.remove('is-untucking'), 700);
+    };
+    const goBehind = (instant = false) => {
+      if (!mq.matches || hold) return;
+      if (instant || RM) {
+        stage.classList.add('is-tucked'); stage.classList.remove('is-front', 'is-tucking', 'is-untucking');
+        layer.classList.add('is-behind'); layer.classList.remove('is-front'); setExpanded(false); ready = true; return;
+      }
+      stage.classList.add('is-tucking'); stage.classList.remove('is-untucking', 'is-front');
+      setTimeout(() => {
+        stage.classList.add('is-tucked'); stage.classList.remove('is-tucking');
+        layer.classList.add('is-behind'); layer.classList.remove('is-front'); setExpanded(false); ready = true;
+      }, 350);
+    };
+    const release = () => {
+      if (!ready) return;
+      hold = false; clearTimeout(leaveTimer);
+      leaveTimer = window.setTimeout(() => { if (!layer.matches(':hover, :focus-visible')) goBehind(RM); }, 380);
+    };
+    layer.addEventListener('pointerenter', () => { if (ready) goFront(RM); });
+    layer.addEventListener('pointerleave', release);
+    layer.addEventListener('focus', () => { if (ready) goFront(RM); });
+    layer.addEventListener('blur', release);
+    layer.addEventListener('click', (e) => {
+      if (!mq.matches || !ready) return;
+      e.preventDefault();
+      if (layer.getAttribute('aria-expanded') === 'true') { hold = false; goBehind(RM); }
+      else goFront(RM);
+    });
+    if (RM && mq.matches) goBehind(true);
+    (stage as HTMLElement & { __tuck?: () => void }).__tuck = () => {
+      if (ready) return;
+      if (RM) goBehind(true);
+      else setTimeout(() => { hold = false; goBehind(false); }, 990);
+    };
+  }
   if (demo && !RM) {
     const url = demo.querySelector<HTMLElement>('[data-url]')!, full = url.textContent ?? '';
     const bar = demo.querySelector<HTMLElement>('[data-bar]')!, count = demo.querySelector<HTMLElement>('[data-count]')!, status = demo.querySelector<HTMLElement>('[data-status]')!;
@@ -55,8 +107,13 @@
           clearInterval(s); items.forEach((x) => x.classList.add('on')); status.textContent = done;
           ring.style.setProperty('--p', ring.dataset.p!); num.dataset.to = ring.dataset.p; countUp(num);
           counters.forEach((c) => { c.dataset.to = c.dataset.n; countUp(c); });
+          const tuck = (stage as HTMLElement & { __tuck?: () => void } | null)?.__tuck; tuck?.();
         }
       }, 45);
     }
+  } else if (demo && RM) {
+    /* reduced-motion: demo stays in final HTML state; layer already tucked above */
+  } else if (!demo && stage) {
+    setTimeout(() => (stage as HTMLElement & { __tuck?: () => void }).__tuck?.(), 800);
   }
 </script>
