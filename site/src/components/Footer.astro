@@ -1,5 +1,9 @@
 ---
 import Logo from './Logo.astro';
+import { appLink } from '../lib/api';
+import { localeFromPath, t } from '../lib/i18n';
+const lang = localeFromPath(Astro.url.pathname);
+const L = t(lang);
 const year = new Date().getFullYear();
 const link = 'text-muted hover:text-brand-700 hover:underline underline-offset-4';
 ---
@@ -17,6 +21,11 @@ const link = 'text-muted hover:text-brand-700 hover:underline underline-offset-4
         <li><a class={link} href="/free-scan">Free scan</a></li>
         <li><a class={link} href="/blog">Blog</a></li>
         <li><a class={link} href="/about">About</a></li>
+      </ul>
+      <h2 class="mt-6 font-semibold text-ink">{L.account}</h2>
+      <ul class="mt-3 space-y-2">
+        <li><a class={link} lang={lang} href={appLink('/login', lang)}>{L.login}</a></li>
+        <li><a class={link} lang={lang} href={appLink('/signup', lang)}>{L.signup}</a></li>
       </ul>
     </nav>
     <nav aria-label="Legal">
