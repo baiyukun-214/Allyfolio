@@ -144,7 +144,7 @@ const en = {
     oneoffH: 'One-off report', oneoff: (p: string) => `${p} – 1 site, up to 100 pages, a single scan and a PDF report. No subscription.`, buyOneoff: 'Buy one-off report',
     ownerOnly: 'Only the team owner can manage billing.', unknown: 'Unknown plan.', hasSub: 'You already have a subscription. Change plan instead.', checkoutFail: 'Checkout is not available right now.',
     noSub: 'No subscription to change.', upgraded: (p: string, c: string) => `Upgraded to ${p}. A prorated charge of ${c} was invoiced.`, downFrom: (p: string, d: string) => `${p} starts on ${d}.`, noChange: 'No change.',
-    changeFail: 'The plan change failed. Please try again.', noAccount: 'No billing account yet.', portalFail: 'The billing portal is not available right now.', paid: 'Payment received. Thank you!', processing: 'Payment received. Paddle is still processing it – refresh this page in a moment.',
+    changeFail: 'The plan change failed. Please try again.', noAccount: 'No billing account yet.', portalFail: 'The billing portal is not available right now.', paid: 'Payment received. Thank you!', processing: 'Processing your payment…', activeNow: 'Your purchase is active. Updating the page…', stillProcessing: 'Paddle is still processing your payment. Refresh this page in a minute.',
   },
   statement: {
     h1: (host: string) => `Accessibility statement for ${host}`,
@@ -284,7 +284,7 @@ const zh: Dict = {
     oneoffH: '单次报告', oneoff: (p) => `${p} – 1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。`, buyOneoff: '购买单次报告',
     ownerOnly: '只有团队所有者可以管理账单。', unknown: '未知方案。', hasSub: '您已有订阅，请改为更换方案。', checkoutFail: '暂时无法结账。',
     noSub: '没有可更换的订阅。', upgraded: (p, c) => `已升级到${p}。已开具按比例计算的 ${c} 账单。`, downFrom: (p, d) => `${p}将于 ${d} 生效。`, noChange: '没有变化。',
-    changeFail: '方案更换失败，请重试。', noAccount: '还没有计费账户。', portalFail: '计费门户暂时不可用。', paid: '已收到付款，谢谢！', processing: '已收到付款，Paddle 仍在处理中，请稍后刷新此页面。',
+    changeFail: '方案更换失败，请重试。', noAccount: '还没有计费账户。', portalFail: '计费门户暂时不可用。', paid: '已收到付款，谢谢！', processing: '正在处理您的付款…', activeNow: '您的购买已生效，正在更新页面…', stillProcessing: 'Paddle 仍在处理您的付款，请一分钟后刷新此页面。',
   },
   statement: {
     h1: (host) => `${host} 无障碍声明`,

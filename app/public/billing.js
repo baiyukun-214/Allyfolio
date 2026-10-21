@@ -13,7 +13,7 @@
         .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'error'); return j; }); })
         .then(function (j) {
           window.Paddle.Checkout.open({ transactionId: j.transactionId, customer: { email: cfg.dataset.email },
-            settings: { displayMode: 'overlay', locale: cfg.dataset.locale, successUrl: location.origin + cfg.dataset.success + '&txn=' + encodeURIComponent(j.transactionId) } });
+            settings: { displayMode: 'overlay', locale: cfg.dataset.locale, successUrl: cfg.dataset.success } });
         })
         .catch(function () { form.submit(); })
         .finally(function () { btn.disabled = false; });

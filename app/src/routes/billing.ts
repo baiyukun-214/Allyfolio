@@ -1,9 +1,9 @@
-import { get } from '../db.ts';
+import { config } from '../config.ts';
 import type { FastifyInstance } from 'fastify';
 import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { PLANS, PAID, planOf, ONE_OFF, rank, LimitError, type PlanId } from '../lib/plans.ts';
-import { provider, syncCheckout, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
+import { provider, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
 import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
 import { requireUser, render, back, loc } from './guard.ts';
@@ -14,14 +14,6 @@ const eur = (c: number) => `€${(c / 100).toFixed(0)}`;
 export async function billingRoutes(app: FastifyInstance) {
   app.get('/app/billing', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
-    // Return from Paddle checkout: read the transaction from the Paddle API (works without a reachable webhook, e.g. local sandbox).
-    let flash: { kind: 'ok' | 'error'; msg: string } | undefined;
-    const txn = String((req.query as any).txn ?? '');
-    if (txn && ctx.role === 'owner') {
-      const st = await syncCheckout(ctx.team, txn).catch((e) => { req.log.warn(e, 'checkout sync failed'); return 'pending' as const; });
-      if (st === 'pending') flash = { kind: 'ok', msg: tr(loc(req, ctx)).bill.processing };
-      ctx.team = get<any>('SELECT * FROM teams WHERE id = ?', ctx.team.id);
-    }
     const t = ctx.team, plan = planOf(t.plan), owner = ctx.role === 'owner';
     const prov = await provider(); const ready = !!prov?.configured(); const client = ready ? prov!.clientConfig() : null;
     const eb = isEarlyBird(ctx.user.email) && !t.billing_subscription_id;
@@ -29,7 +21,7 @@ export async function billingRoutes(app: FastifyInstance) {
     const pend = t.pending_plan ? B.pending(pn(t.pending_plan), pn(plan.id)) : null;
     const buy = (what: Purchase, label: string, cls: string) => html`<form method="post" action="/app/billing/checkout" data-checkout>${csrfField(req)}<input type="hidden" name="plan" value="${what}">
       <button class="btn ${cls}" type="submit" ${ready ? '' : 'disabled'}>${label}</button></form>`;
-    return render(reply, ctx, { title: B.title, current: '/app/billing', ...(flash ? { flash } : {}), body: html`
+    return render(reply, ctx, { title: B.title, current: '/app/billing', body: html`
       <h1>${B.title}</h1>
       ${!ready ? html`<p class="alert alert-error" role="note">${B.notConfigured}</p>` : ''}
       <div class="card"><p class="muted small">${B.current}</p><p class="stat">${pn(plan.id)}</p>
@@ -57,10 +49,18 @@ export async function billingRoutes(app: FastifyInstance) {
       <h2>${B.oneoffH}</h2>
       <div class="card row between"><p style="margin:0">${B.oneoff(eur(ONE_OFF.priceCents))}</p>${owner ? buy('oneoff', B.buyOneoff, 'btn-secondary') : ''}</div>
       <p class="small muted">${B.mor}</p>
-      ${client ? html`<div id="paddle-config" hidden data-token="${client.token}" data-env="${client.environment}" data-locale="${paddleLocale(l)}" data-success="/app/billing?paid=1" data-email="${ctx.user.email}"></div>
-        <script src="${client.script}" defer></script><script src="/static/billing.js" defer></script>` : ''}` });
+      ${client ? html`<div id="paddle-config" hidden data-token="${client.token}" data-env="${client.environment}" data-locale="${paddleLocale(l)}" data-success="${config.appUrl}/app/billing?paid=1" data-email="${ctx.user.email}"></div>
+        <script src="${client.script}" defer></script><script src="/static/billing.js" defer></script>` : ''}
+      ${(req.query as any).paid ? html`<div id="pay-status" class="notice" role="status" aria-live="polite" data-plan="${t.plan}" data-credits="${String(t.oneoff_credits ?? 0)}" data-done="${B.activeNow}" data-slow="${B.stillProcessing}">${B.processing}</div>
+        <script src="/static/billing-status.js" defer></script>` : ''}` });
   });
 
+  // Small JSON status for the post-checkout poll (billing-status.js).
+  app.get('/app/billing/status', async (req, reply) => {
+    const ctx = requireUser(req, reply); if (!ctx) return;
+    const t = ctx.team;
+    return reply.header('cache-control', 'no-store').send({ plan: t.plan, status: t.subscription_status ?? null, credits: t.oneoff_credits ?? 0 });
+  });
   app.post('/app/billing/checkout', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return; const B = tr(loc(req, ctx)).bill;
     const wantsJson = String(req.headers.accept ?? '').includes('application/json');

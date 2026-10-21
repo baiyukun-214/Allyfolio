@@ -16,8 +16,6 @@ export interface BillingProvider {
   configured(): boolean;
   /** Public, non-secret settings for the client-side checkout (e.g. Paddle.js token). */
   clientConfig(): { script: string; token: string; environment: string } | null;
-  /** Optional: read a finished checkout from the provider API (return-URL fallback when no webhook can reach this server, e.g. local sandbox). */
-  syncTransaction?(team: any, transactionId: string): Promise<{ state: 'done' | 'pending' | 'foreign'; events: BillingEvent[] }>;
   checkout(team: any, email: string, what: Purchase, opts: { earlyBird: boolean; locale: Locale }): Promise<CheckoutSpec>;
   /** Upgrades: immediately with a prorated charge. Downgrades: price changes for the next period, no charge or credit. */
   changePrice(team: any, to: PlanId, mode: 'prorated_now' | 'next_period'): Promise<SubscriptionPeriod>;
@@ -140,10 +138,3 @@ function scheduleSites(teamId: string, planId: PlanId) {
   }
 }
 
-/** Apply what the provider reports for a checkout the user just returned from. Safe to repeat. */
-export async function syncCheckout(team: any, transactionId: string) {
-  const prov = await provider(); if (!prov?.configured() || !prov.syncTransaction || !/^[\w-]{3,64}$/.test(transactionId)) return 'skipped' as const;
-  const r = await prov.syncTransaction(team, transactionId);
-  if (r.state === 'done' && r.events.length) tx(() => { for (const ev of r.events) applyOne(ev); });
-  return r.state;
-}
