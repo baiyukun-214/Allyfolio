@@ -35,59 +35,25 @@
     select(0, false, false);
     addEventListener('resize', () => select(tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'), false, false));
   });
-  // Hero scan illustration. Final state is already in the HTML; JS only replays it once when motion is allowed.
-  const demo = document.querySelector<HTMLElement>('[data-demo]');
-  const stage = document.querySelector<HTMLElement>('.hero-stage');
-  const layer = document.querySelector<HTMLElement>('[data-layer-fix]');
-  // Layered fix card: front on load, slides right/behind ~90% through the score count-up; peeking left strip brings it back.
-  if (stage && layer) {
-    let ready = false, hold = false, leaveTimer = 0, zTimer = 0, lastPtr = '';
-    const mq = matchMedia('(min-width: 1024px)');
-    const set = (front: boolean, instant: boolean) => {
-      clearTimeout(zTimer); layer.dataset.front = String(front);
-      stage.dataset.layer = front ? 'front' : 'tucked';
-      // swap stacking halfway through the slide so it looks like it tucks in / comes out
-      if (instant) stage.dataset.z = front ? 'top' : 'bottom';
-      else zTimer = window.setTimeout(() => { stage.dataset.z = front ? 'top' : 'bottom'; }, 330);
-    };
-    const goFront = () => { if (!mq.matches || !ready) return; hold = true; clearTimeout(leaveTimer); set(true, RM); };
-    const goBehind = () => { if (!mq.matches || hold) return; set(false, RM); ready = true; };
-    const release = () => { if (!ready) return; hold = false; clearTimeout(leaveTimer); leaveTimer = window.setTimeout(() => { if (!layer.matches(':hover, :focus-visible')) goBehind(); }, 400); };
-    layer.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') goFront(); });
-    layer.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') release(); });
-    layer.addEventListener('focus', goFront);
-    layer.addEventListener('blur', release);
-    layer.addEventListener('keydown', (e) => { if (e.key === 'Escape' && layer.dataset.front === 'true') { hold = false; goBehind(); } });
-    layer.addEventListener('pointerdown', (e) => { lastPtr = e.pointerType; });
-    layer.addEventListener('click', () => { if (!mq.matches || !ready || lastPtr === 'mouse') return; if (layer.dataset.front === 'true') { hold = false; goBehind(); } else goFront(); });
-    if (RM && mq.matches) goBehind();
-    (stage as HTMLElement & { __tuck?: () => void }).__tuck = () => { if (!ready) window.setTimeout(goBehind, RM ? 0 : 990); };
+  // Hero sequence (one time, never loops). The HTML is the final state; JS rewinds to step A only when motion is allowed.
+  const fig = document.querySelector<HTMLElement>('.hero-fig');
+  if (fig && !RM) {
+    const ring = fig.querySelector<HTMLElement>('.score-ring')!, num = fig.querySelector<HTMLElement>('[data-score]')!;
+    fig.dataset.seq = 'a'; ring.style.setProperty('--p', '70'); num.textContent = '70';
+    const seq = new IntersectionObserver((es) => {
+      if (!es.some((e) => e.isIntersecting)) return; seq.disconnect();
+      setTimeout(() => { fig.dataset.seq = 'b'; }, 1200);
+      setTimeout(() => {
+        fig.dataset.seq = 'c'; ring.style.setProperty('--p', '82');
+        let t0 = 0; const step = (n: number) => { t0 ||= n; const k = Math.min(1, (n - t0) / 800); num.textContent = String(Math.round(70 + 12 * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
+        requestAnimationFrame(step);
+      }, 2400);
+    }, { threshold: 0.15 });
+    seq.observe(fig);
   }
-  if (demo && !RM) {
-    const url = demo.querySelector<HTMLElement>('[data-url]')!, full = url.textContent ?? '';
-    const bar = demo.querySelector<HTMLElement>('[data-bar]')!, count = demo.querySelector<HTMLElement>('[data-count]')!, status = demo.querySelector<HTMLElement>('[data-status]')!;
-    const ring = demo.querySelector<HTMLElement>('.score-ring')!, num = demo.querySelector<HTMLElement>('[data-score]')!;
-    const items = [...demo.querySelectorAll<HTMLElement>('.demo-issue')], total = Number(count.dataset.total), done = status.textContent, scanning = status.dataset.scanning ?? '';
-    const counters = [...demo.querySelectorAll<HTMLElement>('[data-n]')];
-    demo.classList.add('demo-run'); ring.style.setProperty('--p', '0'); num.textContent = '0'; bar.style.width = '0%'; count.textContent = '0'; url.textContent = ''; status.textContent = scanning;
-    let i = 0;
-    const typing = setInterval(() => { url.textContent = full.slice(0, ++i); if (i >= full.length) { clearInterval(typing); scan(); } }, 55);
-    function scan() {
-      let p = 0;
-      const s = setInterval(() => {
-        p += 2; bar.style.width = p + '%'; count.textContent = String(Math.round(total * p / 100));
-        if (p % 24 === 0) items[p / 24 - 1]?.classList.add('on');
-        if (p >= 100) {
-          clearInterval(s); items.forEach((x) => x.classList.add('on')); status.textContent = done;
-          ring.style.setProperty('--p', ring.dataset.p!); num.dataset.to = ring.dataset.p; countUp(num);
-          counters.forEach((c) => { c.dataset.to = c.dataset.n; countUp(c); });
-          const tuck = (stage as HTMLElement & { __tuck?: () => void } | null)?.__tuck; tuck?.();
-        }
-      }, 45);
-    }
-  } else if (demo && RM) {
-    /* reduced-motion: demo stays in final HTML state; layer already tucked above */
-  } else if (!demo && stage) {
-    setTimeout(() => (stage as HTMLElement & { __tuck?: () => void }).__tuck?.(), 800);
+  // Tilt / spotlight: loaded on idle; tilt.js itself attaches nothing on touch or reduced motion.
+  if (document.querySelector('[data-tilt],[data-spotlight]')) {
+    const load = () => import('../lib/tilt.js');
+    'requestIdleCallback' in window ? requestIdleCallback(load, { timeout: 2000 }) : setTimeout(load, 1200);
   }
 </script>

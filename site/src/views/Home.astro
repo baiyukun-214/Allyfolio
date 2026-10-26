@@ -16,7 +16,7 @@ const H = t.home;
 const D = H.demo, F = H.fix, V = t.visuals;
 const stepIcons = ['plus', 'radar', 'wrench', 'archive'];
 const faqIcons = ['scale', 'ban', 'building', 'globe', 'radar', 'doc'];
-const sevCls = ['bg-red-50 text-red-800', 'bg-amber-50 text-amber-900', 'bg-brand-50 text-brand-700', 'bg-brand-50 text-brand-700'];
+const sevCls = ['bg-red-50 text-red-800', 'bg-red-50 text-red-800', 'bg-amber-50 text-amber-900', 'bg-brand-50 text-brand-700'];
 const trailMeta = [
   { d: '2026-09-01', cls: 'text-red-700 bg-red-50', h: 100 },
   { d: '2026-09-08', cls: 'text-amber-800 bg-amber-50', h: 64 },
@@ -43,38 +43,53 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
         </div>
         <p class="mt-5 text-sm text-muted">{H.trustLine}</p>
       </div>
-      <div class="hero-stage relative lg:col-span-6" data-layer="front" data-z="top">
-        <figure data-demo class="hero-scan rv glass relative z-[2] rounded-3xl border border-brand-100 p-6 sm:p-7 shadow-2xl shadow-brand-900/15" data-d="120">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <figcaption class="font-semibold text-ink">{D.caption}</figcaption>
-            <span class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">{D.note}</span>
-          </div>
-          <div class="mt-5 flex items-center gap-2 rounded-xl border border-brand-200 bg-white px-3.5 py-2.5 font-mono text-sm text-ink">
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#3b5bdb" stroke-width="2"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg>
-            <span data-url>{D.url}</span><span class="caret" aria-hidden="true"></span>
-          </div>
-          <div class="mt-5 flex items-center gap-5">
-            <div class="score-ring" data-p="82" role="img" aria-label={D.scoreLabel} aria-describedby="demo-score-note">
-              <svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg>
-              <span aria-hidden="true" class="absolute inset-0 grid place-content-center text-center"><span data-score class="text-3xl font-bold text-ink leading-none">82</span><span class="mt-1 text-[11px] leading-tight text-muted">{D.score}</span></span>
+      <div class="lg:col-span-6">
+        <figure class="hero-fig rv" data-d="120" data-seq="final">
+          <figcaption class="sr-only">{D.figSummary}</figcaption>
+          <div class="hero-scene" data-tilt="6">
+            <div class="hero-scan relative rounded-3xl border border-brand-100 bg-white px-6 pt-6 sm:px-7 sm:pt-7 shadow-2xl shadow-brand-900/15">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="font-semibold text-ink">{D.caption}</p>
+                <span class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">{D.note}</span>
+              </div>
+              <div class="mt-5 flex items-center gap-2 rounded-xl border border-brand-200 bg-white px-3.5 py-2.5 font-mono text-sm text-ink">
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#3b5bdb" stroke-width="2"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg>
+                <span>{D.url}</span>
+              </div>
+              <div class="mt-5 flex items-center gap-5">
+                <div class="score-ring" role="img" aria-label={D.scoreLabel} aria-describedby="demo-score-note">
+                  <svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg>
+                  <span aria-hidden="true" class="absolute inset-0 grid place-content-center text-center"><span data-score class="text-3xl font-bold text-ink leading-none tabular-nums">82</span><span class="mt-1 text-[11px] leading-tight text-muted">{D.score}</span></span>
+                </div>
+                <div class="min-w-0 flex-1" aria-hidden="true">
+                  <p class="text-sm text-muted">{D.done} · 48 / 48 {D.pages}</p>
+                  <div class="prog mt-2"><span style="width:100%"></span></div>
+                  <p class="mt-2 text-xs font-semibold text-ink">{D.scoreSub}</p>
+                </div>
+              </div>
+              <p id="demo-score-note" class="mt-3 text-xs text-muted leading-relaxed">{D.scoreNote}</p>
+              <ul class="mt-4 space-y-2 text-sm">
+                {D.issues.map(([name, sev, n], i) => (
+                  <li class={`demo-issue flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 ${i === 0 ? 'seq-row' : ''}`}>
+                    <span class="text-ink">{name}</span>
+                    {i === 0 ? (
+                      <span class="chip-stack shrink-0 text-xs font-semibold">
+                        <span class={`chip-open rounded-full px-2.5 py-0.5 ${sevCls[i]}`} aria-hidden="true">{sev} · {n}</span>
+                        <span class="chip-fixed rounded-full bg-green-50 px-2.5 py-0.5 text-green-800">{D.fixedChip} · {n}</span>
+                      </span>
+                    ) : <span class={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${sevCls[i]}`}>{sev} · {n}</span>}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div class="min-w-0 flex-1" aria-hidden="true">
-              <p class="text-sm text-muted"><span data-status data-scanning={D.scanning}>{D.done}</span> · <span data-count data-total="48">48</span> / 48 {D.pages}</p>
-              <div class="prog mt-2"><span data-bar style="width:100%"></span></div>
-              <p class="mt-2 text-xs font-semibold text-ink">{D.scoreSub}</p>
+            <div class="hero-fix rounded-2xl border border-brand-100 bg-white p-5 shadow-xl shadow-brand-900/15">
+              <p class="flex flex-wrap items-center justify-between gap-2 text-xs"><span class="rounded-md bg-brand-50 px-2 py-0.5 font-mono font-semibold text-brand-800">button-name</span><span class="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">{V.example}</span></p>
+              <p class="mt-1.5 text-sm font-semibold text-ink">{V.fix.wcag}</p>
+              <pre aria-hidden="true" class="mt-3 overflow-hidden whitespace-pre-wrap break-words rounded-xl bg-slate-900 py-2 font-mono text-[12px] leading-relaxed text-slate-100"><code>{V.fix.lines.map(([m, ln], i) => <span style={`--i:${i}`} class={`diff-ln block px-3 ${m === '-' ? 'bg-red-500/15 text-red-200' : m === '+' ? 'bg-green-500/15 text-green-200' : ''}`}><span class="select-none">{m === ' ' ? '\u00a0' : m} </span>{ln}</span>)}</code></pre>
+              <p class="seq-check mt-3 flex items-center gap-1.5 text-xs font-semibold text-green-800"><svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4"><path d="M5 10.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>{V.fix.footer}</p>
             </div>
           </div>
-          <p id="demo-score-note" class="mt-3 text-xs text-muted leading-relaxed">{D.scoreNote}</p>
-          <ul class="mt-4 space-y-2 text-sm">
-            {D.issues.map(([name, sev, n], i) => (
-              <li class="demo-issue flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5">
-                <span class="text-ink">{name}</span>
-                <span class={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${sevCls[i]}`}>{sev} · <span data-n={n}>{n}</span></span>
-              </li>
-            ))}
-          </ul>
         </figure>
-        <Snippet kind="fix" interactive idp="hero" class="mt-6 w-full max-w-md sm:mx-auto lg:mx-0" />
       </div>
     </div>
   </section>
@@ -146,7 +161,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
     <h2 id="features-heading" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-ink rv">{H.features.h2}</h2>
     <div class="mt-10 grid gap-6 lg:grid-cols-3"><ul class="grid gap-5 sm:grid-cols-2 lg:col-span-2">
       {H.features.items.map(([title, d], i) => (
-        <li class="rv lift group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={(i % 2) * 90}>
+        <li data-spotlight class="rv spot-card group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-d={(i % 2) * 90}>
           <span aria-hidden="true" class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-brand-100 to-violet-100 opacity-70 transition-transform duration-500 group-hover:scale-125"></span>
           <Tile name={featIcons[i]} class="relative" />
           <h3 class="relative mt-5 font-semibold text-lg text-ink">{title}</h3><p class="relative mt-2 text-muted leading-relaxed">{d}</p>

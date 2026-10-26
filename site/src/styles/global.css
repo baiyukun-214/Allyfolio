@@ -52,8 +52,6 @@ summary::-webkit-details-marker { display:none; }
 .score-ring .fg { stroke: #4f46e5; stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: calc(314 - 314 * var(--p) / 100); transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1); }
 .prog { height: 8px; border-radius: 999px; background: #e0e7ff; overflow: hidden; }
 .prog > span { display:block; height:100%; border-radius: inherit; background: linear-gradient(90deg, #3b5bdb, #6366f1); }
-.demo-issue { transition: opacity .45s cubic-bezier(.2,.7,.2,1), transform .45s cubic-bezier(.2,.7,.2,1); }
-.demo-run .demo-issue:not(.on) { opacity: 0; transform: translateY(8px) scale(.98); }
 .caret { display:inline-block; width:2px; height:1em; background:#4f46e5; vertical-align:-2px; margin-left:1px; animation: af-blink 1s steps(1) infinite; }
 @keyframes af-blink { 50% { opacity: 0; } }
 /* sliding tabs */
@@ -95,25 +93,52 @@ html { scroll-padding-top: 5rem; }
 .pinned { position: relative; outline: 2px dashed #dc2626; outline-offset: 3px; }
 .pin { position: absolute; right: -10px; top: -12px; width: 22px; height: 22px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
 .prose-toc a { text-decoration: none; }
-/* Hero layered fix card: tucked behind the scan card with a slim left strip peeking; slides out left on load/hover/focus. Transforms only. */
-.hero-stage { --ease-layer: cubic-bezier(.2,.8,.2,1); }
-.hero-fix { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.hero-fix:focus-visible { outline: 2px solid #4f46e5; outline-offset: 3px; }
-@media (min-width: 1024px) {
-  .js .hero-scan { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .js .hero-fix {
-    position: absolute; left: -2rem; top: 42%; width: 28rem; max-width: none; margin: 0; z-index: 1;
-    transform: rotate(-3deg);
-    box-shadow: 0 6px 16px -10px rgb(23 37 84 / .35);
-    transition: transform .7s var(--ease-layer), box-shadow .7s var(--ease-layer);
-    will-change: transform;
-  }
-  .js .hero-stage[data-layer="front"] .hero-fix {
-    transform: translate3d(-1.25rem, 4.5rem, 0) rotate(-1.5deg);
-    box-shadow: 0 28px 50px -20px rgb(23 37 84 / .45);
-  }
-  .js .hero-stage[data-z="top"] .hero-fix { z-index: 3; }
+/* ---- Hero v3: offset stack. Fix card overlaps only the scan card's bottom padding (--ov). Fixed z-order, no hover swap. ---- */
+.hero-fig { --ov: 16px; --ease: cubic-bezier(.2,.8,.2,1); margin: 0; }
+@media (min-width: 640px) { .hero-fig { --ov: 28px; } }
+.hero-scene { position: relative; transform-style: preserve-3d; transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.hero-scan { padding-bottom: var(--ov); z-index: 1; }
+.hero-fix { position: relative; z-index: 2; margin-top: calc(var(--ov) * -1); margin-left: auto; width: 92%; transition: opacity .4s var(--ease), transform .4s var(--ease); }
+@media (min-width: 640px) { .hero-scan { width: 88%; } .hero-fix { width: min(26rem, 74%); } }
+.hero-scene::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; pointer-events: none; opacity: 0; transform: translateZ(41px);
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.12), transparent 40%); mix-blend-mode: soft-light; transition: opacity .3s; }
+.hero-scene.is-hover::after { opacity: 1; }
+.hero-scene.is-hover .hero-fix { transform: translateZ(40px); transition: transform .2s var(--ease); }
+.hero-scene.tilt-out { transition: transform .6s var(--ease); }
+.hero-scene.tilt-out .hero-fix { transition: transform .6s var(--ease); }
+/* score ring: 800ms count in step C */
+.score-ring .fg { transition-duration: .8s; }
+/* button-name row: ring highlight in steps A/B; chip swaps Critical -> Fixed (stacked in one grid cell, no layout change) */
+.seq-row { transition: box-shadow .4s var(--ease), border-color .4s var(--ease); }
+.chip-stack { display: inline-grid; } .chip-stack > * { grid-area: 1 / 1; text-align: center; }
+.chip-open { visibility: hidden; }
+.hero-fig[data-seq="a"] .seq-row, .hero-fig[data-seq="b"] .seq-row { border-color: #3b5bdb; box-shadow: 0 0 0 3px #c7d2fe; }
+.hero-fig[data-seq="a"] .chip-open, .hero-fig[data-seq="b"] .chip-open { visibility: visible; }
+.hero-fig[data-seq="a"] .chip-fixed, .hero-fig[data-seq="b"] .chip-fixed { visibility: hidden; }
+/* step A: fix card not yet in */
+.hero-fig[data-seq="a"] .hero-fix { opacity: 0; transform: translateY(12px); }
+/* steps A/B: diff and check pending; step C animates them in */
+.hero-fig[data-seq="a"] .diff-ln, .hero-fig[data-seq="b"] .diff-ln { opacity: .35; }
+.hero-fig[data-seq="a"] .seq-check, .hero-fig[data-seq="b"] .seq-check { opacity: 0; }
+.hero-fig[data-seq="c"] .diff-ln { animation: af-diff .35s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
+.hero-fig[data-seq="c"] .seq-check { animation: af-check .4s var(--ease) .5s both; }
+@keyframes af-diff { from { opacity: .35; transform: translateX(-6px); } }
+@keyframes af-check { from { opacity: 0; transform: translateY(4px) scale(.96); } }
+/* ---- Spotlight cards (data-spotlight): border + glow follow the cursor; lift 2px; same on keyboard focus ---- */
+.spot-card { --x: 50%; --y: 50%; --glow: rgb(59 91 219 / .15); --edge: rgb(59 91 219 / .45); transition: transform .2s var(--ease, cubic-bezier(.2,.8,.2,1)), box-shadow .2s; }
+.spot-card::before, .spot-card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .2s; }
+.spot-card::before { background: radial-gradient(400px circle at var(--x) var(--y), var(--glow), transparent 40%); }
+.spot-card::after { inset: -1px; padding: 1px; background: radial-gradient(400px circle at var(--x) var(--y), var(--edge), transparent 40%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.spot-card > :not(.absolute) { position: relative; }
+.spot-card:hover, .spot-card:has(:focus-visible) { --lift: -2px; transform: translateY(-2px); box-shadow: 0 18px 40px -20px rgb(49 46 129 / .35); }
+.spot-card:hover::before, .spot-card:hover::after, .spot-card:has(:focus-visible)::before, .spot-card:has(:focus-visible)::after { opacity: 1; }
+/* pricing: 3deg tilt on top of the lift; highlighted plan glows a bit stronger */
+.plan-card { transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px)); transition: transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .2s; }
+.plan-card:hover, .plan-card:has(:focus-visible) { transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift)); }
+.plan-card.is-hover { transition: transform .2s ease-out, box-shadow .2s; }
+.plan-card.is-hl { --glow: rgb(199 210 254 / .24); --edge: rgb(199 210 254 / .7); }
+@media (prefers-reduced-motion: reduce) {
+  .spot-card:hover, .spot-card:has(:focus-visible), .plan-card:hover, .plan-card:has(:focus-visible) { transform: none; }
+  .hero-scene { transform: none; } .hero-scene::after { display: none; }
 }
-@media (min-width: 1280px) { .js .hero-stage[data-layer="front"] .hero-fix { transform: translate3d(-3rem, 4.5rem, 0) rotate(-1.5deg); } }
-@media (prefers-reduced-motion: reduce) { .js .hero-fix { transition: none !important; } }
-
