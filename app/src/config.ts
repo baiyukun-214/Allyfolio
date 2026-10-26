@@ -21,7 +21,7 @@ export const config = {
   billing: {
     provider: (e.BILLING_PROVIDER ?? 'paddle') as 'paddle' | 'creem' | 'none',
     paddle: {
-      env: (e.PADDLE_ENV === 'production' ? 'production' : 'sandbox') as 'sandbox' | 'production',
+      env: (e.PADDLE_ENV === 'production' || e.PADDLE_ENV === 'live' ? 'production' : 'sandbox') as 'sandbox' | 'production', // sandbox (default) | live (alias: production)
       apiKey: e.PADDLE_API_KEY ?? '',
       apiBase: e.PADDLE_API_BASE ?? '', // override for tests; default derived from PADDLE_ENV
       webhookSecret: e.PADDLE_WEBHOOK_SECRET ?? '',

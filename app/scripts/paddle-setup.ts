@@ -9,11 +9,12 @@ import { resolve } from 'node:path';
 import { runPaddleSetup } from '../src/lib/billing/paddleSetup.ts';
 const envPath = resolve(process.env.ENV_FILE ?? '.env');
 if (existsSync(envPath)) process.loadEnvFile(envPath);
-const env = process.env.PADDLE_ENV ?? 'sandbox';
+let env = process.env.PADDLE_ENV ?? 'sandbox';
 const key = process.env.PADDLE_API_KEY ?? '';
 if (!key) { console.error(`PADDLE_API_KEY is not set (looked in ${envPath} and the environment).`); process.exit(1); }
+if (env === 'live') env = 'production';
 if (env === 'production' && !process.argv.includes('--production')) { console.error('PADDLE_ENV=production: re-run with -- --production to confirm.'); process.exit(1); }
-if (env !== 'production' && env !== 'sandbox') { console.error('PADDLE_ENV must be sandbox or production.'); process.exit(1); }
+if (env !== 'production' && env !== 'sandbox') { console.error('PADDLE_ENV must be sandbox or live.'); process.exit(1); }
 const apiBase = process.env.PADDLE_API_BASE || (env === 'production' ? 'https://api.paddle.com' : 'https://sandbox-api.paddle.com');
 console.log(`Paddle ${env} setup → ${envPath}`);
 try {

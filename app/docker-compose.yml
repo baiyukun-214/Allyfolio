@@ -13,6 +13,12 @@ services:
     shm_size: "1gb"            # Chromium
     mem_limit: 5g
     depends_on: [ egress ]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
   egress:
     # DNS-rebinding-safe forward proxy for Chromium: resolves, checks the IP, connects to that IP. Ports 80/443 only.
     build: .
@@ -42,6 +48,8 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ../site/dist:/srv/site:ro   # marketing site build
-      - caddydata:/data
-    depends_on: [ app ]
-volumes: { appdata: {}, caddydata: {} }
+      - caddydata:/data           # TLS certificates (persist!)
+      - caddyconfig:/config
+    depends_on:
+      app: { condition: service_healthy }
+volumes: { appdata: {}, caddydata: {}, caddyconfig: {} }   # appdata = persistent SQLite

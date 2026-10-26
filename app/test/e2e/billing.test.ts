@@ -6,6 +6,7 @@ const calls: { method: string; path: string; body: any }[] = [];
 let fake: any;
 const SUB = (price: string, extra: any = {}) => ({ id: 'sub_1', status: 'active', customer_id: 'ctm_1', items: [{ price: { id: price } }],
   current_billing_period: { starts_at: new Date(Date.now() - 15 * 86400_000).toISOString(), ends_at: new Date(Date.now() + 15 * 86400_000).toISOString() }, ...extra });
+let envReady!: () => void; const envSet = new Promise<void>((r) => (envReady = r));
 before(async () => {
   fake = await fixtureServer({ '*': (req, res) => {
     let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => {
@@ -27,9 +28,11 @@ before(async () => {
   } });
   Object.assign(process.env, { BILLING_PROVIDER: 'paddle', PADDLE_ENV: 'sandbox', PADDLE_API_KEY: 'pdl_sdbx_test', PADDLE_API_BASE: fake.base, PADDLE_WEBHOOK_SECRET: 'whsec_paddle_test',
     PADDLE_CLIENT_TOKEN: 'test_clienttoken', PADDLE_PRICE_STARTER: 'pri_s', PADDLE_PRICE_BUSINESS: 'pri_b', PADDLE_PRICE_AGENCY: 'pri_a', PADDLE_PRICE_ONEOFF: 'pri_o', PADDLE_DISCOUNT_EARLYBIRD: 'dsc_early' });
+  envReady();
 });
 let app: any, db: any, signPaddle: any, applyDueDowngrades: any;
 before(async () => {
+  await envSet; // hooks may overlap on newer Node 22 releases: config must be imported after the env is set
   app = await (await import('../../src/server.ts')).buildServer();
   db = await import('../../src/db.ts');
   ({ signPaddle } = await import('../../src/lib/billing/paddle.ts'));

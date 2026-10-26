@@ -8,6 +8,7 @@ import { joinWaitlist, confirmWaitlist } from '../lib/waitlist.ts';
 import { run, now } from '../db.ts';
 import { page } from '../views/layout.ts';
 import { html } from '../lib/html.ts';
+import { automatedScore } from '../lib/insights.ts';
 import { normLocale, t, trError, type Locale } from '../i18n.ts';
 
 const scanLimit = rateLimiter(config.freeScanPerHour, 3600_000);
@@ -33,7 +34,8 @@ export async function publicRoutes(app: FastifyInstance) {
     const id = randomUUID();
     run(`INSERT INTO scans (id, site_id, kind, status, created_at, started_at, finished_at, pages_scanned, critical, serious, moderate, minor) VALUES (?,NULL,'free','done',?,?,?,1,?,?,?,?)`,
       id, now(), now(), now(), s.counts.critical, s.counts.serious, s.counts.moderate, s.counts.minor);
-    return { id, lang: l, url: result.finalUrl, scannedAt: now(), total: s.total, counts: s.counts,
+    const score = automatedScore({ ...s.counts, pages_scanned: 1 } as any);
+    return { id, lang: l, url: result.finalUrl, scannedAt: now(), score, scoreLabel: T.mon.score, scoreNote: T.mon.scoreNote, total: s.total, counts: s.counts,
       byImpact: s.byImpact.map((g) => ({ impact: g.impact, label: T.impacts[g.impact] ?? g.impact, count: g.count,
         rules: g.rules.map(({ ruleId, help, helpUrl, wcag, count }) => ({ ruleId, help: ruleHelp(ruleId, help, l), helpUrl, wcag, count })) })),
       note: T.automationNote };

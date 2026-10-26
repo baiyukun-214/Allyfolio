@@ -1,18 +1,27 @@
-# Replace the domains. allyfolio.com = marketing site + /api; app.allyfolio.com = dashboard.
-allyfolio.com, www.allyfolio.com {
-	encode zstd gzip
-	handle /api/* {
-		reverse_proxy app:8787
-	}
-	handle {
-		root * /srv/site
-		try_files {path} {path}.html {path}/index.html
-		file_server
-	}
-	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
-}
+# app.allyfolio.com = dashboard + API (/api/scan is called cross-origin by the marketing site; CORS via SITE_ORIGINS).
+# Certificates: Let's Encrypt via HTTP-01/TLS-ALPN. Port 80 and 443 must reach this server.
 app.allyfolio.com {
 	encode zstd gzip
 	reverse_proxy app:8787
-	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
 }
+
+# Optional: serve the marketing site from this server too (normally it is on Cloudflare Workers).
+# Only uncomment if allyfolio.com/www DNS points at this server, otherwise Caddy keeps failing certificate issuance.
+# allyfolio.com, www.allyfolio.com {
+# 	encode zstd gzip
+# 	handle /api/* {
+# 		reverse_proxy app:8787
+# 	}
+# 	handle {
+# 		root * /srv/site
+# 		try_files {path} {path}.html {path}/index.html
+# 		file_server
+# 	}
+# 	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# }

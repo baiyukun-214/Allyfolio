@@ -24,6 +24,9 @@ export class ResendMailer implements Mailer {
 }
 export const mailer: Mailer = (() => {
   if (config.mailer === 'console') return new ConsoleMailer();
-  if (config.mailer === 'resend') { if (!config.resendApiKey) throw new Error('MAILER=resend needs RESEND_API_KEY'); return new ResendMailer(config.resendApiKey); }
+  if (config.mailer === 'resend') {
+    if (!config.resendApiKey) { console.warn('[mail] MAILER=resend but RESEND_API_KEY is empty – logging emails to the console instead of sending.'); return new ConsoleMailer(); }
+    return new ResendMailer(config.resendApiKey);
+  }
   throw new Error(`MAILER=${config.mailer} is not supported (use console or resend)`);
 })();

@@ -94,6 +94,8 @@ Events used: `subscription.created|updated|activated|past_due|paused|resumed|can
 
 ## Deploy (Hetzner Cloud CPX31, Docker Compose + Caddy)
 
+Step-by-step commands: see [DEPLOY.md](DEPLOY.md).
+
 1. Create a **CPX31** (4 vCPU / 8 GB) in Falkenstein, Nuremberg or Helsinki with Ubuntu 24.04; firewall: 22 (your IP), 80, 443 only. Install Docker Engine + compose plugin.
 2. DNS (Cloudflare, "DNS only"/grey cloud so Caddy's automatic HTTPS works): `allyfolio.com`, `www`, `app` → server IPv4/IPv6. Keep the Email Routing MX records as they are.
 3. Clone the monorepo to `/srv/allyfolio-mono`. The site is normally deployed to Cloudflare Workers (see `site/README.md`); to serve it from this server instead, build it with `cd site && npm ci && PUBLIC_API_BASE= npm run build` (empty = same origin) – Caddy mounts `../site/dist`.
