@@ -63,6 +63,8 @@ export async function scanPage(rawUrl: string, opts: { collectLinks?: boolean } 
     await guardPage(page);
     const res = await page.goto(url.href, { waitUntil: 'load', timeout: config.scanTimeoutMs });
     if (!res) throw new Error('No response from the page.');
+    // 401/403/407/429/451: the site (or its WAF/CDN) refused us – often geo or data-centre blocking.
+    if ([401, 403, 407, 429, 451].includes(res.status())) return { url: url.href, finalUrl: page.url(), status: res.status(), issues: [], links: [], error: 'The site refused the connection.' };
     const finalUrl = page.url();
     parsePublicUrl(finalUrl); // final URL after redirects must still be acceptable
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
@@ -77,7 +79,7 @@ export async function scanPage(rawUrl: string, opts: { collectLinks?: boolean } 
     return { url: url.href, finalUrl, status: res.status(), issues, links };
   } catch (e: any) {
     if (e instanceof UnsafeUrlError) throw e;
-    const msg = /Timeout/i.test(e?.message ?? '') ? 'The page took too long to load.' : /ERR_BLOCKED_BY_CLIENT/.test(e?.message ?? '') ? 'That address is not publicly reachable.' : 'We could not load that page.';
+    const msg = classifyLoadError(String(e?.message ?? ''));
     return { url: url.href, finalUrl: url.href, status: null, issues: [], links: [], error: msg };
   } finally { clearTimeout(deadline); await ctx.close().catch(() => {}); release(); }
 }
@@ -101,3 +103,13 @@ export function summarize(issues: Issue[]) {
   return { total: issues.length, counts, byImpact };
 }
 export const AUTOMATION_NOTE = t('en').automationNote;
+
+/** Map a Playwright/Chromium navigation error to one of the internal scanner messages (see i18n scanError). */
+export function classifyLoadError(m: string): string {
+  if (/ERR_NAME_NOT_RESOLVED|ERR_NAME_RESOLUTION_FAILED|ENOTFOUND/.test(m)) return 'We could not find that domain.';
+  if (/Timeout|ERR_TIMED_OUT|ERR_CONNECTION_TIMED_OUT/i.test(m)) return 'The page took too long to load.';
+  if (/ERR_BLOCKED_BY_CLIENT/.test(m)) return 'That address is not publicly reachable.';
+  if (/ERR_CONNECTION_REFUSED|ERR_CONNECTION_RESET|ERR_CONNECTION_CLOSED|ERR_CONNECTION_ABORTED|ERR_EMPTY_RESPONSE|ERR_TUNNEL_CONNECTION_FAILED|ERR_PROXY_CONNECTION_FAILED|ERR_SSL_PROTOCOL_ERROR|ERR_HTTP2_PROTOCOL_ERROR/.test(m)) return 'The site refused the connection.';
+  if (/ERR_TOO_MANY_REDIRECTS/.test(m)) return 'Too many redirects.';
+  return 'We could not load that page.';
+}

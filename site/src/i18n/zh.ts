@@ -85,10 +85,10 @@ export const zh: Dict = {
   scan: {
     title: '免费扫描', description: '使用 Allyfolio 在真实浏览器中通过 axe-core 免费自动检测一个页面的无障碍问题。',
     eyebrow: '免费扫描', h1: '免费无障碍扫描', lead: '使用 axe-core 检测您网站的一个页面，获得自动化测试可发现问题的简要汇总。',
-    label: '页面网址', hint: '例如 https://www.example.com —— 仅限一个公开页面，每小时最多 5 次扫描。', button: '扫描页面', scanning: '正在扫描…',
+    label: '页面网址', hint: '例如 example.com 或 https://www.example.com/page —— 仅限一个公开页面，每小时最多 5 次扫描。', button: '扫描页面', scanning: '正在扫描…',
     status: '正在真实浏览器中扫描页面，通常需要 10 到 30 秒。',
     done: (n: number) => `扫描完成：自动化检测发现 ${n} 个问题。`,
-    empty: '请输入页面地址。', fail: '扫描失败，请重试。', network: '无法连接扫描服务，请稍后重试。',
+    empty: '请输入页面地址。', fail: '这次没能加载该页面。请确认它能在您的浏览器中正常打开，几分钟后再试。', network: '无法连接扫描服务。请检查网络连接，几分钟后再试。',
     caveatHtml: `自动化测试大约能发现 57% 的问题（<a class="text-brand-700 underline" href="${DEQUE}">Deque 研究</a>）。结果中没有问题并不代表页面已完全无障碍，仍需要人工审查。`,
     results: '扫描结果', scanned: '扫描时间', none: '自动化检测没有发现问题。这是一个良好的开始，但并不代表页面已完全无障碍。',
     element: (n: number) => `${n} 个元素`,

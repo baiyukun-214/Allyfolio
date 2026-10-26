@@ -28,10 +28,20 @@ const en = {
   layout: { skip: 'Skip to main content', main: 'Main', sites: 'Sites', team: 'Team', billing: 'Billing', settings: 'Settings', logout: 'Log out', login: 'Log in', signup: 'Create account', website: 'Website', blog: 'Blog', pricing: 'Pricing', site: 'Allyfolio website', backToSite: '← Back to website', homeAria: 'Allyfolio website home', footer: 'Allyfolio is a testing and documentation tool, not legal advice. Automated checks find only part of all accessibility issues.' },
   impacts: { critical: 'Critical', serious: 'Serious', moderate: 'Moderate', minor: 'Minor' } as Record<string, string>,
   automationNote: 'Automated testing finds roughly 57% of accessibility issues (Deque study). A clean result does not mean the page is fully accessible – manual review by people is still needed.',
+  scanErrors: {
+    invalid_url: 'Please enter an address like example.com or https://example.com/page (we add https:// for you if it is missing).',
+    not_public: 'Please enter the address of a public website.',
+    dns_not_found: 'We could not find that domain – the DNS lookup returned no address. Please check the spelling (for example example.com) and that the site is live.',
+    timeout: 'The page did not finish loading within 30 seconds. The site may be slow or busy right now. Please wait a few minutes and try again, or try a lighter page such as a single article.',
+    blocked: 'The site refused our scanner or closed the connection. Some sites block visits from overseas or data-centre servers, and our scanner runs in Germany (EU). Try another page of the site, or ask the site host to allow the AllyfolioBot user agent.',
+    rate_limited: (n: number, mins: number | null) => `You have used the ${n} free scans available per hour.` + (mins ? ` You can scan again in about ${mins} ${mins === 1 ? 'minute' : 'minutes'}.` : ' Please try again in an hour.'),
+    load_failed: 'We could not load that page this time. Please check that it opens in your browser and try again in a few minutes. If it keeps failing, try another page of the site.',
+    unscannedH: 'Pages that could not be scanned',
+  },
   errors: {
     enterUrl: 'Please enter a URL.', tooLong: 'That URL is too long.', invalidUrl: 'That does not look like a valid URL.', scheme: 'Only http and https URLs can be scanned.',
     credentials: 'URLs with credentials are not allowed.', port: 'Only standard ports (80 and 443) can be scanned.', notPublic: 'That address is not publicly reachable.',
-    fullDomain: 'Please use a full public domain name.', noDomain: 'We could not find that domain.', redirects: 'Too many redirects.',
+    fullDomain: 'Please use a full public domain name.', noDomain: 'We could not find that domain.', redirects: 'Too many redirects.', blocked: 'The site refused the connection.',
     timeout: 'The page took too long to load.', loadFail: 'We could not load that page.', scanFail: 'The scan failed.',
     scanLimit: (n: number) => `You have reached the limit of ${n} free scans per hour. Please try again later.`,
     email: 'Please enter a valid email address.', tooMany: 'Too many attempts. Please try again later.', csrf: 'Invalid form token. Please go back, reload the page and try again.',
@@ -177,10 +187,20 @@ const zh: Dict = {
   layout: { skip: '跳到主要内容', main: '主导航', sites: '网站', team: '团队', billing: '账单', settings: '设置', logout: '退出登录', login: '登录', signup: '注册账户', website: '官网', blog: '博客', pricing: '价格', site: 'Allyfolio 官网', backToSite: '← 返回官网', homeAria: 'Allyfolio 官网首页', footer: 'Allyfolio 是一款测试与记录工具，不构成法律建议。自动化检测只能发现部分无障碍问题。' },
   impacts: { critical: '严重', serious: '较严重', moderate: '中等', minor: '轻微' },
   automationNote: '自动化测试大约能发现 57% 的无障碍问题（Deque 研究）。结果中没有问题并不代表页面已完全无障碍，仍需要人工审查。',
+  scanErrors: {
+    invalid_url: '请输入类似 example.com 或 https://example.com/page 的地址（如果没有写 https://，我们会自动补上）。',
+    not_public: '请输入一个公开网站的地址。',
+    dns_not_found: '找不到该域名（DNS 查询没有返回地址）。请检查拼写（例如 example.com），并确认网站已经上线。',
+    timeout: '页面在 30 秒内没有加载完成，网站当前可能较慢或繁忙。请几分钟后重试，或换一个更简单的页面（例如单篇文章）。',
+    blocked: '该网站拒绝了我们的扫描程序或中断了连接。部分网站会屏蔽来自海外或数据中心服务器的访问，而我们的扫描服务器位于德国（欧盟）。您可以换一个页面再试，或请网站托管方放行 AllyfolioBot 用户代理。',
+    rate_limited: (n: number, mins: number | null) => `您已用完每小时 ${n} 次免费扫描。` + (mins ? `大约 ${mins} 分钟后可以再次扫描。` : '请一小时后再试。'),
+    load_failed: '这次没能加载该页面。请确认它能在您的浏览器中正常打开，几分钟后再试；如果仍然失败，可以换一个页面试试。',
+    unscannedH: '未能扫描的页面',
+  },
   errors: {
     enterUrl: '请输入网址。', tooLong: '网址过长。', invalidUrl: '这似乎不是有效的网址。', scheme: '只能扫描 http 和 https 网址。',
     credentials: '网址中不能包含用户名或密码。', port: '只能扫描标准端口（80 和 443）。', notPublic: '该地址无法从公网访问。',
-    fullDomain: '请使用完整的公开域名。', noDomain: '找不到该域名。', redirects: '重定向次数过多。',
+    fullDomain: '请使用完整的公开域名。', noDomain: '找不到该域名。', redirects: '重定向次数过多。', blocked: '该网站拒绝了连接。',
     timeout: '页面加载时间过长。', loadFail: '无法加载该页面。', scanFail: '扫描失败。',
     scanLimit: (n: number) => `您已达到每小时 ${n} 次免费扫描的上限，请稍后再试。`,
     email: '请输入有效的邮箱地址。', tooMany: '尝试次数过多，请稍后再试。', csrf: '表单令牌无效。请返回并刷新页面后重试。',
@@ -325,4 +345,19 @@ export function trError(l: Locale, msg: string): string {
   const E = en.errors as Record<string, any>, Z = t(l).errors as Record<string, any>;
   for (const k of Object.keys(E)) if (typeof E[k] === 'string' && E[k] === msg) return Z[k];
   return msg;
+}
+
+export type ScanErrorCode = 'invalid_url' | 'not_public' | 'dns_not_found' | 'timeout' | 'blocked' | 'rate_limited' | 'load_failed';
+const CODE_OF: Record<string, ScanErrorCode> = {
+  enterUrl: 'invalid_url', tooLong: 'invalid_url', invalidUrl: 'invalid_url', scheme: 'invalid_url', credentials: 'invalid_url', port: 'invalid_url', fullDomain: 'invalid_url',
+  notPublic: 'not_public', noDomain: 'dns_not_found', timeout: 'timeout', blocked: 'blocked', redirects: 'load_failed', loadFail: 'load_failed', scanFail: 'load_failed',
+};
+/** Map an internal (English) scanner/SSRF message to a stable error code plus a friendly localized message with a next step. */
+export function scanError(l: Locale, msg: string | null | undefined): { code: ScanErrorCode; error: string } {
+  const E = en.errors as Record<string, any>;
+  const key = Object.keys(E).find((k) => typeof E[k] === 'string' && E[k] === msg);
+  const code = (key && CODE_OF[key]) || 'load_failed';
+  const S = t(l).scanErrors;
+  if (code === 'invalid_url' || code === 'not_public') return { code, error: `${trError(l, msg!)} ${S[code]}` };
+  return { code, error: S[code] as string };
 }

@@ -7,7 +7,7 @@ import { planOf, canPdf } from '../lib/plans.ts';
 import { enqueue, hasPendingScan } from '../jobs/queue.ts';
 import { IMPACTS, ruleHelp } from '../lib/scanner.ts';
 import { requireUser, render, back, ownSite, loc, T, fmtDate } from './guard.ts';
-import { t, type Locale } from '../i18n.ts';
+import { t, scanError, type Locale } from '../i18n.ts';
 import { automatedScore, weeklyTrend, totalIssues } from '../lib/insights.ts';
 import { scoreBlock, sparkline, sevChips, emptyState } from '../views/ui.ts';
 
@@ -85,6 +85,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
     const scan = get<any>('SELECT c.*, s.name AS site_name, s.origin, s.id AS sid FROM scans c JOIN sites s ON s.id = c.site_id WHERE c.id = ? AND s.team_id = ?', (req.params as any).id, ctx.team.id);
     if (!scan) return render(reply, ctx, { title: M.scanNotFound, body: html`<h1>${M.scanNotFound}</h1>` }, 404);
     const issues = all<any>('SELECT * FROM scan_issues WHERE scan_id = ? ORDER BY id', scan.id);
+    const unscanned = all<any>('SELECT url, error FROM scan_pages WHERE scan_id = ? AND error IS NOT NULL ORDER BY url LIMIT 50', scan.id);
     const prev = get<any>("SELECT id FROM scans WHERE site_id = ? AND status = 'done' AND finished_at < ? ORDER BY finished_at DESC LIMIT 1", scan.site_id, scan.finished_at);
     const prevFps = new Set(prev ? all<any>('SELECT fingerprint FROM scan_issues WHERE scan_id = ?', prev.id).map((r) => r.fingerprint) : []);
     const fixed = prev ? all<any>('SELECT * FROM scan_issues WHERE scan_id = ? AND fingerprint NOT IN (SELECT fingerprint FROM scan_issues WHERE scan_id = ?)', prev.id, scan.id) : [];
@@ -100,6 +101,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
       <dl class="grid g4" style="margin-top:16px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
       <div class="card kpi-score" style="margin-top:16px">${scoreBlock('scan-score', automatedScore(scan), M)}</div>
       ${prev ? html`<p class="small" style="margin-top:12px"><strong>${d[0]}</strong>${d[1]}<strong>${d[2]}</strong>${d[3]}</p>` : html`<p class="small muted" style="margin-top:12px">${M.first}</p>`}
+      ${unscanned.length ? html`<section class="card alert" aria-labelledby="unscanned-h" style="margin-top:16px"><h2 id="unscanned-h">${Tx.scanErrors.unscannedH}</h2><ul>${unscanned.map((p: any) => { const se = scanError(l, p.error); return html`<li data-code="${se.code}"><code>${new URL(p.url).pathname}</code> – ${se.error}</li>`; })}</ul></section>` : ''}
       ${note(l)}
       <h2>${M.byRule}</h2>
       ${[...rules.values()].sort((a, b) => IMPACTS.indexOf(a.impact) - IMPACTS.indexOf(b.impact)).map((r) => html`

@@ -9,7 +9,7 @@ import { run, now } from '../db.ts';
 import { page } from '../views/layout.ts';
 import { html } from '../lib/html.ts';
 import { automatedScore } from '../lib/insights.ts';
-import { normLocale, t, trError, type Locale } from '../i18n.ts';
+import { normLocale, t, scanError, type Locale } from '../i18n.ts';
 
 const scanLimit = rateLimiter(config.freeScanPerHour, 3600_000);
 const waitlistLimit = rateLimiter(10, 3600_000);
@@ -23,13 +23,13 @@ export async function publicRoutes(app: FastifyInstance) {
     const body = (req.body ?? {}) as any; const l = apiLocale(req); const T = t(l);
     let url: URL;
     try { url = parsePublicUrl(body.url); await assertPublicHost(url.hostname); }
-    catch (e) { return reply.code(400).send({ error: e instanceof UnsafeUrlError ? trError(l, e.message) : T.errors.invalidUrl }); }
+    catch (e) { return reply.code(400).send(scanError(l, e instanceof UnsafeUrlError ? e.message : 'That does not look like a valid URL.')); }
     const rl = scanLimit.take(req.ip);
-    if (!rl.ok) return reply.code(429).header('retry-after', rl.retryAfterS).send({ error: T.errors.scanLimit(config.freeScanPerHour) });
+    if (!rl.ok) return reply.code(429).header('retry-after', rl.retryAfterS).send({ code: 'rate_limited', error: T.scanErrors.rate_limited(config.freeScanPerHour, Math.max(1, Math.ceil(rl.retryAfterS / 60))), retryAfterS: rl.retryAfterS });
     let result;
     try { result = await scanPage(url.href); }
-    catch (e) { return reply.code(400).send({ error: e instanceof UnsafeUrlError ? trError(l, e.message) : T.errors.scanFail }); }
-    if (result.error) return reply.code(422).send({ error: trError(l, result.error) });
+    catch (e) { req.log.warn({ err: (e as any)?.message }, 'free scan failed'); return reply.code(e instanceof UnsafeUrlError ? 400 : 502).send(scanError(l, e instanceof UnsafeUrlError ? e.message : 'The scan failed.')); }
+    if (result.error) return reply.code(422).send(scanError(l, result.error));
     const s = summarize(result.issues);
     const id = randomUUID();
     run(`INSERT INTO scans (id, site_id, kind, status, created_at, started_at, finished_at, pages_scanned, critical, serious, moderate, minor) VALUES (?,NULL,'free','done',?,?,?,1,?,?,?,?)`,

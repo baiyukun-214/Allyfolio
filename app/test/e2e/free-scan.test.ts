@@ -12,6 +12,7 @@ let server: http.Server, base = '';
 let app: any, closeBrowser: any, sentMail: any[];
 before(async () => {
   server = http.createServer((req, res) => {
+    if (req.url === '/forbidden') { res.writeHead(403, { 'content-type': 'text/html' }); return res.end('no'); }
     if (req.url === '/redirect') { res.writeHead(302, { location: '/' }); return res.end(); }
     res.writeHead(200, { 'content-type': 'text/html' }); res.end(fixture);
   });
@@ -46,4 +47,19 @@ test('waitlist double opt-in grants early bird', async () => {
   const link = mail.text.match(/\/api\/waitlist\/confirm\?token=\S+/)[0];
   const c = await app.inject({ method: 'GET', url: link });
   assert.equal(c.statusCode, 200); assert.match(c.body, /30% off/);
+});
+
+test('POST /api/scan returns error codes with localized messages', async () => {
+  const bad = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: 'ftp://x.example' } });
+  assert.equal(bad.json().code, 'invalid_url'); assert.match(bad.json().error, /https:\/\//);
+  const r = await app.inject({ method: 'POST', url: '/api/scan', headers: { 'accept-language': 'zh-CN' }, payload: { url: base + '/forbidden' } });
+  assert.equal(r.statusCode, 422, r.body);
+  assert.equal(r.json().code, 'blocked'); assert.match(r.json().error, /海外/);
+});
+test('rate limit returns rate_limited with retry time', async () => {
+  let last: any;
+  for (let i = 0; i < 8; i++) { last = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: base + '/forbidden' } }); if (last.statusCode === 429) break; }
+  assert.equal(last.statusCode, 429);
+  const j = last.json(); assert.equal(j.code, 'rate_limited'); assert.ok(j.retryAfterS > 0);
+  assert.ok(last.headers['retry-after']); assert.match(j.error, /minute/);
 });

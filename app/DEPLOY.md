@@ -1,4 +1,4 @@
-# Deploying the Allyfolio app (Hetzner CPX31, Ubuntu 24.04)
+# Deploying the Allyfolio app (Hetzner CPX31 or CPX22, Ubuntu 24.04)
 
 Result: `https://app.allyfolio.com` (dashboard + API incl. `/api/scan`, `/api/billing/webhook`, `/api/health`)
 running in Docker Compose: `app` (Fastify + Playwright worker), `egress` (scanner proxy), `backup`, `caddy` (TLS).
@@ -7,7 +7,7 @@ Keep the site build flag `PUBLIC_APP_LIVE` unset until launch (it is not part of
 
 ## 1. Server
 
-Hetzner Cloud → CPX31, Ubuntu 24.04, location Falkenstein/Nuremberg/Helsinki, add your SSH key. Note the IPv4.
+Hetzner Cloud → CPX31 (4 vCPU / 8 GB) or CPX22 (the first production deploy runs on a CPX22; fine for launch traffic – keep `SCAN_CONCURRENCY=2`, add a 2 GB swap file since it has 4 GB RAM (the compose `mem_limit: 5g` is only a ceiling), and resize in place to a CPX31 if scans queue up), Ubuntu 24.04, location Falkenstein/Nuremberg/Helsinki, add your SSH key. Note the IPv4.
 Optionally also add a Hetzner Cloud Firewall with the same rules as below.
 
 ```sh
@@ -59,7 +59,7 @@ SITE_URL=https://allyfolio.com
 SITE_ORIGINS=https://allyfolio.com,https://www.allyfolio.com
 COOKIE_DOMAIN=.allyfolio.com
 ALLOW_PRIVATE_TARGETS=0
-MAILER=resend
+MAILER=                       # empty = auto: resend when RESEND_API_KEY is set
 RESEND_API_KEY=<from Resend; domain allyfolio.com verified (SPF/DKIM records in Cloudflare)>
 MAIL_FROM="Allyfolio <hello@allyfolio.com>"
 BILLING_PROVIDER=paddle

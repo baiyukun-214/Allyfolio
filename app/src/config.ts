@@ -16,7 +16,7 @@ export const config = {
   scanConcurrency: Number(e.SCAN_CONCURRENCY ?? 2),
   freeScanPerHour: Number(e.FREE_SCAN_PER_IP_PER_HOUR ?? 5),
   allowPrivateTargets: e.ALLOW_PRIVATE_TARGETS === '1',
-  mailer: e.MAILER ?? (e.RESEND_API_KEY ? 'resend' : 'console'),
+  mailer: (e.MAILER ?? '').trim().toLowerCase() || (e.RESEND_API_KEY ? 'resend' : 'console'), // empty/unset = auto
   mailFrom: e.MAIL_FROM ?? 'Allyfolio <hello@allyfolio.com>',
   billing: {
     provider: (e.BILLING_PROVIDER ?? 'paddle') as 'paddle' | 'creem' | 'none',

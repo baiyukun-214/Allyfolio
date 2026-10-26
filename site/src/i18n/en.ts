@@ -84,10 +84,10 @@ export const en = {
   scan: {
     title: 'Free scan', description: 'Run a free automated accessibility check of one page with Allyfolio, using axe-core in a real browser.',
     eyebrow: 'Free scan', h1: 'Free accessibility scan', lead: 'Check one page of your website with axe-core and get a short summary of the issues automated testing can detect.',
-    label: 'Page URL', hint: 'For example https://www.example.com – one public page, up to 5 scans per hour.', button: 'Scan page', scanning: 'Scanning…',
+    label: 'Page URL', hint: 'For example example.com or https://www.example.com/page – one public page, up to 5 scans per hour.', button: 'Scan page', scanning: 'Scanning…',
     status: 'Scanning the page in a real browser. This usually takes 10 to 30 seconds.',
     done: (n: number) => `Scan finished: ${n} issue${n === 1 ? '' : 's'} found by automated checks.`,
-    empty: 'Please enter the address of a page.', fail: 'The scan failed. Please try again.', network: 'We could not reach the scan service. Please try again later.',
+    empty: 'Please enter the address of a page.', fail: 'We could not load that page this time. Please check that it opens in your browser and try again in a few minutes.', network: 'We could not reach the scan service. Please check your connection and try again in a few minutes.',
     caveatHtml: `Automated testing finds roughly 57% of issues (<a class="text-brand-700 underline" href="${DEQUE}">Deque study</a>). A clean result does not mean your page is fully accessible – manual review by people is still needed.`,
     results: 'Results', scanned: 'scanned', none: 'No issues found by automated checks. That is a good start – but it does not mean the page is fully accessible.',
     element: (n: number) => `${n} element${n === 1 ? '' : 's'}`,
