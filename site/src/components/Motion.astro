@@ -35,21 +35,63 @@
     select(0, false, false);
     addEventListener('resize', () => select(tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'), false, false));
   });
-  // Hero sequence (one time, never loops). The HTML is the final state; JS rewinds to step A only when motion is allowed.
+  // Hero sequence (one time, never loops), then the fix card tucks behind the scan card. Hover/focus/tap brings it back.
   const fig = document.querySelector<HTMLElement>('.hero-fig');
-  if (fig && !RM) {
+  if (fig) {
+    const scan = fig.querySelector<HTMLElement>('.hero-scan')!, fix = fig.querySelector<HTMLElement>('.hero-fix')!;
     const ring = fig.querySelector<HTMLElement>('.score-ring')!, num = fig.querySelector<HTMLElement>('[data-score]')!;
-    fig.dataset.seq = 'a'; ring.style.setProperty('--p', '70'); num.textContent = '70';
-    const seq = new IntersectionObserver((es) => {
-      if (!es.some((e) => e.isIntersecting)) return; seq.disconnect();
-      setTimeout(() => { fig.dataset.seq = 'b'; }, 1200);
-      setTimeout(() => {
-        fig.dataset.seq = 'c'; ring.style.setProperty('--p', '82');
-        let t0 = 0; const step = (n: number) => { t0 ||= n; const k = Math.min(1, (n - t0) / 800); num.textContent = String(Math.round(70 + 12 * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
-        requestAnimationFrame(step);
-      }, 2400);
-    }, { threshold: 0.15 });
-    seq.observe(fig);
+    // tucked geometry from layout offsets (unaffected by transforms/tilt)
+    let G = { tx: 0, ty: 0, sy: 0, ov: 0 };
+    const measure = () => {
+      const peek = parseFloat(getComputedStyle(fig).getPropertyValue('--peek')) || 0, ov = parseFloat(getComputedStyle(fig).getPropertyValue('--ov')) || 0;
+      const fw = fix.offsetWidth, fh = fix.offsetHeight, sh = scan.offsetHeight;
+      const sy = (fix.offsetTop + fh - (scan.offsetTop + sh)) / 2; // centre the pair in the reserved box
+      G = { tx: Math.round(scan.offsetLeft - peek - fix.offsetLeft - fw * 0.02), ty: Math.round(scan.offsetTop + sy + sh / 2 - (fix.offsetTop + fh / 2)), sy: Math.round(sy), ov };
+      fig.style.setProperty('--tx', G.tx + 'px'); fig.style.setProperty('--ty', G.ty + 'px'); fig.style.setProperty('--sy', G.sy + 'px');
+    };
+    if (RM) { measure(); fig.dataset.tuck = '1'; addEventListener('resize', measure, { passive: true }); }
+    else {
+      fig.dataset.seq = 'a'; ring.style.setProperty('--p', '70'); num.textContent = '70';
+      let anims: Animation[] = [], done = false, hot = false, back = false;
+      const T = { duration: 800, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' as FillMode };
+      const build = () => {
+        measure(); const { tx, ty, sy, ov } = G, x1 = Math.round(tx * 0.3), y1 = Math.round(ov + 10 + sy * 0.3);
+        anims.forEach((a) => a.cancel());
+        anims = [
+          // phase 1: slide down-left until clear of the scan card; swap depth while apart; phase 2: settle up-left behind it
+          fix.animate([
+            { transform: 'translate3d(0,0,1px) scale(1)', opacity: 1 },
+            { offset: 0.34, transform: `translate3d(${x1}px,${y1}px,1px) scale(.98)`, opacity: 0.95 },
+            { offset: 0.4, transform: `translate3d(${Math.round(tx * 0.36)}px,${y1}px,-1px) scale(.978)`, opacity: 0.93 },
+            { transform: `translate3d(${tx}px,${ty}px,-1px) scale(.96)`, opacity: 0.85 },
+          ], T),
+          scan.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(0,${sy}px,0)` }], T),
+        ];
+        anims.forEach((a) => a.pause());
+      };
+      const go = (toBack: boolean) => {
+        if (!done || back === toBack) return; back = toBack;
+        if (!anims.length) build();
+        anims.forEach((a) => { a.playbackRate = toBack ? 1 : -1; a.play(); });
+        fig.dataset.layer = toBack ? 'back' : 'front';
+      };
+      const seq = new IntersectionObserver((es) => {
+        if (!es.some((e) => e.isIntersecting)) return; seq.disconnect();
+        setTimeout(() => { fig.dataset.seq = 'b'; }, 1200);
+        setTimeout(() => {
+          fig.dataset.seq = 'c'; ring.style.setProperty('--p', '82');
+          let t0 = 0; const step = (n: number) => { t0 ||= n; const k = Math.min(1, (n - t0) / 800); num.textContent = String(Math.round(70 + 12 * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
+          requestAnimationFrame(step);
+        }, 2400);
+        setTimeout(() => { done = true; if (!hot) go(true); }, 3800); // 2400 + 800 count + 600 beat
+      }, { threshold: 0.15 });
+      seq.observe(fig);
+      const show = () => { hot = true; go(false); }, hide = () => { hot = false; go(true); };
+      if (matchMedia('(hover:hover) and (pointer:fine)').matches) { fig.addEventListener('pointerenter', show); fig.addEventListener('pointerleave', () => { if (!fig.contains(document.activeElement)) hide(); }); }
+      else { fig.addEventListener('click', (e) => { e.stopPropagation(); show(); }); document.addEventListener('click', () => { if (!back) hide(); }); }
+      fig.addEventListener('focusin', show); fig.addEventListener('focusout', () => { if (!fig.matches(':hover')) hide(); });
+      addEventListener('resize', () => { if (!anims.length) return; const f = back; build(); anims.forEach((a) => { a.playbackRate = 1; a.currentTime = f ? 800 : 0; }); }, { passive: true });
+    }
   }
   // Tilt / spotlight: loaded on idle; tilt.js itself attaches nothing on touch or reduced motion.
   if (document.querySelector('[data-tilt],[data-spotlight]')) {

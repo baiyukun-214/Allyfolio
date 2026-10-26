@@ -98,14 +98,21 @@ html { scroll-padding-top: 5rem; }
 @media (min-width: 640px) { .hero-fig { --ov: 28px; } }
 .hero-scene { position: relative; transform-style: preserve-3d; transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
 .hero-scan { padding-bottom: var(--ov); z-index: 1; }
-.hero-fix { position: relative; z-index: 2; margin-top: calc(var(--ov) * -1); margin-left: auto; width: 92%; transition: opacity .4s var(--ease), transform .4s var(--ease); }
+.hero-fix { position: relative; z-index: 2; transform: translateZ(1px); margin-top: calc(var(--ov) * -1); margin-left: auto; width: 92%; transition: opacity .4s var(--ease), transform .4s var(--ease); }
 @media (min-width: 640px) { .hero-scan { width: 88%; } .hero-fix { width: min(26rem, 74%); } }
 .hero-scene::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; pointer-events: none; opacity: 0; transform: translateZ(41px);
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.12), transparent 40%); mix-blend-mode: soft-light; transition: opacity .3s; }
 .hero-scene.is-hover::after { opacity: 1; }
-.hero-scene.is-hover .hero-fix { transform: translateZ(40px); transition: transform .2s var(--ease); }
 .hero-scene.tilt-out { transition: transform .6s var(--ease); }
-.hero-scene.tilt-out .hero-fix { transition: transform .6s var(--ease); }
+/* v4 tuck: after the sequence the fix card slides left behind the scan card (strip of --peek on the left). Transform/opacity only;
+   depth via translateZ (+-1px) inside the preserve-3d scene, crossed while the cards don't overlap. JS measures --tx/--ty/--sy. */
+.hero-fig { --peek: 14px; }
+@media (max-width: 1023.98px) { .hero-scan { margin-left: var(--peek); } .hero-fix { max-width: calc(100% - var(--peek)); } }
+@media (min-width: 1024px) { .hero-fig { --peek: 39px; } }
+.hero-fig:focus-visible { outline: 2px solid #4f46e5; outline-offset: 6px; border-radius: 1.5rem; }
+.hero-fig[data-layer="back"] .hero-fix, .hero-fig[data-tuck="1"] .hero-fix { pointer-events: none; }
+.hero-fig[data-tuck="1"] .hero-scan { transform: translate3d(0, var(--sy, 0px), 0); }
+.hero-fig[data-tuck="1"] .hero-fix { z-index: 0; opacity: .85; transform: translate3d(var(--tx, 0px), var(--ty, 0px), -1px) scale(.96); }
 /* score ring: 800ms count in step C */
 .score-ring .fg { transition-duration: .8s; }
 /* button-name row: ring highlight in steps A/B; chip swaps Critical -> Fixed (stacked in one grid cell, no layout change) */
