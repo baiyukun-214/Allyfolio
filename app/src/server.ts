@@ -1,3 +1,4 @@
+import { payRoutes } from './routes/pay.ts';
 import { installMonitoring } from './lib/monitoring.ts';
 import Fastify from 'fastify';
 import formbody from '@fastify/formbody';
@@ -26,6 +27,7 @@ export async function buildServer() {
   app.decorateRequest('locale', 'en' as any);
   app.addHook('onRequest', localeHook);
   await app.register(publicRoutes);
+  await app.register(payRoutes);
   await app.register(appRoutes);
   return app;
 }
