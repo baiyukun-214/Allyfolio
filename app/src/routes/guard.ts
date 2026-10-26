@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { currentUser, type Ctx } from '../lib/auth.ts';
 import { page, type PageOpts } from '../views/layout.ts';
+import { html, type Html } from '../lib/html.ts';
 import { get } from '../db.ts';
 import { normLocale, requestLocale, t, type Locale } from '../i18n.ts';
 declare module 'fastify' { interface FastifyRequest { locale: Locale } }
@@ -25,3 +26,14 @@ export const ownSite = (ctx: Ctx, id: string) => get<any>('SELECT * FROM sites W
 /** Render a full page for a request without going through reply (locale + switcher path from the request). */
 export const pg = (req: FastifyRequest, opts: Omit<PageOpts, 'locale' | 'path'>, ctx?: Ctx | null) => page({ ...opts, locale: loc(req, ctx), path: req.url.split('?')[0] });
 export const fmtDate = (iso: string | null | undefined, l: Locale) => iso ? new Date(iso).toLocaleString(t(l).dateLocale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC' : '–';
+/** Date only (UTC fallback, no time/zone label), for plain-text contexts such as flash messages. */
+export const fmtDay = (iso: string | null | undefined, l: Locale) => iso ? new Date(iso).toLocaleDateString(t(l).dateLocale, { dateStyle: 'medium', timeZone: 'UTC' }) : '–';
+/**
+ * <time datetime=ISO> with a server-side UTC fallback; public/app.js re-renders it in the viewer's timezone with
+ * Intl.DateTimeFormat (data-locale, data-local="date" | "datetime"). Date-only fallback carries no zone label.
+ */
+export function localTime(iso: string | null | undefined, l: Locale, kind: 'date' | 'datetime' = 'datetime'): Html {
+  if (!iso) return html`–`;
+  const d = new Date(iso); if (isNaN(d.getTime())) return html`–`;
+  return html`<time datetime="${d.toISOString()}" data-local="${kind}" data-locale="${t(l).dateLocale}">${kind === 'date' ? fmtDay(iso, l) : fmtDate(iso, l)}</time>`;
+}

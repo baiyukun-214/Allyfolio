@@ -7,8 +7,7 @@ import { PLANS, PAID, planOf, ONE_OFF, rank, LimitError, type PlanId } from '../
 import { provider, syncCheckout, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
 import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
-import { requireUser, render, back, loc } from './guard.ts';
-import { fmt } from './monitoring.ts';
+import { requireUser, render, back, loc, localTime, fmtDay } from './guard.ts';
 import { t as tr } from '../i18n.ts';
 const eur = (c: number) => `€${(c / 100).toFixed(0)}`;
 
@@ -38,9 +37,12 @@ export async function billingRoutes(app: FastifyInstance) {
       <h1>${B.title}</h1>
       ${!ready ? html`<p class="alert alert-error" role="note">${B.notConfigured}</p>` : ''}
       <div class="card"><p class="muted small">${B.current}</p><p class="stat">${pn(plan.id)}</p>
-        ${t.subscription_status ? html`<p class="small muted">${B.status}: ${B.statuses[t.subscription_status] ?? t.subscription_status}${t.current_period_end ? html` · ${B.periodEnds} ${fmt(t.current_period_end, l)}` : ''}</p>` : ''}
+        ${t.subscription_status ? html`<p class="small muted">${B.status}${B.colon}${B.statuses[t.subscription_status] ?? t.subscription_status}${(() => {
+          const st = t.subscription_status, end = t.cancel_at ?? t.current_period_end; if (!end) return '';
+          const label = t.cancel_at && st !== 'canceled' ? B.endsOn : st === 'canceled' ? B.endedOn : st === 'active' || st === 'trialing' ? B.renewsOn : B.periodEndsOn;
+          return html` · ${label} ${localTime(end, l, 'date')}`; })()}</p>` : ''}
         ${pend ? html`<p class="notice">${pend[0]}<strong>${pend[1]}</strong>${pend[2]}</p>` : ''}
-        ${t.cancel_at ? html`<p class="notice">${B.cancelsOn(fmt(t.cancel_at, l))}</p>` : ''}
+        ${t.cancel_at ? html`<p class="notice">${B.cancelsOn[0]}${localTime(t.cancel_at, l, 'date')}${B.cancelsOn[1]}</p>` : ''}
         ${t.oneoff_credits ? html`<p class="small">${B.credits}: <strong>${t.oneoff_credits}</strong></p>` : ''}
         <div class="row">
         ${owner && t.billing_customer_id && ready ? html`<form method="post" action="/app/billing/portal">${csrfField(req)}<button class="btn btn-secondary" type="submit">${B.portal}</button></form>` : ''}
@@ -98,7 +100,7 @@ export async function billingRoutes(app: FastifyInstance) {
     const to = String((req.body as any).plan) as PlanId; if (!PAID.includes(to)) return back(reply, '/app/billing', 'err', B.unknown);
     try {
       const pv = await changePlan(ctx.team, to);
-      return back(reply, '/app/billing', 'ok', pv.kind === 'upgrade' ? B.upgraded(Tx.plans[to], eur(pv.chargeCents)) : pv.kind === 'downgrade' ? B.downFrom(Tx.plans[to], fmt(pv.effectiveAt, l)) : B.noChange);
+      return back(reply, '/app/billing', 'ok', pv.kind === 'upgrade' ? B.upgraded(Tx.plans[to], eur(pv.chargeCents)) : pv.kind === 'downgrade' ? B.downFrom(Tx.plans[to], fmtDay(pv.effectiveAt, l)) : B.noChange);
     } catch (e: any) { if (e instanceof LimitError) return back(reply, '/app/billing', 'err', e.msg(l)); req.log.error(e); return back(reply, '/app/billing', 'err', B.changeFail); }
   });
 

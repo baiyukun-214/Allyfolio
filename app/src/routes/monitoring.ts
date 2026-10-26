@@ -6,12 +6,13 @@ import type { Ctx } from '../lib/auth.ts';
 import { planOf, canPdf } from '../lib/plans.ts';
 import { enqueue, hasPendingScan } from '../jobs/queue.ts';
 import { IMPACTS, ruleHelp } from '../lib/scanner.ts';
-import { requireUser, render, back, ownSite, loc, T, fmtDate } from './guard.ts';
+import { requireUser, render, back, ownSite, loc, T, fmtDate, localTime } from './guard.ts';
 import { t, scanError, type Locale } from '../i18n.ts';
 import { automatedScore, weeklyTrend, totalIssues } from '../lib/insights.ts';
 import { scoreBlock, sparkline, sevChips, emptyState } from '../views/ui.ts';
 
 export const fmt = (iso?: string | null, l: Locale = 'en') => fmtDate(iso, l);
+const lt = (iso?: string | null, l: Locale = 'en') => localTime(iso, l);
 const note = (l: Locale) => { const M = t(l).mon; return html`<p class="notice"><strong>${M.note}</strong> ${M.noteText}</p>`; };
 
 export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
@@ -31,7 +32,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
       <div class="card kpi"><p class="muted small">${M.trend}</p>${sparkline(tr.series, M.trendAria)}<p class="small ${tr.delta !== null && tr.delta < 0 ? 'good' : 'muted'}">${tr.delta === null ? M.trendNone : M.trendDelta(tr.delta)}</p></div>
     </section>` : ''}
     <section class="facts" aria-label="${M.schedule}">
-      <p><span class="muted small">${M.schedule}</span> <strong>${plan.frequency ? (plan.frequency === 'daily' ? M.daily : M.weekly) : M.none}</strong> <span class="small muted">${M.next}: ${fmt(s.next_scan_at, l)}</span></p>
+      <p><span class="muted small">${M.schedule}</span> <strong>${plan.frequency ? (plan.frequency === 'daily' ? M.daily : M.weekly) : M.none}</strong> <span class="small muted">${M.next}: ${lt(s.next_scan_at, l)}</span></p>
       <p><span class="muted small">${M.pageLimit}</span> <strong>${plan.pagesPerSite || '–'}</strong> <span class="small muted">${M.planSuffix(Tx.plans[plan.id] ?? plan.name)}</span></p>
       <p><span class="muted small">${M.history}</span> <strong>${M.months(plan.retentionMonths)}</strong> <span class="small muted">${M.appendOnly}</span></p>
     </section>
@@ -46,7 +47,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
     <section id="history" aria-labelledby="history-h"><h2 id="history-h">${M.historyH}</h2>
     ${scans.length ? html`<div class="card table-wrap" style="padding:8px 16px"><table><caption class="sr-only">${M.historyCaption}</caption>
       <thead><tr><th scope="col">${M.colFinished}</th><th scope="col">${M.colType}</th><th scope="col">${M.colPages}</th><th scope="col">${M.colCounts}</th><th scope="col">${M.colDiff}</th><th scope="col">${M.colHash}</th></tr></thead><tbody>
-      ${scans.map((c) => html`<tr><td>${c.status === 'done' ? html`<a href="/app/scans/${c.id}">${fmt(c.finished_at, l)}</a>` : html`<span class="pill">${M.statuses[c.status] ?? c.status}</span>`}</td><td>${M.kinds[c.kind] ?? c.kind}</td><td>${c.pages_scanned}</td>
+      ${scans.map((c) => html`<tr><td>${c.status === 'done' ? html`<a href="/app/scans/${c.id}">${lt(c.finished_at, l)}</a>` : html`<span class="pill">${M.statuses[c.status] ?? c.status}</span>`}</td><td>${M.kinds[c.kind] ?? c.kind}</td><td>${c.pages_scanned}</td>
         <td>${sevChips(c, Tx.impacts)}</td><td>${c.new_issues ?? '–'} / ${c.fixed_issues ?? '–'}</td><td><code>${(c.evidence_hash ?? '').slice(0, 12)}</code></td></tr>`)}
     </tbody></table></div>` : emptyState(M.emptyScansH, M.emptyScansText + (pending ? M.firstQueued : ''))}</section>
     <p class="small muted" style="margin-top:24px">${M.removeInSettings} <a href="/app/settings#danger-h">${M.settingsLink}</a>.</p>`;
@@ -96,7 +97,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
     return render(reply, ctx, { title: M.scanOf(scan.site_name), current: '/app', body: html`
       <p><a href="/app/sites/${scan.sid}">← ${scan.site_name}</a></p>
       <h1>${M.scanOf(scan.site_name)}</h1>
-      <p class="muted">${M.finished} ${fmt(scan.finished_at, l)} · ${M.pagesN(scan.pages_scanned)} (${M.limit} ${scan.page_limit}) · ${M.hash} <code>${scan.evidence_hash}</code></p>
+      <p class="muted">${M.finished} ${lt(scan.finished_at, l)} · ${M.pagesN(scan.pages_scanned)} (${M.limit} ${scan.page_limit}) · ${M.hash} <code>${scan.evidence_hash}</code></p>
       <div class="row">${canPdf(plan, scan.kind === 'oneoff') ? html`<a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a>` : ''}<a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a></div>
       <dl class="grid g4" style="margin-top:16px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
       <div class="card kpi-score" style="margin-top:16px">${scoreBlock('scan-score', automatedScore(scan), M)}</div>

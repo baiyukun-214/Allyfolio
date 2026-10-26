@@ -68,3 +68,12 @@
     } catch {}
   }
 })();
+
+// Local-timezone dates: <time datetime=ISO data-local="date|datetime" data-locale=…> server-rendered in UTC, re-rendered here.
+(() => {
+  document.querySelectorAll('time[data-local]').forEach((el) => {
+    const d = new Date(el.getAttribute('datetime')); if (isNaN(d)) return;
+    const opts = el.dataset.local === 'date' ? { dateStyle: 'medium' } : { dateStyle: 'medium', timeStyle: 'short' };
+    try { el.textContent = new Intl.DateTimeFormat(el.dataset.locale || document.documentElement.lang || undefined, opts).format(d); el.title = d.toISOString(); } catch {}
+  });
+})();

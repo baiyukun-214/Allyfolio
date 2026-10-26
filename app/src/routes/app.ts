@@ -9,7 +9,7 @@ import { verifySite, TXT_PREFIX, META_NAME } from '../lib/verify.ts';
 import { mailer } from '../lib/mailer.ts';
 import { validEmail } from '../lib/waitlist.ts';
 import { config } from '../config.ts';
-import { requireUser, render, back, ownSite, T, loc, fmtDate } from './guard.ts';
+import { requireUser, render, back, ownSite, T, loc, localTime } from './guard.ts';
 import { LOCALES, normLocale, t, trError } from '../i18n.ts';
 import { siteDetailExtras } from './monitoring.ts';
 import { accountSection } from './account.ts';
@@ -27,7 +27,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       <div class="row between"><div><p class="eyebrow">${ctx.team.name}</p><h1>${D.sites}</h1></div><span class="pill">${D.planPill(Tx.plans[plan.id] ?? plan.name, sites.length, plan.sites)}</span></div>
       ${ctx.team.plan === 'none' ? html`<p class="notice"><strong>${D.noPlanH}</strong> ${D.noPlan} <a href="/app/billing">${D.noPlanLink}</a>${D.noPlanEnd}</p>` : ''}
       ${sites.length ? html`<div class="table-wrap card" style="padding:8px 16px"><table><caption class="sr-only">${D.yourSites}</caption><thead><tr><th scope="col">${D.colSite}</th><th scope="col">${D.colOwner}</th><th scope="col">${D.colLast}</th><th scope="col">${D.colSerious}</th></tr></thead><tbody>
-        ${sites.map((s) => html`<tr><td><a href="/app/sites/${s.id}">${s.name}</a><br><span class="muted small">${s.origin}</span></td><td>${s.verified_at ? html`<span class="pill ok">${D.verified}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</td><td>${fmtDate(s.last_scan, l)}</td><td>${s.last_serious ?? '–'}</td></tr>`)}
+        ${sites.map((s) => html`<tr><td><a href="/app/sites/${s.id}">${s.name}</a><br><span class="muted small">${s.origin}</span></td><td>${s.verified_at ? html`<span class="pill ok">${D.verified}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</td><td>${localTime(s.last_scan, l)}</td><td>${s.last_serious ?? '–'}</td></tr>`)}
       </tbody></table></div>` : emptyState(D.emptySitesH, D.emptySitesText, html`<a class="btn btn-primary" href="#name">${D.addH}</a>`)}
       <h2>${D.addH}</h2>
       <form class="card" method="post" action="/app/sites">${csrfField(req)}
