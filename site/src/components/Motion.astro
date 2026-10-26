@@ -40,14 +40,17 @@
   if (fig) {
     const scan = fig.querySelector<HTMLElement>('.hero-scan')!, fix = fig.querySelector<HTMLElement>('.hero-fix')!;
     const ring = fig.querySelector<HTMLElement>('.score-ring')!, num = fig.querySelector<HTMLElement>('[data-score]')!;
-    // tucked geometry from layout offsets (unaffected by transforms/tilt)
-    let G = { tx: 0, ty: 0, sy: 0, ov: 0 };
+    // tucked geometry from layout offsets (unaffected by transforms/tilt): strip of --peek left of the scan card, top at the score note
+    const list = fig.querySelector<HTMLElement>('.hero-list')!, note = fig.querySelector<HTMLElement>('#demo-score-note')!;
+    let G = { tx: 0, ty: 0 };
     const measure = () => {
-      const peek = parseFloat(getComputedStyle(fig).getPropertyValue('--peek')) || 0, ov = parseFloat(getComputedStyle(fig).getPropertyValue('--ov')) || 0;
-      const fw = fix.offsetWidth, fh = fix.offsetHeight, sh = scan.offsetHeight;
-      const sy = (fix.offsetTop + fh - (scan.offsetTop + sh)) / 2; // centre the pair in the reserved box
-      G = { tx: Math.round(scan.offsetLeft - peek - fix.offsetLeft - fw * 0.02), ty: Math.round(scan.offsetTop + sy + sh / 2 - (fix.offsetTop + fh / 2)), sy: Math.round(sy), ov };
-      fig.style.setProperty('--tx', G.tx + 'px'); fig.style.setProperty('--ty', G.ty + 'px'); fig.style.setProperty('--sy', G.sy + 'px');
+      const peek = parseFloat(getComputedStyle(fig).getPropertyValue('--peek')) || 0;
+      const fw = fix.offsetWidth, fh = fix.offsetHeight;
+      const tx = -list.offsetLeft - peek - fix.offsetLeft - fw * 0.02;           // fix left edge -> scan left edge - peek
+      const up = note.offsetTop - list.offsetTop;                                 // to the note line (negative)
+      const fit = scan.offsetHeight - 14 - list.offsetTop - fh * 0.98;            // keep its bottom hidden inside the scan card
+      G = { tx: Math.round(tx), ty: Math.round(Math.min(up, fit)) };
+      fig.style.setProperty('--tx', G.tx + 'px'); fig.style.setProperty('--ty', G.ty + 'px');
     };
     if (RM) { measure(); fig.dataset.tuck = '1'; addEventListener('resize', measure, { passive: true }); }
     else {
@@ -55,17 +58,16 @@
       let anims: Animation[] = [], done = false, hot = false, back = false;
       const T = { duration: 800, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' as FillMode };
       const build = () => {
-        measure(); const { tx, ty, sy, ov } = G, x1 = Math.round(tx * 0.3), y1 = Math.round(ov + 10 + sy * 0.3);
+        measure(); const { tx, ty } = G;
         anims.forEach((a) => a.cancel());
         anims = [
-          // phase 1: slide down-left until clear of the scan card; swap depth while apart; phase 2: settle up-left behind it
+          // phase 1: slide left and fade out in front; depth swaps while invisible; phase 2: slide into the tucked spot behind, fading back in
           fix.animate([
             { transform: 'translate3d(0,0,1px) scale(1)', opacity: 1 },
-            { offset: 0.34, transform: `translate3d(${x1}px,${y1}px,1px) scale(.98)`, opacity: 0.95 },
-            { offset: 0.4, transform: `translate3d(${Math.round(tx * 0.36)}px,${y1}px,-1px) scale(.978)`, opacity: 0.93 },
+            { offset: 0.42, transform: 'translate3d(-36px,6px,1px) scale(.97)', opacity: 0 },
+            { offset: 0.46, transform: 'translate3d(-36px,6px,-1px) scale(.97)', opacity: 0 },
             { transform: `translate3d(${tx}px,${ty}px,-1px) scale(.96)`, opacity: 0.85 },
           ], T),
-          scan.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(0,${sy}px,0)` }], T),
         ];
         anims.forEach((a) => a.pause());
       };

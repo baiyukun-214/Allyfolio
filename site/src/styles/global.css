@@ -93,26 +93,25 @@ html { scroll-padding-top: 5rem; }
 .pinned { position: relative; outline: 2px dashed #dc2626; outline-offset: 3px; }
 .pin { position: absolute; right: -10px; top: -12px; width: 22px; height: 22px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
 .prose-toc a { text-decoration: none; }
-/* ---- Hero v3: offset stack. Fix card overlaps only the scan card's bottom padding (--ov). Fixed z-order, no hover swap. ---- */
-.hero-fig { --ov: 16px; --ease: cubic-bezier(.2,.8,.2,1); margin: 0; }
-@media (min-width: 640px) { .hero-fig { --ov: 28px; } }
-.hero-scene { position: relative; transform-style: preserve-3d; transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
-.hero-scan { padding-bottom: var(--ov); z-index: 1; }
-.hero-fix { position: relative; z-index: 2; transform: translateZ(1px); margin-top: calc(var(--ov) * -1); margin-left: auto; width: 92%; transition: opacity .4s var(--ease), transform .4s var(--ease); }
-@media (min-width: 640px) { .hero-scan { width: 88%; } .hero-fix { width: min(26rem, 74%); } }
+/* ---- Hero v5: staggered stack. Front: fix card at the scan card's bottom-left, top aligned with the issue rows, sticking out past the
+   scan card's left edge (badges stay visible). Tucked: behind the scan card, ~39px strip on the left, top near the score note.
+   The fix card lives inside the scan card's 3D context; depth via translateZ(+-1px), swapped while it is faded out. ---- */
+.hero-fig { --ease: cubic-bezier(.2,.8,.2,1); --pad: 24px; --L: 16px; --out: 0px; --peek: 14px; --hang: 20.5rem; --fw: 60%; margin: 0; }
+@media (min-width: 640px) { .hero-fig { --pad: 28px; --L: 40px; --peek: 26px; --hang: 5rem; --fw: 72%; } }
+@media (min-width: 1024px) { .hero-fig { --L: 56px; --out: 24px; --peek: 39px; --hang: 5.5rem; } }
+@media (min-width: 1024px) and (max-width: 1279px) { .hero-fig { --hang: 8rem; --fw: 66%; } }
+.hero-scene { position: relative; padding-bottom: var(--hang); transform-style: preserve-3d; transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.hero-scan { margin-left: var(--L); padding-bottom: var(--pad); transform-style: preserve-3d; }
+.hero-list { transform-style: preserve-3d; }
+.hero-fix { position: absolute; top: 0; left: calc(-1 * (var(--pad) + var(--L) + var(--out))); width: min(26rem, calc(var(--fw) + var(--pad) + var(--L) + var(--out)));
+  transform: translateZ(1px); transition: opacity .4s var(--ease), transform .4s var(--ease); }
 .hero-scene::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; pointer-events: none; opacity: 0; transform: translateZ(41px);
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.12), transparent 40%); mix-blend-mode: soft-light; transition: opacity .3s; }
 .hero-scene.is-hover::after { opacity: 1; }
 .hero-scene.tilt-out { transition: transform .6s var(--ease); }
-/* v4 tuck: after the sequence the fix card slides left behind the scan card (strip of --peek on the left). Transform/opacity only;
-   depth via translateZ (+-1px) inside the preserve-3d scene, crossed while the cards don't overlap. JS measures --tx/--ty/--sy. */
-.hero-fig { --peek: 14px; }
-@media (max-width: 1023.98px) { .hero-scan { margin-left: var(--peek); } .hero-fix { max-width: calc(100% - var(--peek)); } }
-@media (min-width: 1024px) { .hero-fig { --peek: 39px; } }
 .hero-fig:focus-visible { outline: 2px solid #4f46e5; outline-offset: 6px; border-radius: 1.5rem; }
 .hero-fig[data-layer="back"] .hero-fix, .hero-fig[data-tuck="1"] .hero-fix { pointer-events: none; }
-.hero-fig[data-tuck="1"] .hero-scan { transform: translate3d(0, var(--sy, 0px), 0); }
-.hero-fig[data-tuck="1"] .hero-fix { z-index: 0; opacity: .85; transform: translate3d(var(--tx, 0px), var(--ty, 0px), -1px) scale(.96); }
+.hero-fig[data-tuck="1"] .hero-fix { opacity: .85; transform: translate3d(var(--tx, 0px), var(--ty, 0px), -1px) scale(.96); }
 /* score ring: 800ms count in step C */
 .score-ring .fg { transition-duration: .8s; }
 /* button-name row: ring highlight in steps A/B; chip swaps Critical -> Fixed (stacked in one grid cell, no layout change) */
