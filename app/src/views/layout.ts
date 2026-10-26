@@ -1,7 +1,8 @@
 import { html, type Html } from '../lib/html.ts';
 import { t, type Locale } from '../i18n.ts';
 import { config } from '../config.ts';
-const logo = html`<svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="16" fill="#1e3a8a"/><path d="M19 47 32 17l13 30" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M24.5 37h15" stroke="#a5b4fc" stroke-width="6" stroke-linecap="round"/></svg>`;
+/** Allyfolio mark (direction B). Decorative: the link carries the accessible name. Keep in sync with site/src/components/Logo.astro. */
+const logo = html`<svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="16" fill="#4f46e5"/><path d="M16 14h18l10 10v26a3 3 0 0 1-3 3H16a3 3 0 0 1-3-3V17a3 3 0 0 1 3-3z" fill="none" stroke="#fff" stroke-width="4.5" stroke-linejoin="round"/><path d="M20 27h12M20 35h8" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M40 40a8 8 0 0 1 8 8M40 31a17 17 0 0 1 17 17" fill="none" stroke="#c7d2fe" stroke-width="4.5" stroke-linecap="round"/><circle cx="40" cy="48" r="3.5" fill="#c7d2fe"/></svg>`;
 export interface PageOpts { title: string; body: Html; user?: { email: string } | null; current?: string; flash?: { kind: 'ok' | 'error'; msg: string } | null; locale?: Locale; path?: string; backToSite?: boolean }
 /** Marketing-site URL in the given locale (Chinese lives under /zh). */
 export const siteLink = (l: Locale, path = '/') => `${config.siteUrl}${l === 'zh-CN' ? (path === '/' ? '/zh' : '/zh' + path) : path}`;

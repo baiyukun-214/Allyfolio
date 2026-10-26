@@ -30,7 +30,11 @@ const ogImage = new URL('/og-image.png', site).href;
     <link rel="canonical" href={canonical} />
     {alternates.map((a) => <link rel="alternate" hreflang={a.l} href={a.href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0].href} />}
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Allyfolio" />
