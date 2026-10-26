@@ -27,7 +27,7 @@ before(async () => {
     });
   } });
   Object.assign(process.env, { BILLING_PROVIDER: 'paddle', PADDLE_ENV: 'sandbox', PADDLE_API_KEY: 'pdl_sdbx_test', PADDLE_API_BASE: fake.base, PADDLE_WEBHOOK_SECRET: 'whsec_paddle_test',
-    PADDLE_CLIENT_TOKEN: 'test_clienttoken', PADDLE_PRICE_STARTER: 'pri_s', PADDLE_PRICE_BUSINESS: 'pri_b', PADDLE_PRICE_AGENCY: 'pri_a', PADDLE_PRICE_ONEOFF: 'pri_o', PADDLE_DISCOUNT_EARLYBIRD: 'dsc_early' });
+    PADDLE_CLIENT_TOKEN: 'test_clienttoken', PADDLE_PRICE_STARTER: 'pri_s', PADDLE_PRICE_BUSINESS: 'pri_b', PADDLE_PRICE_AGENCY: 'pri_a', PADDLE_PRICE_ONEOFF: 'pri_o', PADDLE_DISCOUNT_EARLYBIRD: 'dsc_01h8earlybird0000000000000' });
   envReady();
 });
 let app: any, db: any, signPaddle: any, applyDueDowngrades: any;
@@ -92,7 +92,7 @@ test('dashboard: checkout (overlay JSON + no-JS redirect, early-bird discount), 
   assert.equal(r.statusCode, 200, r.body); assert.equal(r.json().transactionId, 'txn_1');
   const txCall = calls.filter((x) => x.path === '/transactions').at(-1)!;
   const tid = db.get("SELECT t.id FROM teams t JOIN memberships m ON m.team_id = t.id JOIN users u ON u.id = m.user_id WHERE u.email = 'owner@shop.example'").id;
-  assert.deepEqual(txCall.body.items, [{ price_id: 'pri_b', quantity: 1 }]); assert.equal(txCall.body.discount_id, 'dsc_early'); assert.equal(txCall.body.custom_data.team_id, tid);
+  assert.deepEqual(txCall.body.items, [{ price_id: 'pri_b', quantity: 1 }]); assert.equal(txCall.body.discount_id, 'dsc_01h8earlybird0000000000000'); assert.equal(txCall.body.custom_data.team_id, tid);
   r = await c.post('/app/billing/checkout', { plan: 'oneoff' }, '/app/billing');
   assert.equal(r.statusCode, 303); assert.equal(r.headers.location, 'https://pay.example.test/checkout?_ptxn=txn_1');
   assert.equal(calls.filter((x) => x.path === '/transactions').at(-1)!.body.discount_id, undefined, 'no early-bird on one-off');
