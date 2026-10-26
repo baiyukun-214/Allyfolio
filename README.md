@@ -4,7 +4,7 @@
 
 > **项目简介（中文）**
 > Allyfolio 是一款面向欧盟中小企业和网站代理商的无障碍监测 SaaS。它使用 axe-core 定期对网站进行自动化 WCAG 检测，持续跟踪问题，
-> 保留带时间戳、不可篡改的证据历史，提供 0–100 的“自动化检测得分”（该得分不是符合性评级，也不代表法律评估），并生成 PDF 报告和无障碍声明草稿，帮助团队为《欧洲无障碍法案》（EAA）和德国 BFSG 做准备。
+> 保留带时间戳、不可篡改的证据历史，提供 0–100 的“自动化检测得分”（该得分不是完整的无障碍审查或法律评估），并生成 PDF 报告和无障碍声明草稿，帮助团队为《欧洲无障碍法案》（EAA）和德国 BFSG 做准备。
 > 自动化检测大约只能发现 57% 的问题（Deque 研究），仍需人工审查；Allyfolio 不提供认证，也不证明法律层面的符合性；不使用覆盖层插件。
 > 本仓库包含营销网站（`site/`，Astro）和控制台 + API（`app/`，Fastify），均支持英文和简体中文。
 
@@ -14,7 +14,7 @@
 - **Continuous monitoring** – weekly or daily site scans (sitemap + crawl, up to the plan's page limit), new/fixed issues diffed per scan, alerts on new serious issues.
 - **Timestamped evidence history** – finished scans and issues are append-only and hash-chained (`evidence_hash`), so you can show what was tested, found and fixed, and when.
 - **Reports and statement drafts** – HTML/PDF reports (white-label for agencies) and a draft accessibility statement for you to review and adapt.
-- **Automated checks score (0–100)** – a weighted summary of the issues automated checks found per page. Automated testing catches only part of accessibility issues (about 57%, per Deque); this score is not a conformance rating or legal assessment.
+- **Automated checks score (0–100)** – a weighted summary of the issues automated checks found per page. Automated testing catches only part of accessibility issues (about 57%, per Deque); this score is not a full accessibility audit or legal assessment.
 - **Free single-page scan** on the marketing site; site ownership verification (DNS TXT or meta tag) before any monitoring.
 
 ## Who it's for

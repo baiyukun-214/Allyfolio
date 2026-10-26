@@ -37,6 +37,7 @@ const en = {
     rate_limited: (n: number, mins: number | null) => `You have used the ${n} free scans available per hour.` + (mins ? ` You can scan again in about ${mins} ${mins === 1 ? 'minute' : 'minutes'}.` : ' Please try again in an hour.'),
     load_failed: 'We could not load that page this time. Please check that it opens in your browser and try again in a few minutes. If it keeps failing, try another page of the site.',
     unscannedH: 'Pages that could not be scanned',
+    busy: (s: number) => `Our scanner is busy with other scans right now. Your page is fine – please try again in about ${s < 60 ? `${s} seconds` : `${Math.ceil(s / 60)} minutes`}.`,
   },
   errors: {
     enterUrl: 'Please enter a URL.', tooLong: 'That URL is too long.', invalidUrl: 'That does not look like a valid URL.', scheme: 'Only http and https URLs can be scanned.',
@@ -94,7 +95,7 @@ const en = {
   },
   mon: {
     score: 'Automated checks score', scoreOutOf: 'out of 100', scoreAria: (n: number) => `Automated checks score: ${n} out of 100`,
-    scoreNote: 'Automated testing catches only part of accessibility issues (about 57%, per Deque). This score is not a conformance rating or legal assessment.',
+    scoreNote: 'Automated testing catches only part of accessibility issues (about 57%, per Deque). This score is not a full accessibility audit or legal assessment.',
     openIssues: 'Open issues', openSub: 'latest scan', fixedWeek: 'Fixed', fixedSub: 'last 7 days', trend: 'Weekly trend', trendAria: 'Issues per scan, oldest to newest',
     trendDelta: (d: number) => d < 0 ? `${-d} fewer than a week ago` : d > 0 ? `${d} more than a week ago` : 'No change from a week ago', trendNone: 'Not enough history yet',
     scanStarting: 'Starting scan…', scanning: (n: number, limit: number) => `Scanning… ${n} of up to ${limit} pages`, scanDone: (n: number, f: number) => `Scan finished: ${n} new and ${f} fixed issues.`,
@@ -196,6 +197,7 @@ const zh: Dict = {
     rate_limited: (n: number, mins: number | null) => `您已用完每小时 ${n} 次免费扫描。` + (mins ? `大约 ${mins} 分钟后可以再次扫描。` : '请一小时后再试。'),
     load_failed: '这次没能加载该页面。请确认它能在您的浏览器中正常打开，几分钟后再试；如果仍然失败，可以换一个页面试试。',
     unscannedH: '未能扫描的页面',
+    busy: (s: number) => `扫描服务目前正忙于处理其他扫描，这与您的页面无关。请大约 ${s < 60 ? `${s} 秒` : `${Math.ceil(s / 60)} 分钟`}后再试。`,
   },
   errors: {
     enterUrl: '请输入网址。', tooLong: '网址过长。', invalidUrl: '这似乎不是有效的网址。', scheme: '只能扫描 http 和 https 网址。',
@@ -253,7 +255,7 @@ const zh: Dict = {
   },
   mon: {
     score: '自动化检测得分', scoreOutOf: '满分 100', scoreAria: (n) => `自动化检测得分：${n}（满分 100）`,
-    scoreNote: '自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是符合性评级，也不代表法律评估。',
+    scoreNote: '自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是完整的无障碍审查或法律评估。',
     openIssues: '未解决问题', openSub: '最近一次扫描', fixedWeek: '已修复', fixedSub: '最近 7 天', trend: '每周趋势', trendAria: '每次扫描的问题数，从旧到新',
     trendDelta: (d) => d < 0 ? `比一周前少 ${-d} 个` : d > 0 ? `比一周前多 ${d} 个` : '与一周前持平', trendNone: '历史记录还不够',
     scanStarting: '正在启动扫描…', scanning: (n, limit) => `正在扫描… 已完成 ${n} 个页面（上限 ${limit}）`, scanDone: (n, f) => `扫描完成：新增 ${n} 个问题，修复 ${f} 个问题。`,
@@ -347,7 +349,7 @@ export function trError(l: Locale, msg: string): string {
   return msg;
 }
 
-export type ScanErrorCode = 'invalid_url' | 'not_public' | 'dns_not_found' | 'timeout' | 'blocked' | 'rate_limited' | 'load_failed';
+export type ScanErrorCode = 'invalid_url' | 'not_public' | 'dns_not_found' | 'timeout' | 'blocked' | 'rate_limited' | 'load_failed' | 'busy';
 const CODE_OF: Record<string, ScanErrorCode> = {
   enterUrl: 'invalid_url', tooLong: 'invalid_url', invalidUrl: 'invalid_url', scheme: 'invalid_url', credentials: 'invalid_url', port: 'invalid_url', fullDomain: 'invalid_url',
   notPublic: 'not_public', noDomain: 'dns_not_found', timeout: 'timeout', blocked: 'blocked', redirects: 'load_failed', loadFail: 'load_failed', scanFail: 'load_failed',

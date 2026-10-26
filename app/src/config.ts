@@ -14,6 +14,8 @@ export const config = {
   sessionSecret: e.SESSION_SECRET ?? 'dev-insecure-secret',
   scanTimeoutMs: Number(e.SCAN_TIMEOUT_MS ?? 30000),
   scanConcurrency: Number(e.SCAN_CONCURRENCY ?? 2),
+  freeScanMaxQueue: Number(e.FREE_SCAN_MAX_QUEUE ?? 4),
+  freeScanCacheMin: Number(e.FREE_SCAN_CACHE_MINUTES ?? 15),
   freeScanPerHour: Number(e.FREE_SCAN_PER_IP_PER_HOUR ?? 5),
   allowPrivateTargets: e.ALLOW_PRIVATE_TARGETS === '1',
   mailer: (e.MAILER ?? '').trim().toLowerCase() || (e.RESEND_API_KEY ? 'resend' : 'console'), // empty/unset = auto

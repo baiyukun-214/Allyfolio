@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { API_BASE } from '../lib/api';
+import { API_BASE, APP_LIVE, APP_URL } from '../lib/api';
 import { i18n } from '../i18n';
 const { t, l, lang } = i18n(Astro.url.pathname);
 const S = t.scan;
@@ -9,39 +9,46 @@ const cls: Record<string, string> = { critical: 'text-red-700 bg-red-50', seriou
 const strings = {
   button: S.button, scanning: S.scanning, status: S.status, empty: S.empty, fail: S.fail, network: S.network, scanned: S.scanned, none: S.none,
   done: [S.done(0), S.done(1), S.done(2)], element: [S.element(1), S.element(2)], impacts: S.impacts, dateLocale: t.blog.dateLocale,
+  steps: S.steps, stepDone: S.stepDone, stepNow: S.stepNow, eta: S.eta(999), etaLong: S.etaLong, cancelled: S.cancelled,
+  scoreAria: S.scoreAria(777), summary: [S.summary(777, 0), S.summary(777, 1), S.summary(777, 888)], cachedAgo: [S.cachedAgo(0), S.cachedAgo(999)],
+  monitorCta: S.monitorCta('{host}'), whatH: S.whatH, whoH: S.whoH, fixH: S.fixH, examplesH: S.examplesH, selector: S.selector,
+  ruleGuide: S.ruleGuide, understanding: S.understanding, moreElements: S.moreElements(999),
 };
+const monitorBase = APP_LIVE ? `${APP_URL}/signup?lang=${encodeURIComponent(lang)}&site=` : `${l('/')}?site=`;
+const monitorHash = APP_LIVE ? '' : '#waitlist';
 ---
 <Base title={S.title} description={S.description}>
   <PageHeader eyebrow={S.eyebrow} title={S.h1} lead={S.lead} />
   <div class="mx-auto max-w-6xl px-4 py-14 grid gap-10 lg:grid-cols-2 lg:items-start">
     <div>
       <div class="rounded-2xl border border-slate-200 p-6 sm:p-8">
-        <form id="scan-form" class="space-y-4" data-api={API_BASE} data-lang={lang} data-i18n={JSON.stringify(strings)} novalidate>
+        <form id="scan-form" class="space-y-4" data-api={API_BASE} data-lang={lang} data-i18n={JSON.stringify(strings)} data-monitor-base={monitorBase} data-monitor-hash={monitorHash} novalidate>
           <div>
             <label for="scan-url" class="block font-medium text-ink">{S.label}</label>
             <p id="scan-url-hint" class="text-sm text-muted">{S.hint}</p>
             <input id="scan-url" name="url" type="text" inputmode="url" autocapitalize="off" spellcheck="false" required aria-describedby="scan-url-hint scan-error" autocomplete="url" placeholder="https://" class="mt-2 h-12 w-full rounded-lg border border-slate-400 bg-white px-4 text-ink" />
           </div>
           <p id="scan-error" class="text-sm font-medium text-red-700 empty:hidden" role="alert"></p>
-          <button id="scan-submit" type="submit" class="btn btn-primary w-full sm:w-auto disabled:opacity-70">{S.button}</button>
+          <div class="flex flex-wrap gap-3">
+            <button id="scan-submit" type="submit" class="btn btn-primary w-full sm:w-auto disabled:opacity-70">{S.button}</button>
+            <button id="scan-cancel" type="button" class="btn btn-secondary w-full sm:w-auto" hidden>{S.cancel}</button>
+          </div>
         </form>
+        <div id="scan-progress" class="mt-5" hidden>
+          <div class="h-2 w-full overflow-hidden rounded-full bg-slate-100" aria-hidden="true"><div id="scan-bar" class="h-full rounded-full bg-brand-600 transition-[width] duration-700" style="width:0%"></div></div>
+          <ol id="scan-steps" class="mt-4 space-y-2 text-sm" aria-label={S.progressLabel}>
+            {S.steps.map((st, i) => <li data-step={i} class="flex items-center gap-2 text-muted"><span class="step-dot inline-block h-2.5 w-2.5 shrink-0 rounded-full border-2 border-slate-400" aria-hidden="true"></span><span>{st}</span><span class="step-state sr-only"></span></li>)}
+          </ol>
+          <p id="scan-eta" class="mt-3 text-sm text-muted"></p>
+        </div>
         <p id="scan-status" role="status" aria-live="polite" class="mt-4 text-sm text-muted empty:hidden"></p>
       </div>
       <p class="mt-6 text-sm text-muted leading-relaxed"><Fragment set:html={S.caveatHtml} /></p>
     </div>
 
-    <section id="scan-result" aria-labelledby="result-heading" tabindex="-1" class="hidden rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl shadow-brand-900/5 focus:outline-none">
-      <h2 id="result-heading" class="text-xl font-semibold text-ink">{S.results}</h2>
-      <p id="result-url" class="mt-1 text-sm text-muted break-all"></p>
-      <dl id="result-counts" class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center"></dl>
-      <div id="result-groups" class="mt-6 space-y-6"></div>
-      <p class="mt-6 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-4 py-3 text-sm text-muted"><strong class="text-ink">{S.partLabel}</strong> {S.partText}</p>
-      <p class="mt-4 text-sm"><a class="font-semibold text-brand-700 underline underline-offset-4" href={l('/#waitlist')}>{S.cta}</a></p>
-    </section>
-
     <figure id="sample-report" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl shadow-brand-900/5">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
-        <figcaption class="font-semibold text-ink">{S.sampleTitle} <span class="font-normal text-muted">· www.example.com</span></figcaption>
+        <figcaption class="font-semibold text-ink"><span id="sample-title" data-after={S.sampleAfter}>{S.sampleTitle}</span> <span class="font-normal text-muted">· www.example.com</span></figcaption>
         <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-muted">{S.sampleBadge}</span>
       </div>
       <table class="mt-6 w-full text-sm">
@@ -52,60 +59,152 @@ const strings = {
         </tbody>
       </table>
     </figure>
+
+    <section id="scan-result" aria-labelledby="result-heading" aria-describedby="result-summary" tabindex="-1" class="hidden lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl shadow-brand-900/5 focus:outline-none">
+      <h2 id="result-heading" class="text-xl font-semibold text-ink">{S.results}</h2>
+      <p id="result-summary" class="mt-1 font-medium text-ink"></p>
+      <p id="result-url" class="mt-1 text-sm text-muted break-all"></p>
+      <p id="result-cached" class="mt-2 text-sm text-muted" hidden><span id="result-cached-ago"></span> · <button id="scan-rescan" type="button" class="font-semibold text-brand-700 underline underline-offset-2">{S.rescan}</button><span class="block text-xs">{S.rescanNote}</span></p>
+      <div class="mt-6 grid gap-6 md:grid-cols-[auto_1fr] md:items-center">
+        <div class="flex items-center gap-4">
+          <svg id="score-gauge" role="img" aria-label="" viewBox="0 0 100 100" class="h-28 w-28 shrink-0">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#e2e8f0" stroke-width="10"></circle>
+            <circle id="score-arc" cx="50" cy="50" r="42" fill="none" stroke="#2563eb" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 264" transform="rotate(-90 50 50)"></circle>
+            <text id="score-num" x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="26" font-weight="700" fill="#0f172a">0</text>
+          </svg>
+          <div class="md:hidden"><p class="font-semibold text-ink">{S.scoreLabel}</p><p class="text-sm text-muted">{S.scoreOutOf}</p></div>
+        </div>
+        <div>
+          <p class="hidden md:block font-semibold text-ink">{S.scoreLabel} <span class="font-normal text-muted">· {S.scoreOutOf}</span></p>
+          <p id="score-note" class="mt-1 text-sm text-muted leading-relaxed">{S.scoreNote}</p>
+        </div>
+      </div>
+      <dl id="result-counts" class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center"></dl>
+      <div id="result-groups" class="mt-6 space-y-6"></div>
+      <p class="mt-6 rounded-xl border-l-4 border-brand-500 bg-brand-50 px-4 py-3 text-sm text-muted"><strong class="text-ink">{S.partLabel}</strong> {S.partText}</p>
+      <div class="mt-6 rounded-xl border border-brand-200 bg-brand-50/60 p-5">
+        <h3 class="font-semibold text-ink">{S.monitorH}</h3>
+        <p class="mt-1 text-sm text-muted">{S.monitorText}</p>
+        <a id="monitor-cta" class="btn btn-primary mt-4" href={l('/#waitlist')}>{S.cta}</a>
+      </div>
+    </section>
   </div>
 </Base>
 <script>
   const form = document.getElementById('scan-form') as HTMLFormElement;
   const T = JSON.parse(form.dataset.i18n!);
-  const input = document.getElementById('scan-url') as HTMLInputElement;
-  const btn = document.getElementById('scan-submit') as HTMLButtonElement;
-  const err = document.getElementById('scan-error')!;
-  const status = document.getElementById('scan-status')!;
-  const result = document.getElementById('scan-result')!;
-  const sample = document.getElementById('sample-report')!;
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $('scan-url') as HTMLInputElement;
+  const btn = $('scan-submit') as HTMLButtonElement;
+  const cancelBtn = $('scan-cancel') as HTMLButtonElement;
+  const err = $('scan-error'), status = $('scan-status'), result = $('scan-result'), progress = $('scan-progress'), eta = $('scan-eta'), bar = $('scan-bar');
   const CLS: Record<string, string> = { critical: 'text-red-700 bg-red-50', serious: 'text-red-700 bg-red-50', moderate: 'text-amber-800 bg-amber-50', minor: 'text-muted bg-slate-100' };
   const el = (tag: string, cls = '', text = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
   const done = (n: number) => (n === 0 ? T.done[0] : n === 1 ? T.done[1] : T.done[2].replace(/\d+/, String(n)));
   const elements = (n: number) => (n === 1 ? T.element[0] : T.element[1].replace(/\d+/, String(n)));
+  const summary = (score: number, total: number) => (total === 0 ? T.summary[0] : total === 1 ? T.summary[1] : T.summary[2].replace('888', String(total))).replace('777', String(score));
+  let ctrl: AbortController | null = null; let timer: number | undefined; let lastUrl = '';
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  function setStep(i: number) {
+    document.querySelectorAll<HTMLLIElement>('#scan-steps li').forEach((li, k) => {
+      const dot = li.querySelector('.step-dot')!, state = li.querySelector('.step-state')!;
+      li.className = `flex items-center gap-2 ${k <= i ? 'text-ink' : 'text-muted'}${k === i ? ' font-medium' : ''}`;
+      dot.className = `step-dot inline-block h-2.5 w-2.5 shrink-0 rounded-full border-2 ${k < i ? 'bg-brand-600 border-brand-600' : k === i ? 'border-brand-600 motion-safe:animate-pulse' : 'border-slate-400'}`;
+      state.textContent = k < i ? `(${T.stepDone})` : k === i ? `(${T.stepNow})` : '';
+      if (k === i) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    });
+    if (i < T.steps.length) status.textContent = `${T.steps[i]}…`;
+  }
+  function startProgress(etaS: number) {
+    progress.hidden = false; cancelBtn.hidden = false; const t0 = Date.now(); let step = -1;
+    const tick = () => {
+      const el = (Date.now() - t0) / 1000, f = el / etaS;
+      const s = f < 0.35 ? 0 : f < 0.85 ? 1 : 2; if (s !== step) { step = s; setStep(s); }
+      bar.style.width = `${Math.min(95, Math.round(f * 90))}%`;
+      const left = Math.ceil(etaS - el); eta.textContent = left > 0 ? T.eta.replace('999', String(left)) : T.etaLong;
+    };
+    tick(); timer = window.setInterval(tick, 1000);
+  }
+  function stopProgress() { window.clearInterval(timer); progress.hidden = true; cancelBtn.hidden = true; eta.textContent = ''; bar.style.width = '0%'; }
+
+  async function scan(url: string, rescan = false) {
     err.textContent = ''; delete err.dataset.code; input.removeAttribute('aria-invalid');
-    const url = input.value.trim();
     if (!url) { err.textContent = T.empty; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
+    ctrl = new AbortController(); const api = form.dataset.api;
     btn.disabled = true; btn.textContent = T.scanning; form.setAttribute('aria-busy', 'true');
-    status.textContent = T.status;
+    let etaS = 15;
+    try { const r = await fetch(`${api}/api/scan/load`, { signal: AbortSignal.timeout(1500) }); if (r.ok) etaS = Math.max(5, Math.min(120, (await r.json()).etaS ?? 15)); } catch { /* keep default */ }
+    startProgress(etaS);
     try {
-      const res = await fetch(`${form.dataset.api}/api/scan`, { method: 'POST', headers: { 'content-type': 'application/json', 'accept-language': form.dataset.lang! }, body: JSON.stringify({ url, lang: form.dataset.lang }) });
+      const res = await fetch(`${api}/api/scan`, { method: 'POST', signal: ctrl.signal, headers: { 'content-type': 'application/json', 'accept-language': form.dataset.lang! }, body: JSON.stringify({ url, lang: form.dataset.lang, rescan }) });
       const j = await res.json().catch(() => ({}));
+      stopProgress();
       if (!res.ok) { status.textContent = ''; err.textContent = j.error ?? T.fail; err.dataset.code = j.code ?? 'load_failed'; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
-      render(j);
-      status.textContent = done(j.total);
-    } catch {
-      status.textContent = ''; err.textContent = T.network;
-    } finally { btn.disabled = false; btn.textContent = T.button; form.removeAttribute('aria-busy'); }
-  });
+      lastUrl = url; render(j); status.textContent = done(j.total);
+    } catch (e: any) {
+      stopProgress();
+      if (e?.name === 'AbortError') { status.textContent = T.cancelled; input.focus(); }
+      else { status.textContent = ''; err.textContent = T.network; }
+    } finally { ctrl = null; btn.disabled = false; btn.textContent = T.button; form.removeAttribute('aria-busy'); }
+  }
+  form.addEventListener('submit', (e) => { e.preventDefault(); scan(input.value.trim()); });
+  cancelBtn.addEventListener('click', () => ctrl?.abort());
+  $('scan-rescan').addEventListener('click', () => scan(lastUrl || input.value.trim(), true));
 
   function render(j: any) {
-    document.getElementById('result-url')!.textContent = `${j.url} · ${T.scanned} ${new Date(j.scannedAt).toLocaleString(T.dateLocale)}`;
-    const counts = document.getElementById('result-counts')!; counts.replaceChildren();
+    const score = Math.round(j.score ?? 0);
+    $('result-summary').textContent = summary(score, j.total);
+    $('result-url').textContent = `${j.url} · ${T.scanned} ${new Date(j.scannedAt).toLocaleString(T.dateLocale)}`;
+    const cached = $('result-cached'); cached.hidden = !j.cached;
+    if (j.cached) { const m = Math.floor((j.ageS ?? 0) / 60); $('result-cached-ago').textContent = m < 1 ? T.cachedAgo[0] : T.cachedAgo[1].replace('999', String(m)); }
+    $('score-gauge').setAttribute('aria-label', T.scoreAria.replace('777', String(score)));
+    $('score-num').textContent = String(score);
+    const arc = $('score-arc'); arc.setAttribute('stroke-dasharray', `${(score / 100) * 264} 264`);
+    arc.setAttribute('stroke', score >= 90 ? '#15803d' : score >= 50 ? '#b45309' : '#b91c1c');
+    const counts = $('result-counts'); counts.replaceChildren();
     for (const k of ['critical', 'serious', 'moderate', 'minor']) {
       const d = el('div', `rounded-xl p-3 ${CLS[k]}`); d.append(el('dt', 'text-xs', T.impacts[k]), el('dd', 'text-2xl font-bold', String(j.counts[k] ?? 0))); counts.append(d);
     }
-    const groups = document.getElementById('result-groups')!; groups.replaceChildren();
+    const groups = $('result-groups'); groups.replaceChildren();
     if (!j.total) groups.append(el('p', 'text-ink', T.none));
     for (const g of j.byImpact) {
       if (!g.rules.length) continue;
       const sec = el('div'); sec.append(el('h3', 'font-semibold text-ink', `${g.label ?? T.impacts[g.impact]} (${g.count})`));
-      const ul = el('ul', 'mt-2 divide-y divide-slate-100 text-sm');
-      for (const r of g.rules) {
-        const li = el('li', 'py-3');
-        const a = el('a', 'font-medium text-brand-700 underline underline-offset-2', r.help) as HTMLAnchorElement; a.href = r.helpUrl; a.rel = 'noopener';
-        const meta = el('p', 'mt-1 text-muted', `${elements(r.count)}${r.wcag.length ? ' · ' + r.wcag.join(', ') : ''}`);
-        li.append(a, meta); ul.append(li);
-      }
+      const ul = el('ul', 'mt-2 space-y-2 text-sm');
+      for (const r of g.rules) ul.append(ruleItem(r, g.impact));
       sec.append(ul); groups.append(sec);
     }
-    sample.classList.add('hidden'); result.classList.remove('hidden'); result.focus();
+    const host = (() => { try { return new URL(j.url).hostname; } catch { return j.url; } })();
+    const cta = $('monitor-cta') as HTMLAnchorElement;
+    cta.textContent = T.monitorCta.replace('{host}', host);
+    cta.href = `${form.dataset.monitorBase}${encodeURIComponent(j.url)}${form.dataset.monitorHash}`;
+    const st = $('sample-title'); st.textContent = st.dataset.after!;
+    result.classList.remove('hidden'); result.focus();
+  }
+  function ruleItem(r: any, impact: string) {
+    const li = el('li', 'rounded-xl border border-slate-200');
+    const d = el('details', 'group'); const sm = el('summary', 'flex cursor-pointer items-start justify-between gap-3 px-4 py-3');
+    const left = el('span'); left.append(el('span', 'font-medium text-ink', r.help), el('span', 'block mt-0.5 text-muted', `${elements(r.count)}${r.wcag.length ? ' · ' + r.wcag.join(', ') : ''}`));
+    sm.append(left, el('span', `shrink-0 rounded-md px-2 py-0.5 text-xs font-semibold ${CLS[impact]}`, T.impacts[impact]));
+    const body = el('div', 'border-t border-slate-100 px-4 py-4 space-y-3');
+    const dl = el('dl', 'grid gap-3 sm:grid-cols-3');
+    for (const [h, v] of [[T.whatH, r.info?.what], [T.whoH, r.info?.who], [T.fixH, r.info?.fix]]) { if (!v) continue; const w = el('div'); w.append(el('dt', 'font-semibold text-ink', h), el('dd', 'mt-0.5 text-muted', v)); dl.append(w); }
+    body.append(dl);
+    if (r.examples?.length) {
+      body.append(el('h4', 'font-semibold text-ink', T.examplesH));
+      const ex = el('ul', 'space-y-2');
+      for (const x of r.examples) {
+        const item = el('li', 'rounded-lg bg-slate-50 p-3');
+        const sel = el('p', 'text-xs text-muted'); sel.append(`${T.selector}: `, el('code', 'break-all text-ink', x.selector)); item.append(sel);
+        if (x.html) { const pre = el('pre', 'mt-1 overflow-x-auto whitespace-pre-wrap break-all text-xs text-ink'); pre.append(el('code', '', x.html)); item.append(pre); }
+        ex.append(item);
+      }
+      if (r.count > r.examples.length) ex.append(el('li', 'text-xs text-muted', T.moreElements.replace('999', String(r.count - r.examples.length))));
+      body.append(ex);
+    }
+    const links = el('p', 'flex flex-wrap gap-x-4 gap-y-1');
+    const a = el('a', 'font-medium text-brand-700 underline underline-offset-2', T.ruleGuide) as HTMLAnchorElement; a.href = r.helpUrl; a.rel = 'noopener'; links.append(a);
+    for (const w of r.wcagLinks ?? []) { const b = el('a', 'font-medium text-brand-700 underline underline-offset-2', `${T.understanding}: ${w.ref}`) as HTMLAnchorElement; b.href = w.url; b.rel = 'noopener'; links.append(b); }
+    body.append(links); d.append(sm, body); li.append(d); return li;
   }
 </script>

@@ -32,6 +32,8 @@ export async function closeBrowser() { if (browserP) { const b = await browserP;
 let active = 0; const waiters: (() => void)[] = [];
 async function acquire() { if (active < config.scanConcurrency) { active++; return; } await new Promise<void>((r) => waiters.push(r)); active++; }
 function release() { active--; waiters.shift()?.(); }
+/** Current browser load: pages being scanned and requests waiting for a slot. */
+export const scanLoad = () => ({ active, queued: waiters.length, slots: config.scanConcurrency });
 
 /** Every request the page makes (incl. each redirect hop, subresource, iframe) is re-checked against the SSRF guard. */
 async function guardPage(page: Page) {

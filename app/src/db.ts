@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE INDEX IF NOT EXISTS jobs_ready ON jobs(status, run_at);
 CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, scan_id TEXT NOT NULL REFERENCES scans(id) ON DELETE CASCADE, path TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS free_scan_hits (ip_hash TEXT NOT NULL, at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS free_scan_hits_ip ON free_scan_hits (ip_hash, at);
 CREATE TABLE IF NOT EXISTS billing_events (id TEXT PRIMARY KEY, type TEXT NOT NULL, received_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS password_resets (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL);
 `;
@@ -62,7 +64,7 @@ export function db(): DatabaseSync {
   _db.exec(SCHEMA);
   // Additive migrations (idempotent).
   for (const m of [
-    "ALTER TABLE users ADD COLUMN locale TEXT", "ALTER TABLE waitlist ADD COLUMN locale TEXT",
+    "ALTER TABLE users ADD COLUMN locale TEXT", "ALTER TABLE waitlist ADD COLUMN locale TEXT", "ALTER TABLE waitlist ADD COLUMN site TEXT",
     // Stripe → provider-neutral billing columns (Paddle)
     "ALTER TABLE teams RENAME COLUMN stripe_customer_id TO billing_customer_id", "ALTER TABLE teams RENAME COLUMN stripe_subscription_id TO billing_subscription_id",
     "ALTER TABLE teams ADD COLUMN cancel_at TEXT", "DROP TABLE IF EXISTS stripe_events",
