@@ -52,7 +52,15 @@
       G = { tx: Math.round(tx), ty: Math.round(Math.min(up, fit)) };
       fig.style.setProperty('--tx', G.tx + 'px'); fig.style.setProperty('--ty', G.ty + 'px');
     };
-    if (RM) { measure(); fig.dataset.tuck = '1'; addEventListener('resize', measure, { passive: true }); }
+    // below 768px: no stack/tuck at all, the cards simply stack in normal flow (CSS); decided once at load
+    const MOB = matchMedia('(max-width: 767px)').matches;
+    if (MOB) {
+      fig.removeAttribute('tabindex');
+      const fh = () => fig.style.setProperty('--fh', fix.offsetHeight + 'px'); fh();
+      new ResizeObserver(fh).observe(fix);
+    }
+    if (RM && MOB) { /* static, nothing to do */ }
+    else if (RM) { measure(); fig.dataset.tuck = '1'; addEventListener('resize', measure, { passive: true }); }
     else {
       fig.dataset.seq = 'a'; ring.style.setProperty('--p', '70'); num.textContent = '70';
       let anims: Animation[] = [], done = false, hot = false, back = false;
@@ -63,10 +71,10 @@
         anims = [
           // phase 1: slide left and fade out in front; depth swaps while invisible; phase 2: slide into the tucked spot behind, fading back in
           fix.animate([
-            { transform: 'translate3d(0,0,1px) scale(1)', opacity: 1 },
-            { offset: 0.42, transform: 'translate3d(-36px,6px,1px) scale(.97)', opacity: 0 },
-            { offset: 0.46, transform: 'translate3d(-36px,6px,-1px) scale(.97)', opacity: 0 },
-            { transform: `translate3d(${tx}px,${ty}px,-1px) scale(.96)`, opacity: 0.85 },
+            { transform: 'translate3d(0,0,1px) rotate(-1.5deg) scale(1)', opacity: 1 },
+            { offset: 0.42, transform: 'translate3d(-36px,6px,1px) rotate(0deg) scale(.97)', opacity: 0 },
+            { offset: 0.46, transform: 'translate3d(-36px,6px,-1px) rotate(0deg) scale(.97)', opacity: 0 },
+            { transform: `translate3d(${tx}px,${ty}px,-1px) rotate(0deg) scale(.96)`, opacity: 0.85 },
           ], T),
         ];
         anims.forEach((a) => a.pause());
@@ -85,14 +93,16 @@
           let t0 = 0; const step = (n: number) => { t0 ||= n; const k = Math.min(1, (n - t0) / 800); num.textContent = String(Math.round(70 + 12 * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); };
           requestAnimationFrame(step);
         }, 2400);
-        setTimeout(() => { done = true; if (!hot) go(true); }, 3800); // 2400 + 800 count + 600 beat
+        setTimeout(() => { done = true; if (!hot && !MOB) go(true); }, 3800); // 2400 + 800 count + 600 beat
       }, { threshold: 0.15 });
       seq.observe(fig);
+      if (!MOB) {
       const show = () => { hot = true; go(false); }, hide = () => { hot = false; go(true); };
       if (matchMedia('(hover:hover) and (pointer:fine)').matches) { fig.addEventListener('pointerenter', show); fig.addEventListener('pointerleave', () => { if (!fig.contains(document.activeElement)) hide(); }); }
       else { fig.addEventListener('click', (e) => { e.stopPropagation(); show(); }); document.addEventListener('click', () => { if (!back) hide(); }); }
       fig.addEventListener('focusin', show); fig.addEventListener('focusout', () => { if (!fig.matches(':hover')) hide(); });
       addEventListener('resize', () => { if (!anims.length) return; const f = back; build(); anims.forEach((a) => { a.playbackRate = 1; a.currentTime = f ? 800 : 0; }); }, { passive: true });
+      }
     }
   }
   // Tilt / spotlight: loaded on idle; tilt.js itself attaches nothing on touch or reduced motion.

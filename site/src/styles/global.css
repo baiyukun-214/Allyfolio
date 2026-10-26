@@ -97,14 +97,28 @@ html { scroll-padding-top: 5rem; }
    scan card's left edge (badges stay visible). Tucked: behind the scan card, ~39px strip on the left, top near the score note.
    The fix card lives inside the scan card's 3D context; depth via translateZ(+-1px), swapped while it is faded out. ---- */
 .hero-fig { --ease: cubic-bezier(.2,.8,.2,1); --pad: 24px; --L: 16px; --out: 0px; --peek: 14px; --hang: 20.5rem; --fw: 60%; margin: 0; }
-@media (min-width: 640px) { .hero-fig { --pad: 28px; --L: 40px; --peek: 26px; --hang: 5rem; --fw: 72%; } }
+@media (min-width: 640px) { .hero-fig { --pad: 28px; --L: 40px; --peek: 26px; --hang: 5.75rem; --fw: 72%; } }
 @media (min-width: 1024px) { .hero-fig { --L: 56px; --out: 24px; --peek: 39px; --hang: 5.5rem; } }
 @media (min-width: 1024px) and (max-width: 1279px) { .hero-fig { --hang: 8rem; --fw: 66%; } }
 .hero-scene { position: relative; padding-bottom: var(--hang); transform-style: preserve-3d; transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
 .hero-scan { margin-left: var(--L); padding-bottom: var(--pad); transform-style: preserve-3d; }
 .hero-list { transform-style: preserve-3d; }
 .hero-fix { position: absolute; top: 0; left: calc(-1 * (var(--pad) + var(--L) + var(--out))); width: min(26rem, calc(var(--fw) + var(--pad) + var(--L) + var(--out)));
-  transform: translateZ(1px); transition: opacity .4s var(--ease), transform .4s var(--ease); }
+  transform: translateZ(1px) rotate(-1.5deg); transition: opacity .4s var(--ease), transform .4s var(--ease);
+  box-shadow: 0 28px 60px -18px rgba(15,23,42,.28), 0 10px 24px -12px rgba(15,23,42,.16); }
+/* mobile: no stack, no tuck, no tilt: scan card then fix card in normal flow */
+@media (max-width: 767px) {
+  .hero-fig { --hang: 0px; }
+  .hero-scene { transform: none; }
+  /* the fix card stays in the scan card's DOM; the scan card's surface is drawn by a pseudo that stops above it, so they read as two cards */
+  .hero-fig[style*="--fh"] .hero-scan { margin-left: 0; background: none; border-color: transparent; box-shadow: none; padding-bottom: 0; }
+  .hero-fig[style*="--fh"] .hero-scan::before { content: ""; position: absolute; z-index: -1; inset: 0 0 calc(var(--fh) + 1rem) 0; border-radius: 1.5rem;
+    background: #fff; border: 1px solid var(--color-brand-100, #e0e7ff); box-shadow: 0 25px 50px -12px rgba(30,27,75,.15); }
+  .hero-scan { margin-left: 0; }
+  .hero-fig[style*="--fh"] .hero-scan { isolation: isolate; }
+  .hero-fix, .hero-fig[data-tuck="1"] .hero-fix { position: relative; left: auto; top: auto; width: auto; margin: calc(var(--pad) + 1rem) calc(-1 * var(--pad) - 1px) 0; transform: none; opacity: 1; pointer-events: auto; }
+  .hero-scene::after { display: none; }
+}
 .hero-scene::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; pointer-events: none; opacity: 0; transform: translateZ(41px);
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.12), transparent 40%); mix-blend-mode: soft-light; transition: opacity .3s; }
 .hero-scene.is-hover::after { opacity: 1; }
