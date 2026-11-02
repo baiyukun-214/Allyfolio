@@ -195,7 +195,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
         </div>
         <div class="grid min-w-0 gap-5 lg:col-span-5">
           <div class="rv rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm" data-d="200">
-            <h3 class="flex items-center gap-2 font-semibold text-ink"><span class="text-brand-700"><Icon name="archive" /></span>{F.trailH}</h3>
+            <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="flex items-center gap-2 font-semibold text-ink"><span class="text-brand-700"><Icon name="archive" /></span>{F.trailH}</h3><span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-700">{F.example}</span></div>
             <ol aria-label={F.trailAria} class="mt-4 space-y-4 border-l-2 border-brand-100 pl-5">
               {F.trail.map(([date, title, detail, id, st]) => <li class="relative"><span aria-hidden="true" class={`absolute -left-[27px] top-1 h-3 w-3 rounded-full ring-4 ring-white ${st === 'done' ? 'bg-green-700' : st === 'manual' ? 'bg-amber-600' : st === 'partial' ? 'bg-brand-500' : 'bg-red-700'}`}></span><p class="flex flex-wrap items-baseline gap-x-2 text-sm"><span class="font-semibold text-ink">{date}</span><span class="text-ink">{title}</span><code class="text-xs text-slate-600">{id}</code></p><p class="mt-0.5 text-sm text-muted">{detail}</p></li>)}
             </ol>
