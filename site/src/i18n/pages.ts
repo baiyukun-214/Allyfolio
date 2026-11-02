@@ -5,7 +5,7 @@ export interface ProsePage { eyebrow: 'legal' | 'about'; title: string; descript
 type Pages = Record<'about' | 'privacy' | 'imprint' | 'statement' | 'terms' | 'dpa' | 'refund', ProsePage>;
 const PADDLE_TERMS = 'https://www.paddle.com/legal/checkout-buyer-terms';
 const PADDLE_NET = 'https://www.paddle.net/';
-export const prosePages: Record<Locale, Pages> = {
+const base: Record<'en' | 'zh-CN', Pages> = {
   en: {
     about: { eyebrow: 'about', title: 'About Allyfolio', description: 'Why we are building Allyfolio: honest, evidence-based accessibility monitoring for EU SMEs and web agencies.', html: `
 <p>Allyfolio is an accessibility monitoring service for European SMEs and web agencies facing the European Accessibility Act (EAA) and Germany's BFSG.</p>
@@ -347,3 +347,123 @@ export const prosePages: Record<Locale, Pages> = {
 <p>如果您遇到障碍，请发送邮件至 ${MAIL}。我们会尽量在 5 个工作日内回复。</p>` },
   },
 };
+const NOTE = (en: string) => `<p><strong>Diese Übersetzung dient nur zur Information. Maßgeblich ist die englische Fassung.</strong> <a href="${en}" hreflang="en">Zur englischen Fassung</a></p>`;
+// German legal pages: informational translations of the English versions (which prevail). Pages without a German version reuse the English text.
+const de: Pages = {
+  ...base.en,
+  privacy: { eyebrow: 'legal', title: 'Datenschutzerklärung', description: 'Wie Allyfolio personenbezogene Daten verarbeitet: Website, Warteliste, Konten, Scans, Abrechnung und E-Mail. Auftragsverarbeiter, Speicherdauer und Ihre Rechte nach der DSGVO.', html: `
+${NOTE('/privacy')}
+<p>Diese Erklärung beschreibt, welche personenbezogenen Daten Allyfolio auf allyfolio.com und app.allyfolio.com verarbeitet, zu welchem Zweck und wie lange.</p>
+<h2>Verantwortlicher</h2>
+<p>Verantwortlich ist die Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司), Room 907, No. 221 Jiahe Road, Siming District, Xiamen, Fujian, China, vertreten durch ihren Geschäftsführer Bai Yukun (siehe <a href="/de/imprint">Impressum</a>). Kontakt: ${MAIL}.</p>
+<h2>Hosting</h2>
+<p>App und Daten in Deutschland gehostet (Hetzner, Falkenstein): Die Allyfolio-App (app.allyfolio.com), ihre Datenbank und ihre Backups laufen auf Servern der Hetzner Online GmbH in Falkenstein, Deutschland. Die Website allyfolio.com wird über das Netzwerk von Cloudflare ausgeliefert.</p>
+<h2>Cookies</h2>
+<p>Wir verwenden <strong>ausschließlich technisch notwendige Cookies</strong>; deshalb gibt es keinen Cookie-Banner. Es gibt keine Analyse-, Werbe- oder Tracking-Cookies oder -Skripte.</p>
+<ul>
+<li><code>af_session</code> (App, HttpOnly): hält Sie angemeldet; bis zu 30 Tage.</li>
+<li><code>af_csrf</code> (App): schützt Formulare vor Cross-Site-Request-Forgery.</li>
+<li><code>af_lang</code>: speichert Ihre Sprachauswahl; 1 Jahr.</li>
+<li><code>af_logged_in=1</code> (keine personenbezogenen Daten): sorgt dafür, dass die Website „Dashboard“ statt „Anmelden“ anzeigt; wird bei der Abmeldung entfernt.</li>
+</ul>
+<h2>Besuch der Website</h2>
+<p>Wenn Sie die Website besuchen, verarbeiten unsere Server Ihre IP-Adresse, die aufgerufene Seite, Datum und Uhrzeit sowie den User-Agent Ihres Browsers, um die Website auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO). Server-Logs werden höchstens 14 Tage gespeichert.</p>
+<h2>Warteliste</h2>
+<p>Wenn Sie sich auf die Warteliste setzen, speichern wir Ihre E-Mail-Adresse, Ihre Sprache, den Zeitpunkt der Anmeldung und den Zeitpunkt der Bestätigung (Double-Opt-in). Wir nutzen diese Daten ausschließlich, um Sie über den Start und Frühbucherpreise zu informieren (Art. 6 Abs. 1 lit. a DSGVO, Einwilligung). Sie können Ihre Einwilligung jederzeit über den Link in jeder E-Mail oder per Nachricht an uns widerrufen; wir löschen den Eintrag dann.</p>
+<h2>Kostenloser Scan</h2>
+<p>Für einen kostenlosen Scan verarbeiten wir die eingegebene URL und Ihre IP-Adresse (zur Begrenzung von Missbrauch; höchstens eine Stunde im Arbeitsspeicher). Die Scan-Ergebnisse werden Ihnen angezeigt und keiner Person zugeordnet.</p>
+<h2>Konten</h2>
+<p>Wenn Sie ein Konto anlegen, verarbeiten wir Ihre E-Mail-Adresse, Ihren Namen (optional), einen Passwort-Hash (niemals das Passwort selbst), Ihre Sprache, Team-Mitgliedschaften, Einladungen und Anmeldesitzungen, um den Dienst zu erbringen (Art. 6 Abs. 1 lit. b DSGVO). Sie können alle diese Daten in den Einstellungen als Datei herunterladen („Meine Daten herunterladen“) und Ihr Konto dort jederzeit löschen.</p>
+<h2>Scan-Daten</h2>
+<p>Für überwachte Websites speichern wir die Adresse der Website, den Inhaberschaftsnachweis, die gescannten Seiten, die gefundenen Probleme (einschließlich kurzer HTML-Ausschnitte der betroffenen Elemente) sowie die von Ihnen erstellten Berichte und Erklärungsentwürfe. Gescannte Seiten können zufällig personenbezogene Daten enthalten, die auf Ihrer Website veröffentlicht sind; für diese Inhalte sind Sie verantwortlich, und wir verarbeiten sie in Ihrem Auftrag gemäß unserem <a href="/dpa" hreflang="en">Auftragsverarbeitungsvertrag (Englisch)</a>. Die Scan-Historie wird 12 Monate (Starter) bzw. 24 Monate (Business, Agency) gespeichert und danach gelöscht – oder früher, wenn Sie eine Website oder Ihr Konto löschen.</p>
+<h2>Abrechnung</h2>
+<p>Zahlungen, Rechnungen und EU-Umsatzsteuer wickelt <strong>Paddle.com Market Ltd</strong> (Vereinigtes Königreich) als Merchant of Record ab. Unser Bestellprozess wird von unserem Online-Wiederverkäufer Paddle.com durchgeführt: Paddle ist Verkäufer, erhebt die Zahlungsdaten, stellt Rechnungen aus und kümmert sich um die Umsatzsteuer. Paddle verarbeitet Ihre Zahlungs- und Abrechnungsdaten als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung. Wir erhalten Ihre Kunden- und Abonnement-IDs, Tarif, Status und Abrechnungszeitraum, nicht aber Ihre Kartendaten.</p>
+<h2>E-Mail</h2>
+<p>Transaktions-E-Mails (Anmeldelinks, Passwort-Zurücksetzungen, Einladungen, Benachrichtigungen, Bestätigungen von Kontoänderungen) werden über <strong>Resend</strong> von Servern in der EU (Region Irland) versendet. E-Mails, die Sie an ${MAIL} senden, gehen über <strong>Cloudflare</strong> Email Routing ein und werden an unser Postfach weitergeleitet.</p>
+<h2>Auftragsverarbeiter</h2>
+<ul>
+<li><strong>Hetzner Online GmbH</strong> (Deutschland): App-Server, Datenbank und Backups in Falkenstein, Deutschland.</li>
+<li><strong>Cloudflare, Inc.</strong>: Auslieferung der Website allyfolio.com, DNS und Weiterleitung eingehender E-Mails. Daten können außerhalb der EU verarbeitet werden; abgesichert durch die EU-Standardvertragsklauseln und das EU-US Data Privacy Framework.</li>
+<li><strong>Resend</strong> (Plus Five Five, Inc.): Versand von Transaktions-E-Mails; EU-Region; Übermittlungen abgesichert durch Standardvertragsklauseln.</li>
+<li><strong>Paddle.com Market Ltd</strong>: Zahlungen, Rechnungen und EU-Umsatzsteuer als Merchant of Record (eigenständiger Verantwortlicher, siehe oben; <a href="https://www.paddle.com/legal/privacy" hreflang="en">Datenschutzerklärung von Paddle</a>).</li>
+</ul>
+<p>Backups unserer Datenbank werden auf unseren Servern in Falkenstein, Deutschland, gespeichert, bei der Übertragung verschlüsselt und höchstens 30 Tage aufbewahrt.</p>
+<h2>Sicherheit</h2>
+<p>Wir schützen personenbezogene Daten durch geeignete technische und organisatorische Maßnahmen, darunter TLS-Verschlüsselung aller Verbindungen, gesalzene Passwort-Hashes, Zugriffskontrollen und eine strikte Trennung der Kundendaten nach Teams.</p>
+<h2>Ihre Rechte</h2>
+<p>Nach der DSGVO haben Sie das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit, das Recht, einer auf berechtigte Interessen gestützten Verarbeitung zu widersprechen, sowie das Recht, Einwilligungen zu widerrufen. Außerdem können Sie sich bei einer Datenschutz-Aufsichtsbehörde beschweren. Wir beantworten Anfragen innerhalb eines Monats. Kontakt: ${MAIL}.</p>` },
+  terms: { eyebrow: 'legal', title: 'Nutzungsbedingungen', description: 'Nutzungsbedingungen für Allyfolio: was der Dienst leistet und was nicht, Inhaberschaftsnachweis, Zahlung über Paddle, Haftung und Kündigung.', html: `
+${NOTE('/terms')}
+<p>Diese Bedingungen gelten für die Nutzung von Allyfolio (allyfolio.com und app.allyfolio.com), betrieben von der Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司) (siehe <a href="/de/imprint">Impressum</a>; „wir“). Ihr Vertrag über den Dienst kommt mit der Xiamen Miaoerduo Trading Co., Ltd. zustande. Indem Sie ein Konto anlegen, einen Tarif kaufen oder Allyfolio anderweitig nutzen, stimmen Sie diesen Bedingungen zu. Sie gelten ausschließlich für Geschäftskunden; Allyfolio wird Verbrauchern nicht angeboten.</p>
+<h2>1. Was Allyfolio leistet</h2>
+<p>Allyfolio führt automatisierte Barrierefreiheitsprüfungen von Webseiten durch (axe-core, anhand der Erfolgskriterien der WCAG 2.2), speichert eine datierte Historie der Ergebnisse und unterstützt Sie bei der Erstellung von Berichten und eines Entwurfs Ihrer Erklärung zur Barrierefreiheit.</p>
+<h2>2. Was Allyfolio nicht leistet</h2>
+<ul>
+<li>Automatisierte Tests finden nur einen Teil aller Barrieren – laut einer <a href="${DEQUE}" hreflang="en">Deque-Studie</a> rund 57 %. Eine manuelle Prüfung durch Menschen, auch durch Nutzerinnen und Nutzer assistiver Technologien, bleibt erforderlich.</li>
+<li>Scan-Ergebnisse, Berichte und Erklärungsentwürfe sind <strong>kein Nachweis dafür, dass eine Website gesetzliche Anforderungen erfüllt</strong> – etwa aus dem European Accessibility Act, dem BFSG oder der EN 301 549 – und keine rechtliche Stellungnahme. Sie ersetzen weder ein Audit noch eine Rechtsberatung. Sie bleiben für Ihre Website und jede von Ihnen veröffentlichte Erklärung verantwortlich.</li>
+<li>Allyfolio verändert Ihre Website nicht und stellt kein Overlay-Widget bereit.</li>
+</ul>
+<h2>3. Konten</h2>
+<p>Sie müssen zutreffende Angaben machen und Ihr Passwort geheim halten. Sie sind für die Aktivitäten in Ihrem Konto und Ihrem Team verantwortlich. Team-Inhaber entscheiden, wer Mitglied ist.</p>
+<h2>4. Scans und Inhaberschaftsnachweis</h2>
+<ul>
+<li>Monitoring, Scans mehrerer Seiten und vollständige Crawls stehen nur für Websites zur Verfügung, deren Inhaberschaft (oder Ihre Berechtigung zum Testen) Sie per DNS-TXT-Eintrag oder Meta-Tag <strong>nachgewiesen</strong> haben. Scannen Sie keine Websites, zu deren Prüfung Sie nicht berechtigt sind.</li>
+<li>Der kostenlose Scan einer einzelnen Seite darf nur für öffentlich zugängliche Seiten und im Rahmen der angegebenen Nutzungsgrenzen verwendet werden.</li>
+<li>Sie dürfen Allyfolio nicht nutzen, um Systeme zu überlasten, anzugreifen oder auszuforschen oder um nicht öffentliche Adressen zu erreichen.</li>
+<li>Sie dürfen Allyfolio nicht für rechtswidrige Zwecke, Betrug oder Spam nutzen, nicht zur Verletzung von Rechten des geistigen Eigentums und nicht, um die Sicherheit des Dienstes zu beeinträchtigen (zum Beispiel durch Verbreitung von Schadsoftware, Suche nach Schwachstellen oder Scraping des Dienstes).</li>
+</ul>
+<h2>5. Preise, Zahlung und Kündigung</h2>
+<p>Unser Bestellprozess wird von unserem Online-Wiederverkäufer Paddle.com durchgeführt. Paddle.com ist Merchant of Record für alle unsere Bestellungen. <strong>Paddle.com Market Ltd</strong> wickelt Zahlungen, Rechnungen und EU-Umsatzsteuer ab; für den Kauf gelten zusätzlich die <a href="${PADDLE_TERMS}" hreflang="en">Käuferbedingungen von Paddle</a>.</p>
+<ul>
+<li>Aktuelle Preise (in Euro, zzgl. MwSt.): Starter 19 €/Monat, Business 39 €/Monat, Agency 99 €/Monat; Einmal-Bericht 49 € (einmalige Zahlung für einen einzelnen Scan einer Website mit bis zu 100 Seiten). PDF-Berichte sind in allen Tarifen enthalten. Siehe <a href="/de/pricing">Preise</a>.</li>
+<li>Abonnements werden monatlich im Voraus abgerechnet und verlängern sich jeden Monat automatisch, bis sie gekündigt werden. Sie können jederzeit im Bereich „Abrechnung“ der App zum Ende des laufenden Abrechnungszeitraums kündigen; es gibt keine Mindestlaufzeit.</li>
+<li>Upgrades gelten sofort und werden anteilig berechnet; Downgrades gelten ab dem nächsten Abrechnungszeitraum.</li>
+<li>Rückerstattung: Innerhalb von 30 Tagen nach jeder Zahlung können Sie eine vollständige Rückerstattung beantragen. Siehe <a href="/de/refund">Widerruf und Rückerstattung</a>.</li>
+</ul>
+<h2>6. Verfügbarkeit und Änderungen</h2>
+<p>Wir streben eine hohe Verfügbarkeit an, sagen aber keinen unterbrechungsfreien Betrieb zu. Geplante Scans können sich durch Wartungsarbeiten oder durch die Ziel-Website verzögern. Wir dürfen Funktionen ändern, sofern der Kern des Dienstes, für den Sie zahlen, nicht wesentlich eingeschränkt wird; wesentliche Änderungen dieser Bedingungen kündigen wir mindestens 30 Tage im Voraus per E-Mail an.</p>
+<h2>7. Haftung</h2>
+<ul>
+<li>Wir haften unbeschränkt bei Vorsatz und grober Fahrlässigkeit, bei Verletzung von Leben, Körper oder Gesundheit sowie nach dem zwingenden Produkthaftungsrecht.</li>
+<li>Bei leichter Fahrlässigkeit haften wir nur für die Verletzung wesentlicher Vertragspflichten, begrenzt auf den vertragstypischen, vorhersehbaren Schaden.</li>
+<li>In allen übrigen Fällen ist unsere Gesamthaftung je Vertragsjahr, soweit gesetzlich zulässig, auf die Entgelte begrenzt, die Sie in den zwölf Monaten vor dem haftungsbegründenden Ereignis für Allyfolio gezahlt haben (mindestens jedoch 100 €).</li>
+<li>Für Bußgelder, Ansprüche oder Abmahnungen Dritter, die sich auf die Barrierefreiheit Ihrer Website stützen, haften wir nicht, es sei denn, sie beruhen auf Vorsatz oder grober Fahrlässigkeit unsererseits.</li>
+</ul>
+<h2>8. Datenschutz</h2>
+<p>Siehe die <a href="/de/privacy">Datenschutzerklärung</a>. Soweit wir personenbezogene Daten in Ihrem Auftrag verarbeiten (zum Beispiel Inhalte gescannter Seiten), gilt der <a href="/dpa" hreflang="en">Auftragsverarbeitungsvertrag (Englisch)</a>.</p>
+<h2>9. Kündigung und Sperrung</h2>
+<p>Sie können Ihr Konto jederzeit in den Einstellungen löschen; ein aktives Abonnement wird dabei gleichzeitig gekündigt. Wir dürfen Konten sperren oder kündigen bei erheblichen oder wiederholten Verstößen gegen diese Bedingungen (insbesondere Abschnitt 4), bei Zahlungsverzug oder bei einem Betrugs- oder Sicherheitsrisiko.</p>
+<h2>10. Geistiges Eigentum</h2>
+<p>Wir und unsere Lizenzgeber behalten alle Rechte an Allyfolio, einschließlich Software, Design und Inhalten. Sie behalten alle Rechte an Ihren Websites und Daten und räumen uns die Rechte ein, die erforderlich sind, um Ihre Seiten zu scannen und den Dienst für Sie zu erbringen.</p>
+<h2>11. Kontakt</h2>
+<p>Fragen zu diesen Bedingungen, Ihrem Konto oder einem Kauf: ${MAIL}.</p>
+<h2>12. Schlussbestimmungen</h2>
+<p>Es gilt deutsches Recht unter Ausschluss des UN-Kaufrechts (CISG). Gerichtsstand für Kaufleute ist der Sitz des Anbieters. Sollte eine Bestimmung unwirksam sein, bleiben die übrigen Bestimmungen wirksam.</p>` },
+  imprint: { eyebrow: 'legal', title: 'Impressum', description: 'Impressum (Anbieterkennzeichnung) für allyfolio.com.', html: `
+<p><strong>Diese Übersetzung dient nur zur Information. Maßgeblich ist die englische Fassung.</strong> <a href="/imprint" hreflang="en">Zur englischen Fassung</a></p>
+<h2>Anbieter</h2>
+<p>Xiamen Miaoerduo Trading Co., Ltd. (厦门妙尔多商贸有限公司)<br />Room 907, No. 221 Jiahe Road<br />Siming District, Xiamen, Fujian<br />China</p>
+<p>Gesellschaft mit beschränkter Haftung, eingetragen in der Volksrepublik China.<br />Einheitlicher Sozialkreditcode (Unified Social Credit Code): 91350203MAK7GQ50XC</p>
+<h2>Geschäftsführer / gesetzlicher Vertreter</h2>
+<p>Bai Yukun (白宇堃)</p>
+<h2>Kontakt und Kundenservice</h2>
+<p>E-Mail: ${MAIL}</p>
+<h2>Zahlungen</h2>
+<p>Zahlungen, Rechnungen und EU-Umsatzsteuer wickelt Paddle.com Market Ltd als Merchant of Record ab. Siehe unsere <a href="/de/terms">Nutzungsbedingungen</a>, die Regeln zu <a href="/de/refund">Widerruf und Rückerstattung</a> und die <a href="/de/privacy">Datenschutzerklärung</a>.</p>` },
+  refund: { eyebrow: 'legal', title: 'Widerruf und Rückerstattung', description: 'Rückerstattung und Kündigung bei Allyfolio: volle Rückerstattung innerhalb von 30 Tagen nach jeder Zahlung, monatlich kündbare Abonnements, Abwicklung über Paddle.', html: `
+${NOTE('/refund')}
+<p>Diese Regeln gelten für alle Käufe von Allyfolio (Abonnements und Einmal-Bericht) bei der Xiamen Miaoerduo Trading Co., Ltd. Unser Bestellprozess wird von unserem Online-Wiederverkäufer Paddle.com durchgeführt. Paddle.com ist Merchant of Record für alle unsere Bestellungen; Rückerstattungen werden daher von Paddle abgewickelt.</p>
+<h2>Rückerstattung innerhalb von 30 Tagen</h2>
+<p>Innerhalb von <strong>30 Tagen</strong> nach jeder Zahlung – der ersten Zahlung für einen Tarif, einer monatlichen Verlängerung oder eines Einmal-Berichts – können Sie eine vollständige Rückerstattung beantragen. Eine Begründung ist nicht nötig.</p>
+<h2>So beantragen Sie eine Rückerstattung</h2>
+<ul>
+<li>Beantragen Sie sie direkt bei Paddle unter <a href="${PADDLE_NET}" hreflang="en">paddle.net</a> (suchen Sie Ihre Bestellung mit der verwendeten E-Mail-Adresse und den Bestelldaten aus Ihrer Quittung), oder</li>
+<li>schreiben Sie an ${MAIL} und nennen Sie die beim Kauf verwendete E-Mail-Adresse; wir leiten Ihren Antrag an Paddle weiter.</li>
+</ul>
+<p>Genehmigte Rückerstattungen zahlt Paddle auf das ursprüngliche Zahlungsmittel zurück. Wann der Betrag auf Ihrem Konto erscheint, hängt von Ihrer Bank bzw. Ihrem Kartenanbieter ab.</p>
+<h2>Abonnement kündigen</h2>
+<p>Abonnements (Starter 19 €/Monat, Business 39 €/Monat, Agency 99 €/Monat) werden monatlich abgerechnet und können jederzeit im Bereich „Abrechnung“ der App gekündigt werden. Die Kündigung wird zum Ende des laufenden Abrechnungszeitraums wirksam; danach fallen keine weiteren Kosten an. Möchten Sie auch die letzte Zahlung zurückerhalten, beantragen Sie dies wie oben beschrieben innerhalb von 30 Tagen nach dieser Zahlung.</p>
+<h2>Weitere Informationen</h2>
+<p>Siehe unsere <a href="/de/terms">Nutzungsbedingungen</a> und die <a href="${PADDLE_TERMS}" hreflang="en">Käuferbedingungen von Paddle</a>. Fragen: ${MAIL}.</p>` },
+};
+export const prosePages: Record<Locale, Pages> = { ...base, de };

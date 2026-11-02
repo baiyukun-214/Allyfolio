@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { API_BASE, APP_LIVE, APP_URL } from '../lib/api';
 import { i18n } from '../i18n';
+import { scanErrorsDe } from '../i18n/scan-errors';
 const { t, l, lang } = i18n(Astro.url.pathname);
 const S = t.scan;
 const cls: Record<string, string> = { critical: 'text-red-700 bg-red-50', serious: 'text-red-700 bg-red-50', moderate: 'text-amber-800 bg-amber-50', minor: 'text-muted bg-slate-100' };
@@ -13,6 +14,7 @@ const strings = {
   scoreAria: S.scoreAria(777), summary: [S.summary(777, 0), S.summary(777, 1), S.summary(777, 888)], cachedAgo: [S.cachedAgo(0), S.cachedAgo(999)],
   monitorCta: S.monitorCta('{host}'), whatH: S.whatH, whoH: S.whoH, fixH: S.fixH, examplesH: S.examplesH, selector: S.selector,
   ruleGuide: S.ruleGuide, understanding: S.understanding, moreElements: S.moreElements(999),
+  ...(lang === 'de' ? { errors: scanErrorsDe } : {}),
 };
 const monitorBase = APP_LIVE ? `${APP_URL}/signup?lang=${encodeURIComponent(lang)}&site=` : `${l('/')}?site=`;
 const monitorHash = APP_LIVE ? '' : '#waitlist';
@@ -103,6 +105,14 @@ const monitorHash = APP_LIVE ? '' : '#waitlist';
   const done = (n: number) => (n === 0 ? T.done[0] : n === 1 ? T.done[1] : T.done[2].replace(/\d+/, String(n)));
   const elements = (n: number) => (n === 1 ? T.element[0] : T.element[1].replace(/\d+/, String(n)));
   const summary = (score: number, total: number) => (total === 0 ? T.summary[0] : total === 1 ? T.summary[1] : T.summary[2].replace('888', String(total))).replace('777', String(score));
+  // Site-side translations of API error codes (German only; other locales use the API's own message).
+  const localError = (j: any): string | undefined => {
+    const E = T.errors; if (!E || !j?.code || !E[j.code]) return undefined;
+    const s = Number(j.retryAfterS) || 0;
+    if (j.code === 'rate_limited') return s > 0 ? E.rate_limited_min.replace('{min}', String(Math.max(1, Math.ceil(s / 60)))) : E.rate_limited;
+    if (j.code === 'busy') return E.busy.replace('{wait}', s > 0 && s < 60 ? `${s} Sekunden` : `${Math.max(1, Math.ceil((s || 60) / 60))} Minuten`);
+    return E[j.code];
+  };
   let ctrl: AbortController | null = null; let timer: number | undefined; let lastUrl = '';
 
   function setStep(i: number) {
@@ -139,7 +149,7 @@ const monitorHash = APP_LIVE ? '' : '#waitlist';
       const res = await fetch(`${api}/api/scan`, { method: 'POST', signal: ctrl.signal, headers: { 'content-type': 'application/json', 'accept-language': form.dataset.lang! }, body: JSON.stringify({ url, lang: form.dataset.lang, rescan }) });
       const j = await res.json().catch(() => ({}));
       stopProgress();
-      if (!res.ok) { status.textContent = ''; err.textContent = j.error ?? T.fail; err.dataset.code = j.code ?? 'load_failed'; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
+      if (!res.ok) { status.textContent = ''; err.textContent = localError(j) ?? j.error ?? T.fail; err.dataset.code = j.code ?? 'load_failed'; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
       lastUrl = url; render(j); status.textContent = done(j.total);
     } catch (e: any) {
       stopProgress();

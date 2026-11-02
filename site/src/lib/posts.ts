@@ -1,1 +1,1 @@
-export const postSlug = (id: string) => id.replace(/^zh\//, '');
+export const postSlug = (id: string) => id.replace(/^(zh|de)\//, '');

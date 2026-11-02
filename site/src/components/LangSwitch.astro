@@ -1,12 +1,21 @@
 ---
-import { i18n, basePath, localize, dict } from '../i18n';
+// Language switcher: DE / EN only. /zh pages stay online (noindex) but are not offered here.
+import { i18n, basePath, localize, hasDe } from '../i18n';
 interface Props { class?: string; hasTranslation?: boolean }
 const { class: cls = '', hasTranslation = true } = Astro.props;
-const { other } = i18n(Astro.url.pathname);
-const target = hasTranslation ? localize(basePath(Astro.url.pathname), other) : localize('/', other);
-const s = dict(other === 'en' ? 'zh-CN' : 'en').switcher; // labels describe the *other* language
+const { lang, t } = i18n(Astro.url.pathname);
+const base = basePath(Astro.url.pathname);
+const items = [
+  { code: 'de', label: 'DE', name: 'Deutsch', href: hasTranslation && hasDe(base) ? localize(base, 'de') : localize('/', 'de') },
+  { code: 'en', label: 'EN', name: 'English', href: hasTranslation ? localize(base, 'en') : '/' },
+];
 ---
-<a href={target} hreflang={other} lang={other} aria-label={s.aria} class={`inline-flex items-center gap-1.5 ${cls}`}>
+<span role="group" aria-label={t.nav.language} class={`inline-flex items-center gap-1.5 ${cls}`}>
   <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
-  <span>{s.label}</span>
-</a>
+  {items.map((x, i) => (<>
+    {i > 0 && <span aria-hidden="true">/</span>}
+    {x.code === lang
+      ? <span lang={x.code} aria-current="true" class="font-semibold text-ink"><span aria-hidden="true">{x.label}</span><span class="sr-only">{x.name}</span></span>
+      : <a href={x.href} hreflang={x.code} lang={x.code} class="hover:underline underline-offset-4"><span aria-hidden="true">{x.label}</span><span class="sr-only">{x.name}</span></a>}
+  </>))}
+</span>

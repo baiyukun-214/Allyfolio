@@ -326,7 +326,10 @@ const zh: Record<ResourceKey, Resource> = {
   },
 };
 
-export const resources: Record<Locale, Record<ResourceKey, Resource>> = { en, 'zh-CN': zh };
+// German pages link to the English guides; only the short link labels are German.
+const deShort: Record<ResourceKey, string> = { eaa: 'European Accessibility Act (EAA)', bfsg: 'BFSG (Deutschland)', 'microenterprise-exemption': 'Ausnahme für Kleinstunternehmen', 'who-is-affected': 'Wer ist betroffen?', 'en-301-549-wcag': 'EN 301 549 und WCAG 2.2' };
+const de = Object.fromEntries(resourceOrder.map((k) => [k, { ...en[k], short: deShort[k] }])) as Record<ResourceKey, Resource>;
+export const resources: Record<Locale, Record<ResourceKey, Resource>> = { en, 'zh-CN': zh, de };
 
 export const resourceUi = {
   en: {

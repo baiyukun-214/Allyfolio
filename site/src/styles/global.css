@@ -162,3 +162,6 @@ html { scroll-padding-top: 5rem; }
   .spot-card:hover, .spot-card:has(:focus-visible), .plan-card:hover, .plan-card:has(:focus-visible) { transform: none; }
   .hero-scene { transform: none; } .hero-scene::after { display: none; }
 }
+
+/* German: long compound words must hyphenate/wrap instead of overflowing narrow screens. Scoped to lang=de only. */
+:lang(de) h1, :lang(de) h2, :lang(de) h3, :lang(de) li, :lang(de) p, :lang(de) td, :lang(de) th { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }

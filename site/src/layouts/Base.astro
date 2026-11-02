@@ -6,14 +6,18 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Motion from '../components/Motion.astro';
 import SvgDefs from '../components/SvgDefs.astro';
-import { i18n, basePath, localize, LOCALES } from '../i18n';
+import { i18n, basePath, localize, hasDe } from '../i18n';
 interface Props { title: string; description: string; ogType?: 'website' | 'article'; hasTranslation?: boolean; noindex?: boolean }
 const { title, description, ogType = 'website', hasTranslation = true, noindex = false } = Astro.props;
 const { lang, t } = i18n(Astro.url.pathname);
 const site = Astro.site ?? new URL('https://allyfolio.com');
 const base = basePath(Astro.url.pathname);
 const canonical = new URL(localize(base, lang), site).href;
-const alternates = hasTranslation ? LOCALES.map((l) => ({ l, href: new URL(localize(base, l), site).href })) : [];
+// hreflang only for EN/DE pairs (x-default = EN). /zh pages are noindex and carry no alternates.
+const paired = hasTranslation && lang !== 'zh-CN' && hasDe(base);
+const alternates = paired ? (['en', 'de'] as const).map((l) => ({ l, href: new URL(localize(base, l), site).href })) : [];
+const robots = lang === 'zh-CN' ? 'noindex' : noindex ? 'noindex, follow' : '';
+const ogAlt = lang === 'zh-CN' ? 'en_GB' : paired ? (lang === 'de' ? 'en_GB' : 'de_DE') : '';
 const fullTitle = title === 'Allyfolio' ? t.meta.siteTitle : `${title} | Allyfolio`;
 const ogImage = new URL('/og-image.png', site).href;
 ---
@@ -26,7 +30,7 @@ const ogImage = new URL('/og-image.png', site).href;
     <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, follow" />}
+    {robots && <meta name="robots" content={robots} />}
     <link rel="canonical" href={canonical} />
     {alternates.map((a) => <link rel="alternate" hreflang={a.l} href={a.href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0].href} />}
@@ -47,7 +51,7 @@ const ogImage = new URL('/og-image.png', site).href;
     <meta property="og:image:alt" content={t.meta.ogAlt} />
     <meta name="twitter:image:alt" content={t.meta.ogAlt} />
     <meta property="og:locale" content={t.meta.ogLocale} />
-    <meta property="og:locale:alternate" content={lang === 'en' ? 'zh_CN' : 'en_GB'} />
+    {ogAlt && <meta property="og:locale:alternate" content={ogAlt} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />

@@ -145,7 +145,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
         {H.how.steps.map(([title, d], i) => (
           <li class="rv lift rounded-2xl bg-white border border-slate-200 p-6 shadow-sm" data-d={i * 80}>
             <span class="flex items-center gap-3"><Tile name={stepIcons[i]} size="lg" solid /><span aria-hidden="true" class="text-xs font-bold tracking-wider text-brand-700">0{i + 1}</span></span>
-            <h3 class="mt-4 font-semibold text-lg text-ink"><span class="sr-only">{H.how.step === '第' ? `第 ${i + 1} 步：` : `Step ${i + 1}: `}</span>{title}</h3>
+            <h3 class="mt-4 font-semibold text-lg text-ink"><span class="sr-only">{H.how.step === '第' ? `第 ${i + 1} 步：` : `${H.how.step} ${i + 1}: `}</span>{title}</h3>
             <p class="mt-2 text-muted leading-relaxed">{d}</p>
           </li>
         ))}

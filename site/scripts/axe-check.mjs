@@ -8,7 +8,9 @@ const en = ['/', '/pricing', '/free-scan', '/blog', '/blog/what-the-eaa-means-fo
   '/features', '/resources', '/eaa', '/bfsg', '/microenterprise-exemption', '/who-is-affected', '/en-301-549-wcag',
   '/blog/why-accessibility-overlays-dont-work', '/blog/what-automated-accessibility-testing-cant-catch'];
 const zh = en.map((p) => (p === '/' ? '/zh' : '/zh' + p));
-const pages = process.env.PAGES ? process.env.PAGES.split(',') : [...en, ...zh];
+const de = ['/de', '/de/pricing', '/de/free-scan', '/de/blog/what-the-eaa-means-for-smes', '/de/terms', '/de/privacy', '/de/refund', '/de/imprint'];
+const home = new Set(['/', '/zh', '/de']);
+const pages = process.env.PAGES ? process.env.PAGES.split(',') : [...en, ...de, ...zh];
 const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
 let server;
 if (!process.env.BASE_URL) {
@@ -23,13 +25,13 @@ for (const vp of [{ width: 1280, height: 800 }, { width: 375, height: 740 }]) {
   for (const p of pages) {
     const res = await page.goto(base + p);
     // Let one-time entrance motion (reveals, hero scan illustration) settle so axe checks the resting state.
-    await page.waitForTimeout(p === '/' || p === '/zh' ? 5000 : 900);
+    await page.waitForTimeout(home.has(p) ? 5000 : 900);
     const r = await new AxeBuilder({ page }).withTags(tags).analyze();
     const sc = r.violations.filter((v) => ['serious', 'critical'].includes(v.impact));
     bad += sc.length; total += r.violations.length;
-    const want = p.startsWith('/zh') ? 'zh-CN' : 'en'; const lang = await page.getAttribute('html', 'lang');
+    const want = p.startsWith('/zh') ? 'zh-CN' : /^\/de(\/|$)/.test(p) ? 'de' : 'en'; const lang = await page.getAttribute('html', 'lang');
     if (lang !== want || res.status() !== 200) { console.log(`   ! lang=${lang} (want ${want}) status=${res.status()}`); bad++; }
-    if (vp.width < 1024 && (p === '/' || p === '/zh')) { // open mobile menu and check it too
+    if (vp.width < 1024 && home.has(p)) { // open mobile menu and check it too
       await page.click('#nav-toggle'); const m = await new AxeBuilder({ page }).withTags(tags).analyze();
       total += m.violations.length; bad += m.violations.filter((v) => ['serious', 'critical'].includes(v.impact)).length;
       console.log(`${vp.width}px ${p} [menu open] violations=${m.violations.length}`); for (const v of m.violations) console.log(`   - ${v.impact} ${v.id}: ${v.help}`);
