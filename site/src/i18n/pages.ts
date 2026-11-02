@@ -82,7 +82,7 @@ export const prosePages: Record<Locale, Pages> = {
 <li>Current prices (in euros, excluding VAT): Starter €19/month, Business €39/month, Agency €99/month; one-off report €49 (one-time payment, covering a single scan of one site with up to 100 pages). PDF reports are included on all plans. See <a href="/pricing">pricing</a>.</li>
 <li>Subscriptions are billed monthly in advance and renew automatically each month until cancelled. You can cancel at any time in the Billing section of the app with effect from the end of the current billing period; there is no minimum term.</li>
 <li>Upgrades take effect immediately and are charged pro rata; downgrades take effect at the next billing period.</li>
-<li>Refunds: you can request a full refund within 14 days of any payment. See our <a href="/refund">refund policy</a>.</li>
+<li>Refunds: you can request a full refund within 30 days of any payment. See our <a href="/refund">refund policy</a>.</li>
 </ul>
 <h2>6. Availability and changes</h2>
 <p>We aim for high availability but do not promise uninterrupted service. Scheduled scans may be delayed by maintenance or by the target website. We may change features if the core service you pay for is not substantially reduced; we will announce material changes to these terms at least 30 days in advance by email.</p>
@@ -144,10 +144,10 @@ export const prosePages: Record<Locale, Pages> = {
 <p>Email: ${MAIL}</p>
 <h2>Payments</h2>
 <p>Payments, invoices and EU VAT are handled by Paddle.com Market Ltd as Merchant of Record. See our <a href="/terms">Terms of Service</a>, <a href="/refund">refund policy</a> and <a href="/privacy">privacy policy</a>.</p>` },
-    refund: { eyebrow: 'legal', title: 'Refund policy', description: 'Allyfolio refund and cancellation policy: full refund within 14 days of any payment, monthly subscriptions you can cancel at any time, refunds processed by Paddle.', html: `
+    refund: { eyebrow: 'legal', title: 'Refund policy', description: 'Allyfolio refund and cancellation policy: full refund within 30 days of any payment, monthly subscriptions you can cancel at any time, refunds processed by Paddle.', html: `
 <p>This policy applies to all purchases of Allyfolio (subscriptions and the one-off report) from Xiamen Miaoerduo Trading Co., Ltd. Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders, so refunds are processed by Paddle.</p>
-<h2>14-day refund</h2>
-<p>You can request a full refund within <strong>14 days</strong> of any payment – the first payment for a plan, a monthly renewal or a one-off report – for any reason. You do not need to give a reason.</p>
+<h2>30-day refund</h2>
+<p>You can request a full refund within <strong>30 days</strong> of any payment – the first payment for a plan, a monthly renewal or a one-off report – for any reason. You do not need to give a reason.</p>
 <h2>How to request a refund</h2>
 <ul>
 <li>Request it from Paddle at <a href="${PADDLE_NET}">paddle.net</a> (look up your order with the email address you used and the order details from your receipt), or</li>
@@ -155,7 +155,7 @@ export const prosePages: Record<Locale, Pages> = {
 </ul>
 <p>Approved refunds are paid by Paddle to the original payment method. How long it takes to show on your statement depends on your bank or card provider.</p>
 <h2>Cancelling a subscription</h2>
-<p>Subscriptions (Starter €19/month, Business €39/month, Agency €99/month) are billed monthly and can be cancelled at any time in the Billing section of the app. Cancellation takes effect at the end of the current billing period and there are no further charges. If you also want the last payment refunded, request it within 14 days of that payment as described above.</p>
+<p>Subscriptions (Starter €19/month, Business €39/month, Agency €99/month) are billed monthly and can be cancelled at any time in the Billing section of the app. Cancellation takes effect at the end of the current billing period and there are no further charges. If you also want the last payment refunded, request it within 30 days of that payment as described above.</p>
 <h2>More information</h2>
 <p>See our <a href="/terms">Terms of Service</a> and <a href="${PADDLE_TERMS}">Paddle’s buyer terms</a>. Questions: ${MAIL}.</p>` },
     statement: { eyebrow: 'legal', title: 'Accessibility statement', description: 'Accessibility statement for allyfolio.com: our target standard, testing methods, known limitations and how to give feedback.', html: `
@@ -252,7 +252,7 @@ export const prosePages: Record<Locale, Pages> = {
 <li>当前价格（欧元，不含增值税）：入门版 €19/月，商业版 €39/月，代理商版 €99/月；单次报告 €49（一次性付款，包含对一个网站最多 100 个页面的一次扫描）。所有方案均包含 PDF 报告。详见<a href="/zh/pricing">价格</a>。</li>
 <li>订阅按月预付，并每月自动续订，直至取消。您可以随时在应用的“账单”页面取消，自当前计费周期结束时生效；没有最短合约期。</li>
 <li>升级立即生效并按比例收费；降级自下一个计费周期生效。</li>
-<li>退款：您可以在任何一笔付款后的 14 天内申请全额退款。详见我们的<a href="/zh/refund">退款政策</a>。</li>
+<li>退款：您可以在任何一笔付款后的 30 天内申请全额退款。详见我们的<a href="/zh/refund">退款政策</a>。</li>
 </ul>
 <h2>6. 可用性与变更</h2>
 <p>我们力求高可用性，但不承诺服务不中断。定期扫描可能因维护或目标网站原因而延迟。只要您付费的核心服务没有实质性减少，我们可以更改功能；对本条款的重大变更，我们将至少提前 30 天通过电子邮件通知。</p>
@@ -314,10 +314,10 @@ export const prosePages: Record<Locale, Pages> = {
 <p>邮箱：${MAIL}</p>
 <h2>付款</h2>
 <p>付款、发票和欧盟增值税由 Paddle.com Market Ltd 作为记录商户（Merchant of Record）处理。请参阅我们的<a href="/zh/terms">服务条款</a>、<a href="/zh/refund">退款政策</a>和<a href="/zh/privacy">隐私政策</a>。</p>` },
-    refund: { eyebrow: 'legal', title: '退款政策', description: 'Allyfolio 退款与取消政策：任何一笔付款后 14 天内可申请全额退款；月度订阅可随时取消；退款由 Paddle 处理。', html: `
+    refund: { eyebrow: 'legal', title: '退款政策', description: 'Allyfolio 退款与取消政策：任何一笔付款后 30 天内可申请全额退款；月度订阅可随时取消；退款由 Paddle 处理。', html: `
 <p>本政策适用于向厦门妙尔多商贸有限公司（Xiamen Miaoerduo Trading Co., Ltd.）购买的所有 Allyfolio 产品（订阅和单次报告）。我们的订单流程由我们的在线经销商 Paddle.com 执行。Paddle.com 是我们所有订单的记录商户（Merchant of Record），因此退款由 Paddle 处理。如中文版本与英文版本有出入，以英文版本为准。</p>
-<h2>14 天退款</h2>
-<p>在任何一笔付款（方案首次付款、每月续订或单次报告）后的 <strong>14 天</strong>内，您都可以出于任何原因申请全额退款，无需说明理由。</p>
+<h2>30 天退款</h2>
+<p>在任何一笔付款（方案首次付款、每月续订或单次报告）后的 <strong>30 天</strong>内，您都可以出于任何原因申请全额退款，无需说明理由。</p>
 <h2>如何申请退款</h2>
 <ul>
 <li>通过 <a href="${PADDLE_NET}">paddle.net</a> 向 Paddle 申请（使用购买时的电子邮件地址和收据中的订单信息查找您的订单），或</li>
@@ -325,7 +325,7 @@ export const prosePages: Record<Locale, Pages> = {
 </ul>
 <p>获批的退款由 Paddle 退回至原支付方式。到账时间取决于您的银行或发卡机构。</p>
 <h2>取消订阅</h2>
-<p>订阅（入门版 €19/月，商业版 €39/月，代理商版 €99/月）按月计费，可随时在应用的“账单”页面取消。取消自当前计费周期结束时生效，之后不会再产生费用。如您还希望退还最后一笔付款，请按上述方式在该笔付款后的 14 天内申请。</p>
+<p>订阅（入门版 €19/月，商业版 €39/月，代理商版 €99/月）按月计费，可随时在应用的“账单”页面取消。取消自当前计费周期结束时生效，之后不会再产生费用。如您还希望退还最后一笔付款，请按上述方式在该笔付款后的 30 天内申请。</p>
 <h2>更多信息</h2>
 <p>请参阅我们的<a href="/zh/terms">服务条款</a>和 <a href="${PADDLE_TERMS}">Paddle 的买方条款</a>。如有问题：${MAIL}。</p>` },
     statement: { eyebrow: 'legal', title: '无障碍声明', description: 'allyfolio.com 的无障碍声明：目标标准、测试方法、已知局限以及反馈方式。', html: `

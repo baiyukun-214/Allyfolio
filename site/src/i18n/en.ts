@@ -76,7 +76,7 @@ export const en = {
     faq: [
       { q: 'How does billing work?', a: 'Plans are billed monthly in euros. You can cancel any time and there is no minimum term. Payments, invoices and EU VAT are handled by Paddle.com Market Ltd as Merchant of Record.' },
       { q: 'Can I change plans later?', a: 'Yes. Upgrades take effect immediately and you pay a prorated amount for the rest of the billing cycle. Downgrades apply from the next billing cycle.' },
-      { q: 'Can I get a refund?', a: 'Yes. You can request a full refund within 14 days of any payment, for subscriptions and the one-off report. See our refund policy.' },
+      { q: 'Can I get a refund?', a: 'Yes. You can request a full refund within 30 days of any payment, for subscriptions and the one-off report. See our refund policy.' },
       { q: 'What is the one-off report for?', a: 'For a single snapshot – for example before a relaunch. You get a single automated scan of 1 site (up to 100 pages) and a PDF report, without a subscription.' },
       { q: 'Does a clean scan mean my site is accessible?', a: 'No. Automated testing finds roughly 57% of issues (Deque study). The rest needs manual review by people, which our checklist helps you plan.' },
     ],
