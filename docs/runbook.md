@@ -21,10 +21,77 @@ connections to this host take 25–50 s to open and sometimes drop.
 
 - `backup` service (alpine) runs `deploy/backup.sh` daily at `BACKUP_TIME` (03:15 UTC by default). It uses an online
   `sqlite3 .backup`, which is WAL-safe. Output: `app/backups/allyfolio-<UTCSTAMP>.db.gz`. It keeps the 14 newest.
-- Offsite copy: only if `BACKUP_RCLONE_REMOTE` is set in `app/.env` (see `deploy/rclone`). **As of 2026-11-02 it is NOT set,
-  so all backups sit on the same disk as prod.** Losing the host means losing the backups too. Configure an offsite remote.
+- Offsite copy: **enabled since 2026-11-02** to Cloudflare R2. See "Offsite backups (Cloudflare R2)" below.
 - Disk on 2026-11-02: 15 G used of 75 G (21%).
 - Size on 2026-11-02: about 6.6 KB gzipped, 155 KB raw.
+
+### Offsite backups (Cloudflare R2)
+
+- **Where:** Cloudflare R2 bucket `allyfolio-backups`, via the rclone remote `r2` (S3 provider `Cloudflare`, EU
+  jurisdiction endpoint, `no_check_bucket = true` because the token is scoped to the bucket and can't create buckets).
+- **Schedule:** the same daily run as the local backup (`BACKUP_TIME`, 03:15 UTC = 11:15 UTC+8). Once the local file is
+  written and rotated, `backup.sh` runs `rclone copy <file> r2:allyfolio-backups`. The log line is
+  `[backup] copied offsite to r2:allyfolio-backups` (`docker compose logs backup`).
+- **Retention:** locally the 14 newest files (`BACKUP_KEEP_DAILY`). On R2, objects older than `BACKUP_REMOTE_KEEP_DAYS`
+  (30) days are deleted by `rclone delete --min-age 30d` after each copy. That step is `|| true`, so if the R2 token
+  has no delete permission the old objects just accumulate silently. Check the bucket now and then, or add an R2 lifecycle
+  rule as a backstop.
+- **Configuration (no secrets in git):**
+  - `app/.env` holds `BACKUP_RCLONE_REMOTE=r2:allyfolio-backups` and `BACKUP_REMOTE_KEEP_DAYS=30`.
+  - `app/deploy/rclone/rclone.conf` (server only, `chmod 600`, git-ignored via `app/.gitignore`) holds the `r2` remote
+    with the R2 access key ID and secret.
+  - `docker-compose.yml` mounts `./deploy/rclone` read-only at `/root/.config/rclone` in the `backup` container.
+  - `.env` is only read when the container is created. After you change it, run `docker compose up -d backup`
+    (a plain `restart` is not enough).
+- **Check it:**
+  ```sh
+  cd /srv/allyfolio-mono/app
+  docker compose exec -T backup sh -c 'env | grep ^BACKUP_; cat /etc/crontabs/root; rclone ls r2:allyfolio-backups'
+  ```
+  Never `cat` rclone.conf or print the whole container env.
+
+- **Verified 2026-11-02 03:14–03:15 UTC (11:14–11:15 UTC+8), read-only:** the container env has
+  `BACKUP_RCLONE_REMOTE=r2:allyfolio-backups` and `BACKUP_REMOTE_KEEP_DAYS=30`. The crontab is
+  `15 03 * * * /deploy/backup.sh`, crond is PID 1, and `rclone listremotes` shows `r2:`. The **scheduled** 03:15 UTC run
+  wrote `allyfolio-20261102T031500Z.db.gz` (6928 B) and logged `copied offsite to r2:allyfolio-backups`.
+  `rclone ls` shows it next to the manual `allyfolio-20261102T031316Z.db.gz`. The R2 delete path (30-day pruning) has
+  not been exercised yet; nothing is older than 30 days.
+
+#### Restore from R2 (host still alive)
+
+```sh
+cd /srv/allyfolio-mono/app
+docker compose exec -T backup rclone ls r2:allyfolio-backups                         # pick a file
+docker compose exec -T backup rclone copy r2:allyfolio-backups/<file> /backups/      # lands in app/backups/
+```
+
+Then follow **Real restore** at the end of section 3, using that file.
+
+#### Restore onto a fresh host (old host and its disk are gone)
+
+1. Provision the host, clone the repo to `/srv/allyfolio-mono`, and recreate `app/.env` from the password manager.
+   Make sure the `BACKUP_*` lines are set as above.
+2. In the Cloudflare dashboard → R2 → *Manage API tokens*, create a new token with **Object Read & Write** on the
+   `allyfolio-backups` bucket only, then revoke the old token. Note the Access Key ID, Secret Access Key and the
+   **EU** S3 endpoint (`https://<account-id>.eu.r2.cloudflarestorage.com`).
+3. Recreate the rclone config without echoing the keys into shell history (e.g. run `rclone config` interactively:
+   type `s3`, provider `Cloudflare`, paste the keys, then the endpoint), or write the file with an editor:
+   ```ini
+   [r2]
+   type = s3
+   provider = Cloudflare
+   access_key_id = <new key id>
+   secret_access_key = <new secret>
+   endpoint = https://<account-id>.eu.r2.cloudflarestorage.com
+   acl = private
+   no_check_bucket = true
+   ```
+   Save it as `app/deploy/rclone/rclone.conf` and run `chmod 600` on it.
+4. `cd app && mkdir -p backups && docker compose up -d backup`, then
+   `docker compose exec -T backup rclone ls r2:allyfolio-backups` and copy the newest file into `/backups/` as above.
+5. Bring up the stack once so the `app_appdata` volume exists (`docker compose up -d`), then do the **Real restore**
+   steps (stop app → gunzip into the volume → remove `-wal`/`-shm` → start app). Check `/api/health` and log in.
+6. Point DNS for `app.allyfolio.com` at the new host. Caddy then issues fresh certificates.
 
 ## 3. Backup-restore drill (`restore-drill.sh` + `drill-check.mjs`)
 

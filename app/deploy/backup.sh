@@ -5,7 +5,7 @@ set -eu
 DB="${DATABASE_PATH:-/data/allyfolio.db}"
 DIR="${BACKUP_DIR:-/backups}"
 KEEP="${BACKUP_KEEP_DAILY:-14}"
-REMOTE="${BACKUP_RCLONE_REMOTE:-}"        # e.g. hetzner-box:allyfolio-backups (configure rclone.conf); empty = local only
+REMOTE="${BACKUP_RCLONE_REMOTE:-}"        # e.g. r2:allyfolio-backups (configure rclone.conf); empty = local only
 mkdir -p "$DIR"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 TMP="$DIR/.allyfolio-$STAMP.db"
