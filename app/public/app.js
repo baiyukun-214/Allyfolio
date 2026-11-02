@@ -24,37 +24,48 @@
 
   const form = document.querySelector('form[data-scan-form]');
   const T = document.getElementById('scan-i18n')?.dataset ?? {};
-  if (form) form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (form) {
     const btn = form.querySelector('button'); const box = document.getElementById('scan-progress'); const txt = document.getElementById('scan-progress-text');
     const bar = box.querySelector('.prog'), fill = bar.firstElementChild;
-    btn.disabled = true; btn.setAttribute('aria-busy', 'true'); box.hidden = false; txt.textContent = T.starting; fill.style.width = '0%';
-    const before = await status();
-    const lastId = before?.last?.id;
-    try {
-      const r = await fetch(form.action, { method: 'POST', headers: { accept: 'application/json', 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)), credentials: 'same-origin' });
-      if (!r.ok) throw new Error(String(r.status));
-    } catch { form.submit(); return; } // fall back to the normal form post
-    skeleton();
-    const poll = setInterval(async () => {
-      const s = await status(); if (!s) return;
-      if (s.running) {
-        const lim = s.running.limit || 1; fill.style.width = Math.min(100, Math.round(100 * s.running.pages / lim)) + '%';
-        bar.setAttribute('aria-valuenow', String(s.running.pages)); bar.setAttribute('aria-valuemax', String(lim));
-        txt.textContent = T.scanning.replace('{n}', s.running.pages).replace('{limit}', lim);
-      }
-      if (!s.pending && !s.running && s.last && s.last.id !== lastId) {
-        clearInterval(poll); fill.style.width = '100%';
-        if (s.last.status === 'done') {
-          const msg = T.done.replace('{n}', s.last.newIssues).replace('{f}', s.last.fixedIssues);
-          txt.textContent = msg; toast(msg, { href: '/app/scans/' + s.last.id, text: T.view }, T.dismiss);
-        } else { txt.textContent = T.failed; toast(T.failed, null, T.dismiss); }
-        await refresh(); btn.disabled = false; btn.removeAttribute('aria-busy');
-        setTimeout(() => { box.hidden = true; }, 1500);
-      }
-    }, 1500);
-    async function status() { try { const r = await fetch(form.dataset.statusUrl, { headers: { accept: 'application/json' }, credentials: 'same-origin' }); return r.ok ? r.json() : null; } catch { return null; } }
-  });
+    let poll = null;
+    // Button label follows the real state: queued → "Scan queued…", running → "Scanning…" (disabled either way).
+    const label = (s) => { const v = s.running ? T.btnScanning : s.pending ? T.btnQueued : null; if (v && btn.textContent !== v) btn.textContent = v; };
+    const busy = () => { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); };
+    const status = async () => { try { const r = await fetch(form.dataset.statusUrl, { headers: { accept: 'application/json' }, credentials: 'same-origin' }); return r.ok ? r.json() : null; } catch { return null; } };
+    const watch = (lastId) => {
+      if (poll) return;
+      poll = setInterval(async () => {
+        const s = await status(); if (!s) return;
+        label(s);
+        if (s.running) {
+          const lim = s.running.limit || 1; box.hidden = false; fill.style.width = Math.min(100, Math.round(100 * s.running.pages / lim)) + '%';
+          bar.setAttribute('aria-valuenow', String(s.running.pages)); bar.setAttribute('aria-valuemax', String(lim));
+          txt.textContent = T.scanning.replace('{n}', s.running.pages).replace('{limit}', lim);
+        }
+        if (!s.pending && !s.running && s.last && s.last.id !== lastId) {
+          clearInterval(poll); poll = null; fill.style.width = '100%';
+          if (s.last.status === 'done') {
+            const msg = T.done.replace('{n}', s.last.newIssues).replace('{f}', s.last.fixedIssues);
+            txt.textContent = msg; toast(msg, { href: '/app/scans/' + s.last.id, text: T.view }, T.dismiss);
+          } else { txt.textContent = T.failed; toast(T.failed, null, T.dismiss); }
+          await refresh(); btn.textContent = T.btnScan; btn.disabled = false; btn.removeAttribute('aria-busy');
+          setTimeout(() => { box.hidden = true; }, 1500);
+        }
+      }, 1500);
+    };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      busy(); btn.textContent = T.btnQueued; box.hidden = false; txt.textContent = T.starting; fill.style.width = '0%';
+      const before = await status();
+      try {
+        const r = await fetch(form.action, { method: 'POST', headers: { accept: 'application/json', 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)), credentials: 'same-origin' });
+        if (!r.ok) throw new Error(String(r.status));
+      } catch { form.submit(); return; } // fall back to the normal form post
+      skeleton(); watch(before?.last?.id);
+    });
+    // Page opened while a scan is queued or running: keep polling so the label and progress stay live.
+    if (btn.disabled) status().then((s) => { if (!s || (!s.pending && !s.running)) return; label(s); watch(s.last?.id); });
+  }
   function skeleton() {
     const tb = document.querySelector('#history tbody'); if (!tb) return;
     const cols = tb.closest('table').querySelectorAll('thead th').length;

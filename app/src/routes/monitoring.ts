@@ -27,7 +27,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
   const done = scans.filter((c) => c.status === 'done');
   const latest = done[0]; const tr = weeklyTrend(done);
   const running = scans.find((c) => c.status === 'running');
-  const scanBtn = plan.frequency ? html`<form method="post" action="/app/sites/${s.id}/scan" data-scan-form data-status-url="/app/sites/${s.id}/scan-status">${csrfField(req)}<button class="btn btn-primary" type="submit" ${pending ? 'disabled' : ''}>${pending ? M.queued : M.scanNow}</button></form>` : '';
+  const scanBtn = plan.frequency ? html`<form method="post" action="/app/sites/${s.id}/scan" data-scan-form data-status-url="/app/sites/${s.id}/scan-status">${csrfField(req)}<button class="btn btn-primary" type="submit" ${pending || running ? html`disabled aria-busy="true"` : ''}>${running ? M.scanningBtn : pending ? M.queued : M.scanNow}</button></form>` : '';
   return html`
     ${latest ? html`<section class="kpis" aria-label="${M.status}" id="kpis">
       <div class="card kpi kpi-score">${scoreBlock('site-score', automatedScore(latest), M)}</div>
@@ -47,7 +47,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
     </div>
     <div class="scan-progress" id="scan-progress" ${running ? '' : 'hidden'}><p class="small" id="scan-progress-text">${running ? M.scanning(running.pages_scanned ?? 0, running.page_limit ?? plan.pagesPerSite) : M.scanStarting}</p>
       <div class="prog" role="progressbar" aria-label="${M.progressLabel}" aria-valuemin="0" aria-valuemax="${running?.page_limit ?? plan.pagesPerSite ?? 0}" aria-valuenow="${running?.pages_scanned ?? 0}"><span style="width:${running ? Math.round(100 * (running.pages_scanned ?? 0) / Math.max(1, running.page_limit ?? 1)) : 0}%"></span></div></div>
-    <template id="scan-i18n" data-starting="${M.scanStarting}" data-scanning="${M.scanning('{n}' as any, '{limit}' as any)}" data-failed="${M.scanFailed}" data-view="${M.viewScan}" data-dismiss="${M.dismiss}" data-done="${M.scanDone('{n}' as any, '{f}' as any)}"></template>
+    <template id="scan-i18n" data-starting="${M.scanStarting}" data-scanning="${M.scanning('{n}' as any, '{limit}' as any)}" data-failed="${M.scanFailed}" data-view="${M.viewScan}" data-dismiss="${M.dismiss}" data-done="${M.scanDone('{n}' as any, '{f}' as any)}" data-btn-scan="${M.scanNow}" data-btn-queued="${M.queued}" data-btn-scanning="${M.scanningBtn}"></template>
     ${manualSection(s, l)}
     <section id="history" aria-labelledby="history-h"><h2 id="history-h">${M.historyH}</h2>
     ${scans.length ? html`<div class="card table-wrap" style="padding:8px 16px"><table><caption class="sr-only">${M.historyCaption}</caption>
