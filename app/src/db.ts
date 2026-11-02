@@ -64,6 +64,19 @@ CREATE TABLE IF NOT EXISTS manual_evidence (
   UNIQUE (site_id, seq)
 );
 CREATE TRIGGER IF NOT EXISTS manual_evidence_no_update BEFORE UPDATE ON manual_evidence BEGIN SELECT RAISE(ABORT, 'manual evidence is append-only'); END;
+CREATE TABLE IF NOT EXISTS report_schedules (
+  id TEXT PRIMARY KEY, team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE, site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
+  recipients TEXT NOT NULL, frequency TEXT NOT NULL CHECK (frequency IN ('weekly','monthly')), locale TEXT NOT NULL DEFAULT 'en',
+  active INTEGER NOT NULL DEFAULT 1, next_run_at TEXT, last_run_at TEXT, created_by TEXT REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS report_schedules_due ON report_schedules(active, next_run_at);
+CREATE TABLE IF NOT EXISTS report_deliveries (
+  id TEXT PRIMARY KEY, team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE, site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
+  schedule_id TEXT REFERENCES report_schedules(id) ON DELETE SET NULL, scan_id TEXT, kind TEXT NOT NULL, recipient TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('sent','failed','skipped')), error TEXT, sent_by TEXT REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS report_deliveries_site ON report_deliveries(site_id, created_at);
+CREATE INDEX IF NOT EXISTS report_deliveries_team ON report_deliveries(team_id, created_at);
 CREATE TABLE IF NOT EXISTS password_resets (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL);
 `;
 

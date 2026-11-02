@@ -5,6 +5,8 @@ const handlers: Record<string, (p: any, log: any) => Promise<unknown>> = {
   site_scan: (p, log) => runSiteScan(p, log),
   retention: async () => applyRetention(),
   apply_downgrades: async () => (await import('../lib/billing/index.ts')).applyDueDowngrades(),
+  report_email: async (p) => (await import('../lib/reportMail.ts')).runScheduledReport(p),
+  report_email_now: async (p) => (await import('../lib/reportMail.ts')).runManualReport(p),
 };
 let stopped = false;
 export async function workOnce(log: any = console): Promise<boolean> {
@@ -19,6 +21,7 @@ export function startWorker(log: any = console) {
   const tick = () => {
     try {
       enqueueDueScans();
+      void import('../lib/reportMail.ts').then((m) => m.enqueueDueReports(enqueue)).catch((e) => log.error?.(e?.message));
       const day = new Date().toISOString().slice(0, 10);
       if (!get("SELECT 1 FROM jobs WHERE type = 'retention' AND created_at >= ?", day)) { enqueue('retention', {}); enqueue('apply_downgrades', {}); }
     } catch (e: any) { log.error?.(e?.message); }

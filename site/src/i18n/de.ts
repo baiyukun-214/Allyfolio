@@ -19,7 +19,7 @@ export const de: Dict = {
     pageTitle: 'Warteliste', back: 'Zurück zur Startseite',
   },
   plans: {
-    recommended: 'Empfohlen', inDev: 'In Entwicklung: geplanter Berichtsversand, Kunden-Arbeitsbereiche.', perMonth: '/Monat', exVat: 'zzgl. MwSt.', join: 'Auf die Warteliste', joinFor: 'für',
+    recommended: 'Empfohlen', inDev: 'In Entwicklung: Kunden-Arbeitsbereiche.', perMonth: '/Monat', exVat: 'zzgl. MwSt.', join: 'Auf die Warteliste', joinFor: 'für',
     oneoffTitle: 'Einmal-Bericht', oneoffText: '1 Website, bis zu 100 Seiten, ein einzelner Scan und ein PDF-Bericht. Ohne Abo.', tabsLabel: 'Tarifart', tabSubs: 'Abonnements', tabOneoff: 'Einmal-Bericht', oneoffPer: 'einmalig', oneoffFeatures: ['1 Website', 'Bis zu 100 Seiten', 'Ein einzelner Scan', 'PDF-Bericht', 'Ohne Abo'], oneoffSr: 'für den Einmal-Bericht',
     items: {
       starter: { name: 'Starter', blurb: 'Für die Website eines kleinen Unternehmens.', features: ['1 Website', 'Bis zu 100 Seiten', 'Wöchentliche Scans', '12 Monate Nachweis-Historie', 'PDF-Berichte', '1 Nutzer'], extra: ['Prüfprotokoll mit Zeitstempeln', 'Entwurf einer Erklärung zur Barrierefreiheit'] },
@@ -62,8 +62,8 @@ export const de: Dict = {
       ['Geplantes Monitoring', 'Rückschritte nach jedem Release erkennen – nicht erst Monate später.'],
       ['Prüfprotokoll mit Zeitstempeln', 'Ein datierter Nachweis jedes Scans und jeder Korrektur sowie jeder manuellen Prüfung, die Ihr Team einträgt, verkettet über SHA-256-Hashes.'],
       ['Entwürfe für Erklärungen zur Barrierefreiheit', 'Ein strukturierter Ausgangspunkt auf Basis Ihrer Ergebnisse, den Sie prüfen und anpassen.'],
-      ['Nachweisberichte', 'Übersichtliche PDF-Berichte für Geschäftsführung, Kunden oder Behörden.'],
-      ['Gemacht für Agenturen', 'Bis zu 15 Kundenwebsites in einem Team, mit White-Label-PDF-Berichten.'],
+      ['Nachweisberichte', 'Übersichtliche PDF-Berichte für Geschäftsführung, Kunden oder Behörden, zum Herunterladen oder per E-Mail, sofort oder wöchentlich bzw. monatlich.'],
+      ['Gemacht für Agenturen', 'Bis zu 15 Kundenwebsites in einem Team, mit White-Label-PDF-Berichten, die Sie Ihren Kunden regelmäßig per E-Mail senden können.'],
       ['Niemals ein Overlay', 'Nichts wird in Ihre Website eingebunden. Wir helfen Ihnen, den Quellcode zu verbessern.']] },
     pricing: { eyebrow: 'Preise', h2: 'Einfache, transparente Preise', lead: 'Jederzeit kündbar. Alle Preise zzgl. MwSt.', link: 'Alle Tarife und den Einmal-Bericht vergleichen →' },
     faq: { eyebrow: 'FAQ', h2: 'Häufige Fragen', more: 'Noch etwas offen? Schreiben Sie an' },
@@ -72,7 +72,7 @@ export const de: Dict = {
     title: 'Preise', description: 'Allyfolio-Preise: Starter 19 €/Monat, Business 39 €/Monat, Agency 99 €/Monat oder ein Einmal-Bericht zur Barrierefreiheit für 49 € (einmalig). PDF-Berichte in allen Tarifen.',
     eyebrow: 'Preise', h1: 'Tarife für Websites jeder Größe', lead: 'Wählen Sie den Tarif, der zu Ihrer Website passt. Alle Preise in Euro, zzgl. MwSt. PDF-Berichte sind in allen Tarifen enthalten. Zahlungen, Rechnungen und EU-Umsatzsteuer wickelt Paddle.com Market Ltd als Merchant of Record ab.',
     plansSr: 'Tarife', includedH: 'In jedem Tarif enthalten',
-    included: ['Automatisierte Scans mit Playwright und axe-core', 'Historie aller Scans und Korrekturen mit Zeitstempeln', 'PDF-Berichte', 'Checkliste für die manuelle Prüfung der WCAG-2.2-Kriterien (A/AA), die automatisierte Tests nicht vollständig abdecken', 'Hosting in Deutschland (Hetzner, Falkenstein)', 'Kein Overlay-Widget und keine Skripte auf Ihrer Website'],
+    included: ['Automatisierte Scans mit Playwright und axe-core', 'Historie aller Scans und Korrekturen mit Zeitstempeln', 'PDF-Berichte', 'PDF-Berichte per E-Mail, sofort oder wöchentlich bzw. monatlich', 'Checkliste für die manuelle Prüfung der WCAG-2.2-Kriterien (A/AA), die automatisierte Tests nicht vollständig abdecken', 'Hosting in Deutschland (Hetzner, Falkenstein)', 'Kein Overlay-Widget und keine Skripte auf Ihrer Website'],
     disclaimer: 'Allyfolio ist ein Werkzeug für Tests und Dokumentation. Es ersetzt weder die manuelle Prüfung durch Fachleute noch eine Rechtsberatung.',
     faqH: 'Fragen zu den Preisen',
     faq: [

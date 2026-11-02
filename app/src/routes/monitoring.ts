@@ -60,7 +60,15 @@ function manualSection(s: any, l: Locale) {
   return html`<section class="card" aria-labelledby="manual-h" style="margin-top:24px"><h2 id="manual-h" style="margin-top:0">${X.h}</h2>
     <p class="small muted">${X.lead}</p><p>${X.summary(sm)}</p>
     ${failing.length ? html`<p class="small"><strong>${X.failing}:</strong> ${failing.map((r) => r.criterion).join(', ')}</p>` : ''}
-    <p><a class="btn btn-secondary" href="/app/sites/${s.id}/manual">${X.open}</a></p></section>`;
+    <p><a class="btn btn-secondary" href="/app/sites/${s.id}/manual">${X.open}</a></p></section>
+  ${emailCard(s, l)}`;
+}
+
+function emailCard(s: any, l: Locale) {
+  const E = t(l).er, n = get<any>('SELECT COUNT(*) AS n FROM report_schedules WHERE site_id = ? AND active = 1', s.id).n;
+  return html`<section class="card" aria-labelledby="er-h" style="margin-top:24px"><h2 id="er-h" style="margin-top:0">${E.h}</h2>
+    <p class="small muted">${E.schedH}: ${n ? `${n} ${E.active.toLowerCase()}` : E.schedNone}</p>
+    <p><a class="btn btn-secondary" href="/app/sites/${s.id}/email-reports">${E.open}</a></p></section>`;
 }
 
 export async function monitoringRoutes(app: FastifyInstance) {

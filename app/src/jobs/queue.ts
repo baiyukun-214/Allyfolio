@@ -1,6 +1,6 @@
 import { get, run, now, all } from '../db.ts';
 import { planOf, nextScanAt, effectivePlanSql } from '../lib/plans.ts';
-export type JobType = 'site_scan' | 'retention' | 'apply_downgrades';
+export type JobType = 'site_scan' | 'retention' | 'apply_downgrades' | 'report_email' | 'report_email_now';
 export function enqueue(type: JobType, payload: object, runAt = now()) {
   return run('INSERT INTO jobs (type, payload, run_at, created_at) VALUES (?,?,?,?)', type, JSON.stringify(payload), runAt, now()).lastInsertRowid;
 }
