@@ -6,7 +6,7 @@
 > Allyfolio 是一款面向欧盟中小企业和网站代理商的无障碍监测 SaaS。它使用 axe-core 定期对网站进行自动化 WCAG 检测，持续跟踪问题，
 > 保留带时间戳、可追溯、哈希链接的扫描历史，提供 0–100 的“自动化检测得分”（该得分不是完整的无障碍审查或法律评估），并生成 PDF 报告和无障碍声明草稿，帮助团队为《欧洲无障碍法案》（EAA）和德国 BFSG 做准备。
 > 自动化检测大约只能发现 57% 的问题（Deque 研究），仍需人工审查；Allyfolio 不提供认证，也不证明法律层面的符合性；不使用覆盖层插件。
-> 本仓库包含营销网站（`site/`，Astro）和控制台 + API（`app/`，Fastify），均支持英文和简体中文。
+> 本仓库包含营销网站（`site/`，Astro）和控制台 + API（`app/`，Fastify），面向客户的语言为德语和英语；简体中文仅供内部使用（不在语言切换器中显示，页面为 noindex）。
 
 ## What Allyfolio does
 
@@ -44,7 +44,7 @@ Billing runs through Paddle (Merchant of Record).
 
 ```
 allyfolio-mono/
-├─ site/   Astro marketing site (static, en + zh-CN) → Cloudflare Workers static assets (allyfolio.com),
+├─ site/   Astro marketing site (static; customer languages de + en, internal zh-CN under /zh, noindex) → Cloudflare Workers static assets (allyfolio.com),
 │          built and deployed by Workers Builds on push to main          → site/README.md
 └─ app/    Dashboard + API: Node 22, Fastify, SQLite (node:sqlite), Playwright + axe-core scanner, Paddle billing
            → Hetzner, Docker Compose + Caddy (app.allyfolio.com)          → app/README.md
@@ -64,7 +64,7 @@ Requires **Node 22.22** (see `site/.node-version`).
 ```bash
 # marketing site – http://localhost:4321
 cd site && npm ci && npm run dev
-npm run build && npm run test:a11y      # static build + axe (en + zh, 1280 + 375)
+npm run build && npm run test:a11y      # static build + axe (all locales incl. internal zh, 1280 + 375)
 npm run test:header                     # sticky header behaviour (Playwright)
 
 # dashboard + API – http://localhost:8787
@@ -83,9 +83,12 @@ All app settings come from environment variables; see **`app/.env.example`** for
 
 ## Languages
 
-English and Simplified Chinese (zh-CN) everywhere: the site under `/zh`, the dashboard, emails, reports and statement drafts.
+**Customer languages: German and English.** Simplified Chinese (zh-CN) is **internal only**.
 
-## Copy rules (both packages, en + zh)
+- **Marketing site:** English at `/`, German under `/de`. These two are the only languages in the language switcher, in hreflang alternates and in the sitemap. The Chinese pages under `/zh` stay online for the team but are hidden from the switcher, carry `<meta name="robots" content="noindex">` and have no hreflang alternates (`site/src/i18n/index.ts`, `site/src/components/LangSwitch.astro`, `site/src/layouts/Base.astro`).
+- **App:** PDF/HTML reports and report emails are available in German, English and (internal) Chinese. The dashboard UI itself currently exists in English and zh-CN only, and its header switcher still offers Chinese. There is no German dashboard yet (see `app/README.md` → Languages).
+
+## Copy rules (both packages, all languages)
 
 Never describe the product or its output as making a site meet legal requirements or as certifying it; always state that automated testing finds roughly 57% of issues (Deque) and that manual review is needed; no overlay widgets; mention the microenterprise exemption honestly.
 

@@ -127,7 +127,12 @@ Set `SENTRY_DSN` to a Sentry or self-hosted GlitchTip DSN. Unhandled 5xx errors 
 - Creem provider is a stub.
 - Statement generator produces a draft only; it must be reviewed by the site owner.
 
-## Languages (en, zh-CN)
+## Languages (customer: de + en; zh-CN internal only)
+
+Customer languages are German and English; Simplified Chinese is for internal use only. Current state of the app:
+- **Reports and report emails:** `REPORT_LOCALES` = de, en, zh-CN (German is report-only).
+- **Dashboard UI:** `LOCALES` = en, zh-CN. There is no German UI yet, and the header switcher (`langSwitch` in `src/views/layout.ts`) still toggles EN ↔ 中文. Hiding zh-CN from customers in the app, and adding a German UI, are open items.
+
 
 All UI, emails, HTML/PDF reports and the statement draft come from `src/i18n.ts` (`t(locale)`).
 Locale priority: the user's setting (`/app/settings`, stored in `users.locale`) > `?lang=` (persisted to the `af_lang` cookie) > cookie > `Accept-Language` > English.
