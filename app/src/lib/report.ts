@@ -1,3 +1,4 @@
+import { clientOfSite } from './clients.ts';
 import { all, get } from '../db.ts';
 import { html, type Html } from './html.ts';
 import { IMPACTS, ruleHelp } from './scanner.ts';
@@ -35,6 +36,7 @@ export function reportHtml(scanId: string, b: Branding, l: Locale = 'en'): strin
   const issues = all<any>('SELECT rule_id, impact, help, help_url, wcag, COUNT(*) AS n, COUNT(DISTINCT page_url) AS pages FROM scan_issues WHERE scan_id = ? GROUP BY rule_id ORDER BY n DESC', scanId);
   const pages = all<any>('SELECT p.url, (SELECT COUNT(*) FROM scan_issues i WHERE i.scan_id = p.scan_id AND i.page_url = p.url) AS n FROM scan_pages p WHERE p.scan_id = ? ORDER BY n DESC LIMIT 50', scanId);
   const X = Tx.manual, manual = checklist(scan.site_id).filter((r) => r.status !== 'not_checked'), msum = manualSummary(scan.site_id), mev = verifyEvidence(scan.site_id);
+  const client = clientOfSite(scan.site_id);
   const sorted = issues.sort((a, c) => IMPACTS.indexOf(a.impact) - IMPACTS.indexOf(c.impact) || c.n - a.n);
   const body: Html = html`<!doctype html><html lang="${Tx.htmlLang}"><head><meta charset="utf-8"><title>${R.title(scan.site_name)}</title><style>
     @font-face { font-family: Inter; src: url(${raw(FONT)}) format('woff2'); font-weight: 100 900; }
@@ -50,6 +52,7 @@ export function reportHtml(scanId: string, b: Branding, l: Locale = 'en'): strin
   </style></head><body>
   <header><div class="brand">${b.logoDataUri ? html`<img src="${b.logoDataUri}" alt="${b.name}">` : ''}<span>${b.name}</span></div><div class="muted">${R.kind}</div></header>
   <main>
+  ${client ? html`<p class="muted" style="margin:0 0 4px">${Tx.cl.pdfFor(client.name)}</p>` : ''}
   <h1>${scan.site_name}</h1>
   <p class="muted">${scan.origin} · ${R.finished} ${fmt(scan.finished_at, l)} · ${R.pagesChecked(scan.pages_scanned, scan.page_limit)}</p>
   <div class="stats">${IMPACTS.map((k) => html`<div class="stat"><span class="muted">${Tx.impacts[k]}</span><b>${scan[k]}</b></div>`)}</div>

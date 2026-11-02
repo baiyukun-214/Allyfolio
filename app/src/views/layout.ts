@@ -3,7 +3,7 @@ import { t, type Locale } from '../i18n.ts';
 import { config } from '../config.ts';
 /** Allyfolio mark (direction B). Decorative: the link carries the accessible name. Keep in sync with site/src/components/Logo.astro. */
 const logo = html`<svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="af-logo-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#af-logo-g)"/><path d="M16 14h18l10 10v26a3 3 0 0 1-3 3H16a3 3 0 0 1-3-3V17a3 3 0 0 1 3-3z" fill="none" stroke="#fff" stroke-width="4.5" stroke-linejoin="round"/><path d="M20 27h12M20 35h8" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M40 40a8 8 0 0 1 8 8M40 31a17 17 0 0 1 17 17" fill="none" stroke="#c7d2fe" stroke-width="4.5" stroke-linecap="round"/><circle cx="40" cy="48" r="3.5" fill="#c7d2fe"/></svg>`;
-export interface PageOpts { title: string; body: Html; user?: { email: string } | null; current?: string; flash?: { kind: 'ok' | 'error'; msg: string } | null; locale?: Locale; path?: string; backToSite?: boolean }
+export interface PageOpts { title: string; body: Html; user?: { email: string; clients?: boolean } | null; current?: string; flash?: { kind: 'ok' | 'error'; msg: string } | null; locale?: Locale; path?: string; backToSite?: boolean }
 /** Marketing-site URL in the given locale (Chinese lives under /zh). */
 export const siteLink = (l: Locale, path = '/') => `${config.siteUrl}${l === 'zh-CN' ? (path === '/' ? '/zh' : '/zh' + path) : path}`;
 export function langSwitch(locale: Locale, path = '/') {
@@ -12,7 +12,7 @@ export function langSwitch(locale: Locale, path = '/') {
 }
 export function page({ title, body, user, current, flash, locale = 'en', path = '/', backToSite }: PageOpts): string {
   const T = t(locale), L = T.layout;
-  const links = user ? [['/app', L.sites], ['/app/team', L.team], ['/app/billing', L.billing], ['/app/settings', L.settings]] : [];
+  const links = user ? [['/app', L.sites], ...(user.clients ? [['/app/clients', L.clients]] : []), ['/app/team', L.team], ['/app/billing', L.billing], ['/app/settings', L.settings]] : [];
   const siteNav = html`<nav class="sitebar" aria-label="${L.site}"><div class="in"><ul>
     <li><a href="${siteLink(locale)}">${L.website}</a></li><li><a href="${siteLink(locale, '/blog')}">${L.blog}</a></li><li><a href="${siteLink(locale, '/pricing')}">${L.pricing}</a></li></ul></div></nav>`;
   return '<!doctype html>' + html`<html lang="${T.htmlLang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

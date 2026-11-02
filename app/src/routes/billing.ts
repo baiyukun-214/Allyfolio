@@ -60,7 +60,7 @@ export async function billingRoutes(app: FastifyInstance) {
       <p class="small muted">${B.terms}</p>
       <div class="grid g3">${PAID.map((id) => { const p = PLANS[id]; const cur = t.plan === id; return html`
         <div class="card"><h3>${pn(id)}</h3><p class="stat">${eur(p.priceCents)}<span class="small muted"> ${B.perMonth}</span></p>
-          <ul class="small"><li>${B.sitesN(p.sites)}</li><li>${B.pagesN(p.pagesPerSite)}</li><li>${p.frequency === 'daily' ? B.daily : B.weekly}</li><li>${B.history(p.retentionMonths)}</li>${p.pdf ? html`<li>${B.pdf}</li>` : ''}${p.whiteLabel ? html`<li>${B.wl}</li>` : ''}<li>${B.seatsN(p.seats)}</li></ul>
+          <ul class="small"><li>${B.sitesN(p.sites)}</li><li>${B.pagesN(p.pagesPerSite)}</li><li>${p.frequency === 'daily' ? B.daily : B.weekly}</li><li>${B.history(p.retentionMonths)}</li>${p.pdf ? html`<li>${B.pdf}</li>` : ''}${p.whiteLabel ? html`<li>${B.wl}</li>` : ''}${p.clients ? html`<li>${B.clients}</li>` : ''}<li>${B.seatsN(p.seats)}</li></ul>
           ${cur ? html`<p class="pill ok">${B.currentPill}</p>` : !owner ? '' : t.billing_subscription_id
             ? html`<form method="post" action="/app/billing/change">${csrfField(req)}<input type="hidden" name="plan" value="${id}">
               <button class="btn ${rank(id) > rank(t.plan) ? 'btn-primary' : 'btn-secondary'}" type="submit" ${ready ? '' : 'disabled'}>${rank(id) > rank(t.plan) ? B.upgrade : B.downgrade} <span class="sr-only">${pn(id)}</span></button></form>`

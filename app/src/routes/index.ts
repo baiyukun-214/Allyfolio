@@ -7,6 +7,7 @@ import { monitoringRoutes } from './monitoring.ts';
 import { reportRoutes } from './reports.ts';
 import { manualRoutes } from './manual.ts';
 import { emailReportRoutes } from './emailReports.ts';
+import { clientRoutes } from './clients.ts';
 import { accountRoutes } from './account.ts';
 import { billingRoutes, billingWebhook } from './billing.ts';
 export default async function appRoutes(app: FastifyInstance) {
@@ -20,6 +21,7 @@ export default async function appRoutes(app: FastifyInstance) {
   await app.register(reportRoutes);
   await app.register(manualRoutes);
   await app.register(emailReportRoutes);
+  await app.register(clientRoutes);
   await app.register(accountRoutes);
   await app.register(billingRoutes);
   await app.register(billingWebhook);

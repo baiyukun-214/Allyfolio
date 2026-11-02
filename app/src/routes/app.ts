@@ -1,3 +1,5 @@
+import { siteClientCard } from './clients.ts';
+import { siteRows } from '../lib/clients.ts';
 import type { FastifyInstance } from 'fastify';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { all, get, run, now } from '../db.ts';
@@ -20,15 +22,18 @@ export async function dashboardRoutes(app: FastifyInstance) {
   app.get('/app', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
     const plan = planOf(ctx.team.plan);
-    const sites = all<any>(`SELECT s.*, (SELECT finished_at FROM scans WHERE site_id = s.id AND status='done' ORDER BY created_at DESC LIMIT 1) AS last_scan,
-      (SELECT critical+serious FROM scans WHERE site_id = s.id AND status='done' ORDER BY created_at DESC LIMIT 1) AS last_serious FROM sites s WHERE team_id = ? ORDER BY created_at`, ctx.team.id);
-    const l = loc(req, ctx), Tx = t(l), D = Tx.dash;
+    const l = loc(req, ctx), Tx = t(l), D = Tx.dash, C = Tx.cl;
+    const clients = plan.clients ? all<any>('SELECT id, name FROM clients WHERE team_id = ? ORDER BY name COLLATE NOCASE', ctx.team.id) : [];
+    const fq = String((req.query as any)?.client ?? ''), filter = clients.length && (fq === 'none' || clients.some((c) => c.id === fq)) ? fq : null;
+    const total = get<any>('SELECT COUNT(*) AS n FROM sites WHERE team_id = ?', ctx.team.id)!.n;
+    const sites = siteRows(ctx.team.id, filter === null ? undefined : filter === 'none' ? '' : filter);
     return render(reply, ctx, { title: D.sites, current: '/app', body: html`
-      <div class="row between"><div><p class="eyebrow">${ctx.team.name}</p><h1>${D.sites}</h1></div><span class="pill">${D.planPill(Tx.plans[plan.id] ?? plan.name, sites.length, plan.sites)}</span></div>
+      <div class="row between"><div><p class="eyebrow">${ctx.team.name}</p><h1>${D.sites}</h1></div><span class="pill">${D.planPill(Tx.plans[plan.id] ?? plan.name, total, plan.sites)}</span></div>
       ${ctx.team.plan === 'none' ? html`<p class="notice"><strong>${D.noPlanH}</strong> ${D.noPlan} <a href="/app/billing">${D.noPlanLink}</a>${D.noPlanEnd}</p>` : ''}
-      ${sites.length ? html`<div class="table-wrap card" style="padding:8px 16px"><table><caption class="sr-only">${D.yourSites}</caption><thead><tr><th scope="col">${D.colSite}</th><th scope="col">${D.colOwner}</th><th scope="col">${D.colLast}</th><th scope="col">${D.colSerious}</th></tr></thead><tbody>
-        ${sites.map((s) => html`<tr><td><a href="/app/sites/${s.id}">${s.name}</a><br><span class="muted small">${s.origin}</span></td><td>${s.verified_at ? html`<span class="pill ok">${D.verified}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</td><td>${localTime(s.last_scan, l)}</td><td>${s.last_serious ?? '–'}</td></tr>`)}
-      </tbody></table></div>` : emptyState(D.emptySitesH, D.emptySitesText, html`<a class="btn btn-primary" href="#name">${D.addH}</a>`)}
+      ${clients.length ? html`<form method="get" action="/app" class="row" style="gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px"><div class="field" style="margin:0"><label for="cf">${C.filter}</label><select id="cf" name="client"><option value="">${C.allClients}</option>${clients.map((c) => html`<option value="${c.id}" ${filter === c.id ? 'selected' : ''}>${c.name}</option>`)}<option value="none" ${filter === 'none' ? 'selected' : ''}>${C.unassigned}</option></select></div><button class="btn btn-secondary" type="submit">${C.filterBtn}</button></form>` : ''}
+      ${sites.length ? html`<div class="table-wrap card" style="padding:8px 16px"><table><caption class="sr-only">${D.yourSites}</caption><thead><tr><th scope="col">${D.colSite}</th>${clients.length ? html`<th scope="col">${C.colClient}</th>` : ''}<th scope="col">${D.colOwner}</th><th scope="col">${D.colLast}</th><th scope="col">${D.colSerious}</th></tr></thead><tbody>
+        ${sites.map((s) => html`<tr><td><a href="/app/sites/${s.id}">${s.name}</a><br><span class="muted small">${s.origin}</span></td>${clients.length ? html`<td>${s.client_id ? html`<a href="/app/clients/${s.client_id}">${s.client_name}</a>` : '–'}</td>` : ''}<td>${s.verified_at ? html`<span class="pill ok">${D.verified}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</td><td>${localTime(s.last_scan, l)}</td><td>${s.last_serious ?? '–'}</td></tr>`)}
+      </tbody></table></div>` : filter !== null ? html`<p>${C.noSites}</p>` : emptyState(D.emptySitesH, D.emptySitesText, html`<a class="btn btn-primary" href="#name">${D.addH}</a>`)}
       <h2>${D.addH}</h2>
       <form class="card" method="post" action="/app/sites">${csrfField(req)}
         <div class="grid g2"><div class="field"><label for="name">${D.name}</label><input id="name" name="name" type="text" required maxlength="80" placeholder="${D.namePh}"></div>
@@ -63,6 +68,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       <p><a href="/app">${D.back}</a></p>
       <div class="row between"><div><h1>${s.name}</h1><p class="muted">${s.origin}</p></div>
       ${s.verified_at ? html`<span class="pill ok">${D.verifiedVia(s.verify_method)}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</div>
+      ${siteClientCard(req, ctx, s)}
       ${s.verified_at ? siteDetailExtras(req, ctx, s) : html`
         <section class="card" aria-labelledby="verify-h"><h2 id="verify-h" style="margin-top:0">${D.verifyH}</h2>
           <p>${D.verifyLead}</p>

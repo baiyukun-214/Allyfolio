@@ -1,3 +1,4 @@
+import { planOf } from '../lib/plans.ts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { currentUser, type Ctx } from '../lib/auth.ts';
 import { page, type PageOpts } from '../views/layout.ts';
@@ -18,7 +19,7 @@ export function render(reply: FastifyReply, ctx: Ctx | null, opts: Omit<PageOpts
   const req = reply.request; const q = (req.query ?? {}) as any;
   const flash = opts.flash ?? (q.paid ? { kind: 'ok' as const, msg: t(loc(req, ctx)).bill.paid } : q.ok ? { kind: 'ok' as const, msg: String(q.ok).slice(0, 200) } : q.err ? { kind: 'error' as const, msg: String(q.err).slice(0, 200) } : null);
   const path = req.url.split('?')[0];
-  return reply.code(code).type('text/html').send(page({ ...opts, flash, user: ctx?.user, locale: loc(req, ctx), path }));
+  return reply.code(code).type('text/html').send(page({ ...opts, flash, user: ctx ? { ...ctx.user, clients: planOf(ctx.team.plan).clients } : null, locale: loc(req, ctx), path }));
 }
 export const back = (reply: FastifyReply, path: string, kind: 'ok' | 'err', msg: string) => reply.redirect(`${path}${path.includes('?') ? '&' : '?'}${kind}=${encodeURIComponent(msg)}`, 303);
 /** Site must belong to the user's team. */

@@ -48,8 +48,9 @@ export function exportUserData(userId: string) {
         branding: { name: t.brand_name, color: t.brand_color, logo_url: t.brand_logo_url } } : {}),
       members: all<any>('SELECT u.email, m.role, m.created_at AS joined_at FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.team_id = ? ORDER BY m.created_at', t.id),
       invites: all<any>('SELECT email, created_at, accepted_at FROM invites WHERE team_id = ?', t.id),
+      clients: all<any>('SELECT id, name, contact_email, notes, created_at FROM clients WHERE team_id = ? ORDER BY created_at', t.id),
       report_schedules: all<any>('SELECT site_id, recipients, frequency, locale, active, next_run_at, last_run_at, created_at FROM report_schedules WHERE team_id = ? ORDER BY created_at', t.id),
-      sites: all<any>('SELECT id, name, origin, verified_at, verify_method, created_at, next_scan_at FROM sites WHERE team_id = ? ORDER BY created_at', t.id).map((s) => ({
+      sites: all<any>('SELECT id, name, origin, verified_at, verify_method, created_at, next_scan_at, client_id FROM sites WHERE team_id = ? ORDER BY created_at', t.id).map((s) => ({
         ...s, manual_checks: all<any>('SELECT criterion, status, notes, assignee_id, checked_by, checked_at, updated_at FROM manual_checks WHERE site_id = ? ORDER BY criterion', s.id),
         manual_evidence: all<any>('SELECT seq, criterion, status, notes, assignee_id, actor_id, created_at, scan_anchor, prev_hash, hash FROM manual_evidence WHERE site_id = ? ORDER BY seq', s.id),
         scans: all<any>('SELECT id, kind, status, created_at, finished_at, pages_scanned, critical, serious, moderate, minor, new_issues, fixed_issues, evidence_hash FROM scans WHERE site_id = ? ORDER BY created_at', s.id),

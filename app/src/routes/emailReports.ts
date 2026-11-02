@@ -1,3 +1,4 @@
+import { clientOfSite } from '../lib/clients.ts';
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
 import { all, get, run, now } from '../db.ts';
@@ -21,6 +22,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
     const hasScan = !!get("SELECT 1 FROM scans WHERE site_id = ? AND status = 'done'", s.id);
     const schedules = all<any>('SELECT * FROM report_schedules WHERE site_id = ? ORDER BY created_at', s.id);
     const deliveries = all<any>('SELECT d.*, u.email AS sent_by_email FROM report_deliveries d LEFT JOIN users u ON u.id = d.sent_by WHERE d.site_id = ? ORDER BY d.created_at DESC LIMIT 30', s.id);
+    const contact = clientOfSite(s.id)?.contact_email ?? '';
     const langSelect = (id: string) => html`<select id="${id}" name="locale">${LOCALES.map((x) => html`<option value="${x}" ${x === l ? 'selected' : ''}>${t(x).langName}</option>`)}</select>`;
     return render(reply, ctx, { title: `${E.h} – ${s.name}`, current: '/app', body: html`
       <p><a href="/app/sites/${s.id}">${E.back}</a></p>
@@ -29,7 +31,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
       <p class="notice">${E.consent}</p>
       <section class="card" aria-labelledby="send-h"><h2 id="send-h" style="margin-top:0">${E.sendH}</h2>
         ${hasScan ? html`<form method="post" action="/app/sites/${s.id}/email-reports/send">${csrfField(req)}
-          <div class="field"><label for="send-to">${E.recipients}</label><input id="send-to" name="recipients" type="text" autocomplete="off" required aria-describedby="send-hint"><p id="send-hint" class="small muted">${E.recipientsHint}</p></div>
+          <div class="field"><label for="send-to">${E.recipients}</label><input id="send-to" name="recipients" type="text" autocomplete="off" required value="${contact}" aria-describedby="send-hint"><p id="send-hint" class="small muted">${E.recipientsHint}</p></div>
           <div class="field"><label for="send-lang">${E.language}</label>${langSelect('send-lang')}</div>
           <button class="btn btn-primary" type="submit">${E.send}</button></form>` : html`<p>${E.noScan}</p>`}
       </section>
@@ -41,7 +43,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
             <form method="post" action="/app/sites/${s.id}/email-reports/${r.id}/delete" style="display:inline">${csrfField(req)}<button class="btn btn-secondary" type="submit" aria-label="${E.actionFor(E.del, who)}">${E.del}</button></form></td></tr>`; })}
         </tbody></table></div>` : html`<p>${E.schedNone}</p>`}
         <form method="post" action="/app/sites/${s.id}/email-reports/schedules" style="margin-top:16px">${csrfField(req)}
-          <div class="field"><label for="sched-to">${E.recipients}</label><input id="sched-to" name="recipients" type="text" autocomplete="off" required aria-describedby="sched-hint"><p id="sched-hint" class="small muted">${E.recipientsHint}</p></div>
+          <div class="field"><label for="sched-to">${E.recipients}</label><input id="sched-to" name="recipients" type="text" autocomplete="off" required value="${contact}" aria-describedby="sched-hint"><p id="sched-hint" class="small muted">${E.recipientsHint}</p></div>
           <div class="field"><label for="sched-freq">${E.frequency}</label><select id="sched-freq" name="frequency"><option value="weekly">${E.freq.weekly}</option><option value="monthly">${E.freq.monthly}</option></select></div>
           <div class="field"><label for="sched-lang">${E.language}</label>${langSelect('sched-lang')}</div>
           <button class="btn btn-primary" type="submit">${E.add}</button></form>

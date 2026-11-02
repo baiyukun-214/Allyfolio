@@ -19,12 +19,12 @@ export const de: Dict = {
     pageTitle: 'Warteliste', back: 'Zurück zur Startseite',
   },
   plans: {
-    recommended: 'Empfohlen', inDev: 'In Entwicklung: Kunden-Arbeitsbereiche.', perMonth: '/Monat', exVat: 'zzgl. MwSt.', join: 'Auf die Warteliste', joinFor: 'für',
+    recommended: 'Empfohlen', perMonth: '/Monat', exVat: 'zzgl. MwSt.', join: 'Auf die Warteliste', joinFor: 'für',
     oneoffTitle: 'Einmal-Bericht', oneoffText: '1 Website, bis zu 100 Seiten, ein einzelner Scan und ein PDF-Bericht. Ohne Abo.', tabsLabel: 'Tarifart', tabSubs: 'Abonnements', tabOneoff: 'Einmal-Bericht', oneoffPer: 'einmalig', oneoffFeatures: ['1 Website', 'Bis zu 100 Seiten', 'Ein einzelner Scan', 'PDF-Bericht', 'Ohne Abo'], oneoffSr: 'für den Einmal-Bericht',
     items: {
       starter: { name: 'Starter', blurb: 'Für die Website eines kleinen Unternehmens.', features: ['1 Website', 'Bis zu 100 Seiten', 'Wöchentliche Scans', '12 Monate Nachweis-Historie', 'PDF-Berichte', '1 Nutzer'], extra: ['Prüfprotokoll mit Zeitstempeln', 'Entwurf einer Erklärung zur Barrierefreiheit'] },
       business: { name: 'Business', blurb: 'Für Shops und Dienstleister mit größeren Websites.', features: ['3 Websites', 'Bis zu 500 Seiten pro Website', 'Tägliche Scans', '24 Monate Nachweis-Historie', 'PDF-Berichte', '3 Nutzer'], extra: ['Alles aus Starter'] },
-      agency: { name: 'Agency', blurb: 'Für Webagenturen, die Kundenwebsites betreuen.', features: ['15 Websites', 'Bis zu 1.000 Seiten pro Website', 'Tägliche Scans', '24 Monate Nachweis-Historie', 'White-Label-Berichte im Agentur-Branding', '10 Nutzer'], extra: ['Alles aus Business'] },
+      agency: { name: 'Agency', blurb: 'Für Webagenturen, die Kundenwebsites betreuen.', features: ['15 Websites', 'Bis zu 1.000 Seiten pro Website', 'Tägliche Scans', '24 Monate Nachweis-Historie', 'White-Label-Berichte im Agentur-Branding', 'Kunden-Arbeitsbereiche', '10 Nutzer'], extra: ['Alles aus Business'] },
     },
   },
   faq: [
@@ -63,7 +63,7 @@ export const de: Dict = {
       ['Prüfprotokoll mit Zeitstempeln', 'Ein datierter Nachweis jedes Scans und jeder Korrektur sowie jeder manuellen Prüfung, die Ihr Team einträgt, verkettet über SHA-256-Hashes.'],
       ['Entwürfe für Erklärungen zur Barrierefreiheit', 'Ein strukturierter Ausgangspunkt auf Basis Ihrer Ergebnisse, den Sie prüfen und anpassen.'],
       ['Nachweisberichte', 'Übersichtliche PDF-Berichte für Geschäftsführung, Kunden oder Behörden, zum Herunterladen oder per E-Mail, sofort oder wöchentlich bzw. monatlich.'],
-      ['Gemacht für Agenturen', 'Bis zu 15 Kundenwebsites in einem Team, mit White-Label-PDF-Berichten, die Sie Ihren Kunden regelmäßig per E-Mail senden können.'],
+      ['Gemacht für Agenturen', 'Bis zu 15 Kundenwebsites in einem Team, gruppiert in Kunden-Arbeitsbereiche, mit White-Label-PDF-Berichten, die Sie Ihren Kunden regelmäßig per E-Mail senden können.'],
       ['Niemals ein Overlay', 'Nichts wird in Ihre Website eingebunden. Wir helfen Ihnen, den Quellcode zu verbessern.']] },
     pricing: { eyebrow: 'Preise', h2: 'Einfache, transparente Preise', lead: 'Jederzeit kündbar. Alle Preise zzgl. MwSt.', link: 'Alle Tarife und den Einmal-Bericht vergleichen →' },
     faq: { eyebrow: 'FAQ', h2: 'Häufige Fragen', more: 'Noch etwas offen? Schreiben Sie an' },

@@ -64,6 +64,10 @@ CREATE TABLE IF NOT EXISTS manual_evidence (
   UNIQUE (site_id, seq)
 );
 CREATE TRIGGER IF NOT EXISTS manual_evidence_no_update BEFORE UPDATE ON manual_evidence BEGIN SELECT RAISE(ABORT, 'manual evidence is append-only'); END;
+CREATE TABLE IF NOT EXISTS clients (
+  id TEXT PRIMARY KEY, team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE, name TEXT NOT NULL, contact_email TEXT, notes TEXT,
+  created_at TEXT NOT NULL, UNIQUE(team_id, name)
+);
 CREATE TABLE IF NOT EXISTS report_schedules (
   id TEXT PRIMARY KEY, team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE, site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
   recipients TEXT NOT NULL, frequency TEXT NOT NULL CHECK (frequency IN ('weekly','monthly')), locale TEXT NOT NULL DEFAULT 'en',
@@ -97,6 +101,9 @@ export function db(): DatabaseSync {
     "ALTER TABLE teams ADD COLUMN verify_bypass INTEGER NOT NULL DEFAULT 0",
     // Admin-only complimentary plan: overrides the billed plan; billing webhooks and the downgrade job never change it. SQL only.
     "ALTER TABLE teams ADD COLUMN plan_override TEXT",
+    // Client workspaces (Agency): optional grouping of sites per agency client. Deleting a client keeps its sites.
+    "ALTER TABLE sites ADD COLUMN client_id TEXT REFERENCES clients(id) ON DELETE SET NULL",
+    "CREATE INDEX IF NOT EXISTS sites_client ON sites(client_id)",
   ]) { try { _db.exec(m); } catch { /* already applied */ } }
   return _db;
 }

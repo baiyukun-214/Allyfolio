@@ -17,12 +17,12 @@ export const en = {
     pageTitle: 'Waitlist', back: 'Back to the home page',
   },
   plans: {
-    recommended: 'Recommended', inDev: 'In development: client workspaces.', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
+    recommended: 'Recommended', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
     oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-time', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
     items: {
       starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', 'PDF report export', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },
       business: { name: 'Business', blurb: 'For shops and services with bigger sites.', features: ['3 websites', 'Up to 500 pages per site', 'Daily scans', '24-month evidence history', 'PDF report export', '3 seats'], extra: ['Everything in Starter'] },
-      agency: { name: 'Agency', blurb: 'For web agencies managing client sites.', features: ['15 websites', 'Up to 1,000 pages per site', 'Daily scans', '24-month evidence history', 'White-label (agency-branded) reports', '10 seats'], extra: ['Everything in Business'] },
+      agency: { name: 'Agency', blurb: 'For web agencies managing client sites.', features: ['15 websites', 'Up to 1,000 pages per site', 'Daily scans', '24-month evidence history', 'White-label (agency-branded) reports', 'Client workspaces', '10 seats'], extra: ['Everything in Business'] },
     },
   },
   faq: [
@@ -61,7 +61,7 @@ export const en = {
       ['Timestamped audit trail', 'A dated record of every scan and fix, plus every manual check your team records, linked by SHA-256 hashes.'],
       ['Draft accessibility statements', 'A structured starting point based on your results, for you to review.'],
       ['Evidence reports', 'Clear PDF reports for management, clients or authorities, downloaded or emailed now or on a weekly or monthly schedule.'],
-      ['Built for agencies', 'Up to 15 client sites in one team, with white-label PDF reports you can email to clients on a schedule.'],
+      ['Built for agencies', 'Up to 15 client sites in one team, grouped into client workspaces, with white-label PDF reports you can email to clients on a schedule.'],
       ['No overlay, ever', 'Nothing is injected into your site. We help you fix the source.']] },
     pricing: { eyebrow: 'Pricing', h2: 'Simple, transparent pricing', lead: 'Cancel any time. Prices exclude VAT.', link: 'Compare all plans and the one-off report →' },
     faq: { eyebrow: 'FAQ', h2: 'Frequently asked questions', more: 'Something else? Email' },
