@@ -61,7 +61,9 @@ export function parseRobots(txt: string, agent = 'allyfoliobot'): Robots {
     if (!cur) continue;
     if (k === 'allow' || k === 'disallow') { if (v || k === 'allow') cur.rules.push({ allow: k === 'allow', path: v }); }
   }
-  const mine = groups.filter((g) => g.agents.some((a) => a !== '*' && agent.includes(a.replace(/\/.*$/, ''))));
+  // RFC 9309: case-insensitive match on the product token ("AllyfolioBot", optionally "AllyfolioBot/0.1"); a bare "bot" or empty token is not ours.
+  const token = (a: string) => a.replace(/\/.*$/, '').trim();
+  const mine = groups.filter((g) => g.agents.some((a) => a !== '*' && token(a) === agent));
   const pick = mine.length ? mine : groups.filter((g) => g.agents.includes('*'));
   return { rules: pick.flatMap((g) => g.rules).filter((r) => r.path), sitemaps };
 }

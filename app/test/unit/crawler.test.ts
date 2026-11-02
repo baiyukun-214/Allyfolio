@@ -39,3 +39,23 @@ test('sitemaps: urlset and sitemap index, CDATA and entities', () => {
   const i = parseSitemap('<sitemapindex><sitemap><loc>https://a.example/s1.xml.gz</loc></sitemap></sitemapindex>');
   assert.deepEqual(i.sitemaps, ['https://a.example/s1.xml.gz']); assert.deepEqual(i.pages, []);
 });
+
+test('robots: the AllyfolioBot group (any case, optional version) overrides *, as recommended on /bot', () => {
+  const txt = 'User-agent: *\nDisallow: /\n\nUser-agent: AllyfolioBot\nAllow: /\n';
+  const r = parseRobots(txt);
+  assert.equal(robotsAllows(r, 'https://ex.com/'), true);
+  assert.equal(robotsAllows(r, 'https://ex.com/shop/item?id=1'), true);
+  for (const ua of ['allyfoliobot', 'ALLYFOLIOBOT', 'AllyfolioBot/0.1']) assert.equal(robotsAllows(parseRobots(`User-agent: *\nDisallow: /\nUser-agent: ${ua}\nAllow: /\n`), 'https://ex.com/a'), true, ua);
+  // only "*" → its rules apply
+  assert.equal(robotsAllows(parseRobots('User-agent: *\nDisallow: /private\n'), 'https://ex.com/private/x'), false);
+  // our group replaces "*" entirely (no merging): * blocks /a, ours only blocks /b
+  const own = parseRobots('User-agent: *\nDisallow: /a\nUser-agent: AllyfolioBot\nDisallow: /b\n');
+  assert.equal(robotsAllows(own, 'https://ex.com/a'), true); assert.equal(robotsAllows(own, 'https://ex.com/b'), false);
+  // other bots' groups and partial tokens are not ours
+  for (const ua of ['bot', 'Googlebot', 'Allyfolio', '']) {
+    const r2 = parseRobots(`User-agent: *\nDisallow: /\nUser-agent: ${ua}\nAllow: /\n`);
+    assert.equal(robotsAllows(r2, 'https://ex.com/x'), false, `token "${ua}" must not match AllyfolioBot`);
+  }
+  // shared group: "User-agent: Googlebot" + "User-agent: AllyfolioBot" lines before the rules
+  assert.equal(robotsAllows(parseRobots('User-agent: *\nDisallow: /\nUser-agent: Googlebot\nUser-agent: AllyfolioBot\nAllow: /\n'), 'https://ex.com/x'), true);
+});

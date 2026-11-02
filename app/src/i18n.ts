@@ -138,6 +138,10 @@ const en = {
     skippedH: 'Found but not scanned', colReason: 'Reason', colCount: 'URLs', examples: 'Examples', noSkips: 'Every page found on this site was scanned.',
     reasons: { other_host: 'Links to other hosts (another domain or subdomain is a separate site)', file: 'Files, not web pages (PDF, images, documents)', robots: 'Blocked by robots.txt', query: 'Very long query string (filters, tracking)', limit: 'Page limit reached', duplicate: 'Redirected to a page that was already scanned', redirect_away: 'Redirected to another host', error: 'Could not be loaded' } as Record<string, string>,
     otherHostHint: 'Subdomains and other domains are separate sites in Allyfolio. Add them as their own site to scan them.',
+    robotsHintH: 'Pages skipped because of robots.txt',
+    robotsHint: "Some pages were skipped due to your site's robots.txt rules. As the verified site owner, you can ensure full coverage by adding the following lines to your robots.txt:",
+    robotsHintManaged: "Some pages were skipped due to this site's robots.txt rules. If you manage this site, you can ensure full coverage by adding the following lines to its robots.txt:",
+    robotsHintMore: 'More about our crawler:',
     noCrawl: 'Crawl details are recorded for scans from 2 November 2026 on.', reportLang: 'Report language',
   },
   rep: {
@@ -378,6 +382,10 @@ const zh: Dict = {
     skippedH: '已发现但未扫描', colReason: '原因', colCount: '网址数', examples: '示例', noSkips: '在本网站上发现的所有页面均已扫描。',
     reasons: { other_host: '指向其他主机的链接（其他域名或子域名属于单独的网站）', file: '文件而非网页（PDF、图片、文档）', robots: '被 robots.txt 禁止', query: '查询字符串过长（筛选、跟踪参数）', limit: '已达到页面上限', duplicate: '重定向到已扫描过的页面', redirect_away: '重定向到其他主机', error: '无法加载' },
     otherHostHint: '在 Allyfolio 中，子域名和其他域名属于单独的网站。如需扫描，请将其作为单独的网站添加。',
+    robotsHintH: '因 robots.txt 而跳过的页面',
+    robotsHint: '部分页面因您网站的 robots.txt 规则而被跳过。作为已验证的网站所有者，您可以在 robots.txt 中添加以下内容，以确保完整覆盖：',
+    robotsHintManaged: '部分页面因该网站的 robots.txt 规则而被跳过。如果您负责管理该网站，可以在其 robots.txt 中添加以下内容，以确保完整覆盖：',
+    robotsHintMore: '关于我们的爬虫：',
     noCrawl: '自 2026 年 11 月 2 日起的扫描会记录抓取详情。', reportLang: '报告语言',
   },
   rep: {
@@ -595,6 +603,10 @@ function deReport(): Dict {
       skippedH: 'Gefunden, aber nicht geprüft', colReason: 'Grund', colCount: 'URLs', examples: 'Beispiele', noSkips: 'Alle auf dieser Website gefundenen Seiten wurden geprüft.',
       reasons: { other_host: 'Links zu anderen Hosts (eine andere Domain oder Subdomain ist eine eigene Website)', file: 'Dateien statt Webseiten (PDF, Bilder, Dokumente)', robots: 'Durch robots.txt gesperrt', query: 'Sehr lange Query-Parameter (Filter, Tracking)', limit: 'Seitenlimit erreicht', duplicate: 'Weiterleitung auf eine bereits geprüfte Seite', redirect_away: 'Weiterleitung auf einen anderen Host', error: 'Konnte nicht geladen werden' },
       otherHostHint: 'Subdomains und andere Domains sind in Allyfolio eigene Websites. Fügen Sie sie als eigene Website hinzu, um sie zu prüfen.',
+      robotsHintH: 'Wegen robots.txt übersprungene Seiten',
+      robotsHint: 'Einige Seiten wurden aufgrund der robots.txt-Regeln Ihrer Website übersprungen. Als verifizierter Eigentümer können Sie eine vollständige Prüfung sicherstellen, indem Sie Folgendes in Ihre robots.txt einfügen:',
+      robotsHintManaged: 'Einige Seiten wurden aufgrund der robots.txt-Regeln dieser Website übersprungen. Wenn Sie diese Website betreuen, können Sie eine vollständige Prüfung sicherstellen, indem Sie Folgendes in deren robots.txt einfügen:',
+      robotsHintMore: 'Mehr über unseren Crawler:',
       noCrawl: 'Details zur Abdeckung werden für Prüfungen ab dem 2. November 2026 erfasst.', reportLang: 'Berichtssprache',
     },
   });

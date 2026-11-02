@@ -47,11 +47,20 @@ export interface Crawl { robots: string; sitemapFiles: string[]; sitemapFileCoun
 export function crawlOf(scan: { crawl?: string | null }): Crawl | null { try { return scan.crawl ? JSON.parse(scan.crawl) : null; } catch { return null; } }
 
 /** "Crawl coverage" section: how pages were found and why discovered URLs were not scanned, with counts by reason. */
-export function coverageSection(scan: any, l: ReportLocale, id = 'coverage-h'): Html {
+export const ROBOTS_ALLOW_SNIPPET = 'User-agent: AllyfolioBot\nAllow: /';
+/** Guidance only (no effect on crawling): shown on finished scans where robots.txt kept pages out of the crawl. */
+function robotsHint(scan: any, crawl: Crawl, l: ReportLocale, managed: boolean, id: string): Html | '' {
+  if (scan.status !== 'done' || !(crawl.skipped.robots?.n > 0)) return '';
+  const C = t(l).cov, bot = l === 'de' ? 'https://allyfolio.com/de/bot' : 'https://allyfolio.com/bot', hid = id + '-robots';
+  return html`<div class="notice robots-hint" role="note" aria-labelledby="${hid}" data-robots-hint style="margin:12px 0"><p><strong id="${hid}">${C.robotsHintH}</strong></p><p>${managed ? C.robotsHintManaged : C.robotsHint}</p><pre lang="en" style="margin:8px 0;padding:8px 12px;background:#fff;border:1px solid #d6d9e6;border-radius:8px;color:#1f2433;white-space:pre;overflow-x:auto"><code>${ROBOTS_ALLOW_SNIPPET}</code></pre><p class="small">${C.robotsHintMore} <a href="${bot}">${bot}</a></p></div>`;
+}
+/** opts.managed: wording for teams that skip ownership verification (admin bypass) instead of "verified site owner". */
+export function coverageSection(scan: any, l: ReportLocale, id = 'coverage-h', opts: { managed?: boolean } = {}): Html {
   const C = t(l).cov, crawl = crawlOf(scan);
   if (!crawl) return html`<section aria-labelledby="${id}"><h2 id="${id}">${C.coverageH}</h2><p class="muted">${C.noCrawl}</p></section>`;
   const rows = SKIP_REASONS.map((r) => [r, crawl.skipped[r]] as const).filter(([, v]) => v && v.n);
   return html`<section aria-labelledby="${id}"><h2 id="${id}">${C.coverageH}</h2>
+    ${robotsHint(scan, crawl, l, !!opts.managed, id)}
     <p>${crawl.robots ? C.robots[crawl.robots] ?? '' : ''} ${C.sitemaps(crawl.sitemapFileCount, crawl.sitemapUrls)} ${C.sources(crawl.fromSitemap, crawl.fromLinks)}</p>
     ${rows.length ? html`<table class="cov"><caption class="cap">${C.skippedH}</caption><thead><tr><th scope="col">${C.colReason}</th><th scope="col">${C.colCount}</th><th scope="col">${C.examples}</th></tr></thead><tbody>
       ${rows.map(([r, v]) => html`<tr data-reason="${r}"><td>${C.reasons[r] ?? r}</td><td>${v!.n}</td><td>${v!.examples.slice(0, 3).map((u, i) => html`${i ? html`<br>` : ''}<code>${u}</code>`)}</td></tr>`)}

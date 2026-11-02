@@ -8,6 +8,7 @@ import { enqueue, hasPendingScan } from '../jobs/queue.ts';
 import { IMPACTS, ruleHelp } from '../lib/scanner.ts';
 import { requireUser, render, back, ownSite, loc, T, fmtDate, localTime } from './guard.ts';
 import { t, scanError, REPORT_LOCALES, type Locale } from '../i18n.ts';
+import { bypassesVerification } from '../lib/verify.ts';
 import { scanSummary, coverageSection, guidance, ruleTitle, snippet } from '../lib/scanSummary.ts';
 /** Affected elements listed per rule on the scan page. */
 const APP_ELEMENTS = 200;
@@ -142,7 +143,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
         </details>`; })}
       ${S.byPage.length ? html`<h2>${C.topPages}</h2><div class="table-wrap"><table><caption class="sr-only">${C.topPages}</caption><thead><tr><th scope="col">${M.colPage}</th><th scope="col">${C.colElements}</th><th scope="col">${C.colRules}</th></tr></thead><tbody>
         ${S.byPage.slice(0, 100).map((p) => html`<tr><td><a href="${p.url}">${p.url}</a></td><td>${p.elements}</td><td>${p.rules}</td></tr>`)}</tbody></table></div>` : ''}
-      <div class="card" style="margin-top:16px">${coverageSection(scan, l, 'coverage-h')}</div>
+      <div class="card" style="margin-top:16px">${coverageSection(scan, l, 'coverage-h', { managed: bypassesVerification(ctx.team) })}</div>
       ${!issues.length ? html`<p>${M.noIssues}</p>` : ''}
       ${fixed.length ? html`<h2>${M.fixedH}</h2><ul>${[...new Map(fixed.map((f) => [f.rule_id + f.target, f])).values()].slice(0, 100).map((f: any) => html`<li>${ruleHelp(f.rule_id, f.help, l)} – <code>${f.target}</code> ${M.on} ${new URL(f.page_url).pathname}</li>`)}</ul>` : ''}` });
   });
