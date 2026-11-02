@@ -418,7 +418,7 @@ ${NOTE('/terms')}
 <li>Aktuelle Preise (in Euro, zzgl. MwSt.): Starter 19 €/Monat, Business 39 €/Monat, Agency 99 €/Monat; Einmal-Bericht 49 € (einmalige Zahlung für einen einzelnen Scan einer Website mit bis zu 100 Seiten). PDF-Berichte sind in allen Tarifen enthalten. Siehe <a href="/de/pricing">Preise</a>.</li>
 <li>Abonnements werden monatlich im Voraus abgerechnet und verlängern sich jeden Monat automatisch, bis sie gekündigt werden. Sie können jederzeit im Bereich „Abrechnung“ der App zum Ende des laufenden Abrechnungszeitraums kündigen; es gibt keine Mindestlaufzeit.</li>
 <li>Upgrades gelten sofort und werden anteilig berechnet; Downgrades gelten ab dem nächsten Abrechnungszeitraum.</li>
-<li>Rückerstattung: Innerhalb von 30 Tagen nach jeder Zahlung können Sie eine vollständige Rückerstattung beantragen. Siehe <a href="/de/refund">Widerruf und Rückerstattung</a>.</li>
+<li>Rückerstattung: Innerhalb von 30 Tagen nach jeder Zahlung können Sie eine vollständige Rückerstattung beantragen. Siehe <a href="/de/refund">Rückerstattung</a>.</li>
 </ul>
 <h2>6. Verfügbarkeit und Änderungen</h2>
 <p>Wir streben eine hohe Verfügbarkeit an, sagen aber keinen unterbrechungsfreien Betrieb zu. Geplante Scans können sich durch Wartungsarbeiten oder durch die Ziel-Website verzögern. Wir dürfen Funktionen ändern, sofern der Kern des Dienstes, für den Sie zahlen, nicht wesentlich eingeschränkt wird; wesentliche Änderungen dieser Bedingungen kündigen wir mindestens 30 Tage im Voraus per E-Mail an.</p>
@@ -449,8 +449,8 @@ ${NOTE('/terms')}
 <h2>Kontakt und Kundenservice</h2>
 <p>E-Mail: ${MAIL}</p>
 <h2>Zahlungen</h2>
-<p>Zahlungen, Rechnungen und EU-Umsatzsteuer wickelt Paddle.com Market Ltd als Merchant of Record ab. Siehe unsere <a href="/de/terms">Nutzungsbedingungen</a>, die Regeln zu <a href="/de/refund">Widerruf und Rückerstattung</a> und die <a href="/de/privacy">Datenschutzerklärung</a>.</p>` },
-  refund: { eyebrow: 'legal', title: 'Widerruf und Rückerstattung', description: 'Rückerstattung und Kündigung bei Allyfolio: volle Rückerstattung innerhalb von 30 Tagen nach jeder Zahlung, monatlich kündbare Abonnements, Abwicklung über Paddle.', html: `
+<p>Zahlungen, Rechnungen und EU-Umsatzsteuer wickelt Paddle.com Market Ltd als Merchant of Record ab. Siehe unsere <a href="/de/terms">Nutzungsbedingungen</a>, die Regeln zur <a href="/de/refund">Rückerstattung</a> und die <a href="/de/privacy">Datenschutzerklärung</a>.</p>` },
+  refund: { eyebrow: 'legal', title: 'Rückerstattung', description: 'Rückerstattung und Kündigung bei Allyfolio: volle Rückerstattung innerhalb von 30 Tagen nach jeder Zahlung, monatlich kündbare Abonnements, Abwicklung über Paddle.', html: `
 ${NOTE('/refund')}
 <p>Diese Regeln gelten für alle Käufe von Allyfolio (Abonnements und Einmal-Bericht) bei der Xiamen Miaoerduo Trading Co., Ltd. Unser Bestellprozess wird von unserem Online-Wiederverkäufer Paddle.com durchgeführt. Paddle.com ist Merchant of Record für alle unsere Bestellungen; Rückerstattungen werden daher von Paddle abgewickelt.</p>
 <h2>Rückerstattung innerhalb von 30 Tagen</h2>
