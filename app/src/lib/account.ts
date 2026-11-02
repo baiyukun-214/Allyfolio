@@ -50,6 +50,7 @@ export function exportUserData(userId: string) {
       invites: all<any>('SELECT email, created_at, accepted_at FROM invites WHERE team_id = ?', t.id),
       sites: all<any>('SELECT id, name, origin, verified_at, verify_method, created_at, next_scan_at FROM sites WHERE team_id = ? ORDER BY created_at', t.id).map((s) => ({
         ...s, manual_checks: all<any>('SELECT criterion, status, notes, assignee_id, checked_by, checked_at, updated_at FROM manual_checks WHERE site_id = ? ORDER BY criterion', s.id),
+        manual_evidence: all<any>('SELECT seq, criterion, status, notes, assignee_id, actor_id, created_at, scan_anchor, prev_hash, hash FROM manual_evidence WHERE site_id = ? ORDER BY seq', s.id),
         scans: all<any>('SELECT id, kind, status, created_at, finished_at, pages_scanned, critical, serious, moderate, minor, new_issues, fixed_issues, evidence_hash FROM scans WHERE site_id = ? ORDER BY created_at', s.id),
       })),
     })),

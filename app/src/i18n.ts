@@ -143,6 +143,11 @@ const en = {
     disclaimer: 'Entries are recorded by your team. Allyfolio does not check them, and a completed checklist is not an accessibility audit or legal assessment.',
     pdfLead: 'Status recorded by the team in Allyfolio when this report was generated. Only criteria with a recorded status are listed. These entries are not checked by Allyfolio.',
     pdfNone: 'No manual review entries recorded yet.',
+    evH: 'Evidence log', evLead: 'Every saved change is added to an append-only log. Each entry is linked to the previous one by a SHA-256 hash and records the evidence hash of the latest scan, so later edits would be detectable.',
+    evOk: (n: number) => `Hash chain intact: ${n} ${plural(n, 'entry', 'entries')} checked.`, evBroken: (seq: number) => `Hash chain broken at entry ${seq}. An entry was changed or removed outside Allyfolio.`,
+    evNone: 'No changes recorded yet.', evLatest: 'Latest entry hash', evShowing: (n: number, total: number) => `Showing the latest ${n} of ${total} entries.`,
+    colWhen: 'When', colWho: 'Recorded by', colHash: 'Hash', deletedUser: 'former member',
+    pdfEv: (n: number, ok: boolean) => ok ? `Manual-check evidence log: ${n} ${plural(n, 'entry', 'entries')}, hash chain intact when this report was generated.` : `Manual-check evidence log: ${n} entries. The hash chain did not verify when this report was generated.`,
   },
   acct: {
     forgotLink: 'Forgot your password?', forgotTitle: 'Reset your password', forgotLead: 'Enter your email address. If an account exists, we send a link to set a new password. The link works once and expires in 60 minutes.',
@@ -317,6 +322,11 @@ const zh: Dict = {
     disclaimer: '这些记录由您的团队填写。Allyfolio 不会核实这些内容，填写完成的清单也不等同于无障碍审计或法律评估。',
     pdfLead: '生成本报告时团队在 Allyfolio 中记录的状态。仅列出已记录状态的标准。这些记录未经 Allyfolio 核实。',
     pdfNone: '尚未记录任何人工审查结果。',
+    evH: '证据日志', evLead: '每次保存的更改都会追加到只增不改的日志中。每条记录通过 SHA-256 哈希与上一条相连，并记录最近一次扫描的证据哈希，因此事后的修改可以被发现。',
+    evOk: (n) => `哈希链完整：已校验 ${n} 条记录。`, evBroken: (seq) => `哈希链在第 ${seq} 条记录处断开。有记录在 Allyfolio 之外被修改或删除。`,
+    evNone: '尚无更改记录。', evLatest: '最新记录哈希', evShowing: (n, total) => `显示最近 ${n} 条，共 ${total} 条。`,
+    colWhen: '时间', colWho: '记录人', colHash: '哈希', deletedUser: '已离开的成员',
+    pdfEv: (n, ok) => ok ? `人工检查证据日志：${n} 条记录，生成本报告时哈希链完整。` : `人工检查证据日志：${n} 条记录。生成本报告时哈希链校验未通过。`,
   },
   acct: {
     forgotLink: '忘记密码？', forgotTitle: '重置密码', forgotLead: '请输入您的邮箱地址。如果该账户存在，我们会发送一个设置新密码的链接。该链接仅可使用一次，60 分钟内有效。',

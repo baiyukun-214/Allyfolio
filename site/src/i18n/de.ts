@@ -60,7 +60,7 @@ export const de: Dict = {
     limits: { label: 'Ehrliche Grenzen:', html: `Automatisierte Tests finden rund 57 % der Barrieren – so eine <a class="text-brand-700 underline" href="${DEQUE}" hreflang="en">Deque-Studie zur Abdeckung automatisierter Tests</a>. Der Rest – etwa aussagekräftige Alternativtexte, eine logische Fokusreihenfolge und verständliche Inhalte – erfordert eine manuelle Prüfung durch Menschen.` },
     features: { eyebrow: 'Funktionen', h2: 'Alles, um Ihre Arbeit sichtbar zu machen', items: [
       ['Geplantes Monitoring', 'Rückschritte nach jedem Release erkennen – nicht erst Monate später.'],
-      ['Prüfprotokoll mit Zeitstempeln', 'Ein datierter Nachweis jedes Scans und jeder Korrektur.'],
+      ['Prüfprotokoll mit Zeitstempeln', 'Ein datierter Nachweis jedes Scans und jeder Korrektur sowie jeder manuellen Prüfung, die Ihr Team einträgt, verkettet über SHA-256-Hashes.'],
       ['Entwürfe für Erklärungen zur Barrierefreiheit', 'Ein strukturierter Ausgangspunkt auf Basis Ihrer Ergebnisse, den Sie prüfen und anpassen.'],
       ['Nachweisberichte', 'Übersichtliche PDF-Berichte für Geschäftsführung, Kunden oder Behörden.'],
       ['Gemacht für Agenturen', 'Bis zu 15 Kundenwebsites in einem Team, mit White-Label-PDF-Berichten.'],

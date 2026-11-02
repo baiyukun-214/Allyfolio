@@ -58,7 +58,7 @@ export const en = {
     limits: { label: 'Honest limits:', html: `automated testing finds roughly 57% of accessibility issues, according to a <a class="text-brand-700 underline" href="${DEQUE}">Deque study of automated testing coverage</a>. The rest – such as meaningful alt text, logical focus order and understandable content – needs manual review by people.` },
     features: { eyebrow: 'Features', h2: 'Everything you need to show your work', items: [
       ['Scheduled monitoring', 'Catch regressions after every release, not months later.'],
-      ['Timestamped audit trail', 'A dated record of every scan and fix.'],
+      ['Timestamped audit trail', 'A dated record of every scan and fix, plus every manual check your team records, linked by SHA-256 hashes.'],
       ['Draft accessibility statements', 'A structured starting point based on your results, for you to review.'],
       ['Evidence reports', 'Clear PDF reports for management, clients or authorities.'],
       ['Built for agencies', 'Up to 15 client sites in one team, with white-label PDF reports.'],

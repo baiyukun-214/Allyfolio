@@ -58,6 +58,12 @@ CREATE TABLE IF NOT EXISTS manual_checks (
   assignee_id TEXT REFERENCES users(id) ON DELETE SET NULL, checked_by TEXT REFERENCES users(id) ON DELETE SET NULL, checked_at TEXT, updated_at TEXT NOT NULL,
   PRIMARY KEY (site_id, criterion)
 );
+CREATE TABLE IF NOT EXISTS manual_evidence (
+  id TEXT PRIMARY KEY, site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE, seq INTEGER NOT NULL, criterion TEXT NOT NULL,
+  status TEXT NOT NULL, notes TEXT, assignee_id TEXT, actor_id TEXT, created_at TEXT NOT NULL, scan_anchor TEXT, prev_hash TEXT, hash TEXT NOT NULL,
+  UNIQUE (site_id, seq)
+);
+CREATE TRIGGER IF NOT EXISTS manual_evidence_no_update BEFORE UPDATE ON manual_evidence BEGIN SELECT RAISE(ABORT, 'manual evidence is append-only'); END;
 CREATE TABLE IF NOT EXISTS password_resets (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL);
 `;
 

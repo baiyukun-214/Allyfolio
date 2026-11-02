@@ -1,3 +1,4 @@
+import { randomUUID, createHash } from 'node:crypto';
 import { all, get, run, now, tx } from '../db.ts';
 
 /**
@@ -103,8 +104,44 @@ export function saveChecklist(siteId: string, teamId: string, userId: string, fo
         ON CONFLICT (site_id, criterion) DO UPDATE SET status = excluded.status, notes = excluded.notes, assignee_id = excluded.assignee_id,
         checked_by = excluded.checked_by, checked_at = excluded.checked_at, updated_at = excluded.updated_at`,
         siteId, c.id, status, notes, assignee, checkedChanged ? userId : prev?.checked_by ?? null, checkedChanged ? at : prev?.checked_at ?? null, at);
+      appendEvidence(siteId, { criterion: c.id, status, notes, assigneeId: assignee, actorId: userId, at });
       changed++;
     }
   });
   return changed;
+}
+
+/*
+ * Manual-check evidence: every saved change is appended to a per-site hash chain (append-only, no updates).
+ * Each entry also records the evidence hash of the latest finished scan at that moment ("scan anchor"),
+ * which ties manual entries to the scan evidence chain. Editing or removing an entry breaks the chain.
+ */
+export interface EvidenceEntry { id: string; site_id: string; seq: number; criterion: string; status: string; notes: string | null; assignee_id: string | null; actor_id: string | null; created_at: string; scan_anchor: string | null; prev_hash: string | null; hash: string }
+export function manualEvidenceHash(e: Omit<EvidenceEntry, 'hash'>) {
+  const canonical = JSON.stringify({ v: 1, prev: e.prev_hash ?? null, id: e.id, site: e.site_id, seq: e.seq, criterion: e.criterion, status: e.status,
+    notes: e.notes ?? null, assignee: e.assignee_id ?? null, actor: e.actor_id ?? null, at: e.created_at, scan: e.scan_anchor ?? null });
+  return createHash('sha256').update(canonical).digest('hex');
+}
+function appendEvidence(siteId: string, x: { criterion: string; status: string; notes: string | null; assigneeId: string | null; actorId: string; at: string }) {
+  const last = get<any>('SELECT seq, hash FROM manual_evidence WHERE site_id = ? ORDER BY seq DESC LIMIT 1', siteId);
+  const anchor = get<any>("SELECT evidence_hash FROM scans WHERE site_id = ? AND status = 'done' ORDER BY finished_at DESC LIMIT 1", siteId)?.evidence_hash ?? null;
+  const e = { id: randomUUID(), site_id: siteId, seq: (last?.seq ?? 0) + 1, criterion: x.criterion, status: x.status, notes: x.notes, assignee_id: x.assigneeId,
+    actor_id: x.actorId, created_at: x.at, scan_anchor: anchor, prev_hash: last?.hash ?? null };
+  run('INSERT INTO manual_evidence (id, site_id, seq, criterion, status, notes, assignee_id, actor_id, created_at, scan_anchor, prev_hash, hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+    e.id, e.site_id, e.seq, e.criterion, e.status, e.notes, e.assignee_id, e.actor_id, e.created_at, e.scan_anchor, e.prev_hash, manualEvidenceHash(e));
+}
+/** Recompute the whole chain. ok=false names the first entry (seq) that does not match. */
+export function verifyEvidence(siteId: string): { ok: boolean; count: number; head: string | null; brokenAt: number | null } {
+  const rows = all<EvidenceEntry>('SELECT * FROM manual_evidence WHERE site_id = ? ORDER BY seq', siteId);
+  let prev: string | null = null;
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.seq !== i + 1 || (r.prev_hash ?? null) !== prev || manualEvidenceHash(r) !== r.hash) return { ok: false, count: rows.length, head: rows.at(-1)!.hash, brokenAt: i + 1 };
+    prev = r.hash;
+  }
+  return { ok: true, count: rows.length, head: prev, brokenAt: null };
+}
+export function evidenceLog(siteId: string, limit = 50) {
+  return all<any>(`SELECT e.*, a.email AS actor_email, b.email AS assignee_email FROM manual_evidence e LEFT JOIN users a ON a.id = e.actor_id
+    LEFT JOIN users b ON b.id = e.assignee_id WHERE e.site_id = ? ORDER BY e.seq DESC LIMIT ?`, siteId, limit);
 }
