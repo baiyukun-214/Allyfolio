@@ -4,7 +4,7 @@ import Tile from '../components/Tile.astro';
 import Icon from '../components/Icon.astro';
 import { i18n } from '../i18n';
 import { prosePages } from '../i18n/pages';
-interface Props { page: 'about' | 'privacy' | 'imprint' | 'statement' | 'terms' | 'dpa' }
+interface Props { page: 'about' | 'privacy' | 'imprint' | 'statement' | 'terms' | 'dpa' | 'refund' }
 const { lang, t } = i18n(Astro.url.pathname);
 const p = prosePages[lang][Astro.props.page];
 const V = t.visuals;

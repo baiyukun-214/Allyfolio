@@ -6,7 +6,7 @@ export const zh: Dict = {
   skip: '跳到主要内容',
   nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', resources: '资源', features: '功能', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', dashboard: '控制台', account: '账户', language: '语言' },
   switcher: { label: 'English', aria: 'Switch to English', hreflang: 'en' },
-  footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', terms: '服务条款', dpa: '数据处理协议', imprint: '网站信息（Impressum）', statement: '无障碍声明', allResources: '全部资源', copyright: '一款测试与记录工具，不构成法律建议。' },
+  footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', terms: '服务条款', dpa: '数据处理协议', imprint: '网站信息（Impressum）', refund: '退款政策', statement: '无障碍声明', trustAria: '托管与付款', hosting: '应用和数据托管于德国（Hetzner，法尔肯施泰因）', payments: '付款、发票和欧盟增值税由 Paddle.com Market Ltd 作为记录商户（Merchant of Record）处理', allResources: '全部资源', copyright: '一款测试与记录工具，不构成法律建议。' },
   waitlist: {
     heading: '加入候补名单', lead: '抢先试用 Allyfolio。前 100 位候补名单成员首年享 7 折优惠。',
     label: '工作邮箱', placeholder: 'you@company.eu', button: '加入候补名单', sending: '正在提交…',
@@ -22,7 +22,7 @@ export const zh: Dict = {
     oneoffTitle: '单次报告', oneoffText: '1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。', tabsLabel: '方案类型', tabSubs: '订阅套餐', tabOneoff: '一次性报告', oneoffPer: '一次性', oneoffFeatures: ['1 个网站', '最多 100 个页面', '单次扫描', 'PDF 报告', '无需订阅'], oneoffSr: '– 单次报告',
     items: {
       starter: { name: '入门版', blurb: '适合单个小型企业网站。', features: ['1 个网站', '最多 100 个页面', '每周扫描', '12 个月证据历史', 'PDF 报告导出', '1 个席位'], extra: ['带时间戳的审计记录', '无障碍声明草稿'] },
-      business: { name: '商业版', blurb: '适合规模更大的网店和服务网站。', features: ['3 个网站', '每个网站最多 500 个页面', '每日扫描', '24 个月证据历史', 'PDF 报告导出', '3 个席位'], extra: ['包含入门版全部功能'] },
+      business: { name: '商业版', blurb: '适合网站更大的网店和服务商。', features: ['3 个网站', '每个网站最多 500 个页面', '每日扫描', '24 个月证据历史', 'PDF 报告导出', '3 个席位'], extra: ['包含入门版全部功能'] },
       agency: { name: '代理商版', blurb: '适合管理客户网站的网页代理商。', features: ['15 个网站', '每个网站最多 1,000 个页面', '每日扫描', '24 个月证据历史', '白标（代理商品牌）报告', '10 个席位'], extra: ['包含商业版全部功能'] },
     },
   },
@@ -45,7 +45,7 @@ export const zh: Dict = {
     fix: { eyebrow: '修复前 / 修复后', h2: '一次修复，有据可查', lead: '每次扫描都会与上一次进行比较，因此每项修复都会作为带日期的条目出现在您的证据记录中。', before: "修复前 · 9月1日扫描", after: "修复后 · 9月22日复扫", issues: [["button-name", "WCAG 4.1.2", "严重", "仅含图标的“加入购物车”控件没有可访问名称和按钮角色"], ["label", "WCAG 1.3.1 · 4.1.2", "严重", "订阅邮箱输入框没有标签"], ["color-contrast", "WCAG 1.4.3", "较严重", "白底上的灰色价格说明 #9ca3af：2.54:1（需 4.5:1）"]], fixedNote: "白底上的 #4b5563：7.56:1", trailH: "证据记录", trailAria: "示例证据记录", trail: [["9月1日", "每周扫描", "12 个页面上发现 3 个问题", "扫描 #a41f9c2", "open"], ["9月8日", "发布后复扫", "button-name 与 label 已不再检测到 · 剩余 1 个", "扫描 #b7d03e1", "partial"], ["9月15日", "记录人工检查", "Anna Weber（示例）用屏幕阅读器确认按钮会读出“将蓝色跑鞋加入购物车，按钮”——自动化只能看到标签存在。", "备注 #m-0915", "manual"], ["9月22日", "每周扫描", "3 个问题均已在 12 个页面上不再检测到", "扫描 #c93e5a7", "done"]], example: "示意 / 示例数据", diffSr: "代码改动", beforeCode: [["-", "<div class=\"card-cart\" onclick=\"addToCart(42)\">"], ["-", "  <svg viewBox=\"0 0 24 24\">…</svg>"], ["-", "</div>"], [" ", ""], ["-", "<input type=\"email\" placeholder=\"邮箱\">"], [" ", ""], ["-", ".price-note { color: #9ca3af; }  /* 2.54:1 */"]] as [string, string][], afterCode: [["+", "<button type=\"button\" class=\"card-cart\" onclick=\"addToCart(42)\""], ["+", "  aria-label=\"将蓝色跑鞋加入购物车\">"], ["+", "  <svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 24 24\">…</svg>"], ["+", "</button>"], [" ", ""], ["+", "<label for=\"nl-email\">电子邮件地址</label>"], ["+", "<input id=\"nl-email\" type=\"email\" autocomplete=\"email\">"], [" ", ""], ["+", ".price-note { color: #4b5563; }  /* 7.56:1 */"]] as [string, string][], caveat: '自动化检测只能确认属性存在——文本是否有意义仍需人工审查。' },
     stat: { value: '57', suffix: '%', label: '的无障碍问题大约可由自动化测试发现（Deque 研究）。我们事先如实说明。' },
     card: { title: '审计记录', illustrative: '示意数据', rows: [['9月1日', '每周扫描', '42 个问题'], ['9月8日', '每周扫描', '27 个问题'], ['9月15日', '记录人工审查', '已添加备注'], ['9月22日', '每周扫描', '6 个问题']] },
-    trustAria: '关键信息', trust: ['不使用覆盖层插件', '为欧盟团队打造', '对照 WCAG 2.2 与 EN 301 549 的检测', '带时间戳的证据'],
+    trustAria: '关键信息', trust: ['不使用覆盖层插件', '托管于德国', '对照 WCAG 2.2 与 EN 301 549 的检测', '带时间戳的证据'],
     why: { eyebrow: '为什么是现在', h2: 'EAA 已于 2025 年 6 月 28 日开始适用', items: [
       ['新的法律要求', '自 2025 年 6 月 28 日起，《欧洲无障碍法案》（在德国为 BFSG）要求许多面向消费者的数字服务（例如网店）具备无障碍性。'],
       ['进展难以证明', '一次性审计在每次发布后都会过时。小团队需要持续、有记录地说明测试了什么、发现了什么、修复了什么。'],
@@ -68,16 +68,16 @@ export const zh: Dict = {
     faq: { eyebrow: '常见问题', h2: '常见问题', more: '还有其他问题？请发送邮件至' },
   },
   pricing: {
-    title: '价格', description: 'Allyfolio 价格：入门版 €19/月，商业版 €39/月，代理商版 €99/月，或 €49 的单次无障碍报告。',
-    eyebrow: '价格', h1: '适合各种规模网站的方案', lead: '选择适合您网站的方案。所有价格均以欧元计价，不含增值税。正式上线前方案和限额可能会有调整。',
+    title: '价格', description: 'Allyfolio 价格：入门版 €19/月，商业版 €39/月，代理商版 €99/月，或一次性付费 €49 的单次无障碍报告。所有方案均含 PDF 报告。',
+    eyebrow: '价格', h1: '适合各种规模网站的方案', lead: '选择适合您网站的方案。所有价格均以欧元计价，不含增值税。所有方案均包含 PDF 报告。付款、发票和欧盟增值税由 Paddle.com Market Ltd 作为记录商户处理。',
     plansSr: '方案', includedH: '所有方案均包含',
-    included: ['使用 Playwright 和 axe-core 进行自动化扫描', '针对自动化无法发现的问题的人工审查清单', '带时间戳的扫描与修复历史', 'PDF 报告导出', '为欧盟团队打造', '不使用覆盖层插件，不在您的网站上运行脚本'],
+    included: ['使用 Playwright 和 axe-core 进行自动化扫描', '针对自动化无法发现的问题的人工审查清单', '带时间戳的扫描与修复历史', 'PDF 报告导出', '托管于德国（Hetzner，法尔肯施泰因）', '不使用覆盖层插件，不在您的网站上运行脚本'],
     disclaimer: 'Allyfolio 是一款测试与记录工具，不能替代专家的人工审查或法律建议。',
     faqH: '价格相关问题',
     faq: [
-      { q: '如何计费？', a: '方案按月计费。您可以随时取消，没有最短合约期。' },
+      { q: '如何计费？', a: '方案按月以欧元计费。您可以随时取消，没有最短合约期。付款、发票和欧盟增值税由 Paddle.com Market Ltd 作为记录商户处理。' },
       { q: '之后可以更换方案吗？', a: '可以。升级立即生效，您只需按比例支付本计费周期剩余时间的差价。降级从下一个计费周期开始生效。' },
-      { q: '价格是最终价格吗？', a: '价格以欧元计价，不含增值税。正式上线前方案和限额可能会有调整。前 100 位候补名单成员首年享 7 折优惠。' },
+      { q: '可以退款吗？', a: '可以。订阅和单次报告均可在任何一笔付款后的 14 天内申请全额退款。详见我们的退款政策。' },
       { q: '单次报告适合什么情况？', a: '适合获取一次性快照，例如在网站改版上线前。您将获得对 1 个网站（最多 100 个页面）的一次自动化扫描和一份 PDF 报告，无需订阅。' },
       { q: '扫描结果没有问题，是否意味着网站已无障碍？', a: '不是。自动化测试大约只能发现 57% 的问题（Deque 研究），其余部分需要人工审查，我们的清单可以帮助您进行规划。' },
     ],
@@ -141,5 +141,5 @@ export const zh: Dict = {
     h1: '用功能展示真实的无障碍工作', lead: '定期扫描、带时间戳的证据记录、所有方案均含 PDF 报告以及无障碍声明草稿，帮助中小企业和代理商为 EAA 和 BFSG 做准备。',
     nextH: '下一步', pricing: '比较方案和价格 →', scan: '免费扫描一个页面 →', resources: '阅读 EAA 和 BFSG 指南 →',
   },
-  prose: { lastUpdated: '最后更新', updated: '2026 年 10 月', legal: '法律信息', about: '关于我们' },
+  prose: { lastUpdated: '最后更新', updated: '2026 年 11 月', legal: '法律信息', about: '关于我们' },
 };

@@ -5,7 +5,7 @@ export const en = {
   skip: 'Skip to main content',
   nav: { how: 'How it works', pricing: 'Pricing', freeScan: 'Free scan', blog: 'Blog', resources: 'Resources', features: 'Features', about: 'About', waitlist: 'Join the waitlist', menu: 'Menu', main: 'Main', login: 'Log in', signup: 'Sign up', dashboard: 'Dashboard', account: 'Account', language: 'Language' },
   switcher: { label: '中文', aria: '切换到简体中文', hreflang: 'zh-CN' },
-  footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', terms: 'Terms of Service', dpa: 'Data processing agreement', imprint: 'Imprint', statement: 'Accessibility statement', allResources: 'All resources', copyright: 'A testing and documentation tool, not legal advice.' },
+  footer: { tagline: 'Accessibility monitoring and evidence for EU websites. No overlay widgets.', product: 'Product', legal: 'Legal', privacy: 'Privacy policy', terms: 'Terms of Service', dpa: 'Data processing agreement', imprint: 'Imprint', refund: 'Refund policy', statement: 'Accessibility statement', trustAria: 'Hosting and payments', hosting: 'App and data hosted in Germany (Hetzner, Falkenstein)', payments: 'Payments, invoices and EU VAT handled by Paddle.com Market Ltd as Merchant of Record', allResources: 'All resources', copyright: 'A testing and documentation tool, not legal advice.' },
   waitlist: {
     heading: 'Join the waitlist', lead: 'Be first to try Allyfolio. The first 100 waitlist members get 30% off their first year.',
     label: 'Work email', placeholder: 'you@company.eu', button: 'Join the waitlist', sending: 'Sending…',
@@ -18,7 +18,7 @@ export const en = {
   },
   plans: {
     recommended: 'Recommended', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
-    oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-off', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
+    oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-time', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
     items: {
       starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', 'PDF report export', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },
       business: { name: 'Business', blurb: 'For shops and services with bigger sites.', features: ['3 websites', 'Up to 500 pages per site', 'Daily scans', '24-month evidence history', 'PDF report export', '3 seats'], extra: ['Everything in Starter'] },
@@ -44,7 +44,7 @@ export const en = {
     fix: { eyebrow: 'Before / after', h2: 'One fix, documented', lead: 'Each scan is compared with the previous one, so a fix shows up as a dated entry in your evidence trail.', before: "Before · 1 Sep scan", after: "After · 22 Sep rescan", issues: [["button-name", "WCAG 4.1.2", "Critical", "Icon-only add-to-cart control has no accessible name or button role"], ["label", "WCAG 1.3.1 · 4.1.2", "Critical", "Newsletter email field has no label"], ["color-contrast", "WCAG 1.4.3", "Serious", "Grey price note #9ca3af on white: 2.54:1 (needs 4.5:1)"]], fixedNote: "#4b5563 on white: 7.56:1", trailH: "Evidence trail", trailAria: "Example evidence trail", trail: [["1 Sep", "Weekly scan", "3 issues on 12 pages", "scan #a41f9c2", "open"], ["8 Sep", "Rescan after release", "button-name and label no longer detected · 1 open", "scan #b7d03e1", "partial"], ["15 Sep", "Manual check recorded", "Anna Weber (example) confirmed with a screen reader that the button announces “Add Blue running shoe to cart, button” – automation can only see that a label exists.", "note #m-0915", "manual"], ["22 Sep", "Weekly scan", "All 3 issues no longer detected on 12 pages", "scan #c93e5a7", "done"]], example: "Illustration / example data", diffSr: "Code changes", beforeCode: [["-", "<div class=\"card-cart\" onclick=\"addToCart(42)\">"], ["-", "  <svg viewBox=\"0 0 24 24\">…</svg>"], ["-", "</div>"], [" ", ""], ["-", "<input type=\"email\" placeholder=\"Email\">"], [" ", ""], ["-", ".price-note { color: #9ca3af; }  /* 2.54:1 */"]] as [string, string][], afterCode: [["+", "<button type=\"button\" class=\"card-cart\" onclick=\"addToCart(42)\""], ["+", "  aria-label=\"Add Blue running shoe to cart\">"], ["+", "  <svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 24 24\">…</svg>"], ["+", "</button>"], [" ", ""], ["+", "<label for=\"nl-email\">Email address</label>"], ["+", "<input id=\"nl-email\" type=\"email\" autocomplete=\"email\">"], [" ", ""], ["+", ".price-note { color: #4b5563; }  /* 7.56:1 */"]] as [string, string][], caveat: 'Automated checks confirm the name or label exists – whether the text is meaningful still needs a person to review.' },
     stat: { value: '57', suffix: '%', label: 'of accessibility issues are found by automated testing, roughly (Deque study). We say so upfront.' },
     card: { title: 'Audit trail', illustrative: 'Illustrative data', rows: [['1 Sep', 'Weekly scan', '42 issues'], ['8 Sep', 'Weekly scan', '27 issues'], ['15 Sep', 'Manual review logged', 'Note added'], ['22 Sep', 'Weekly scan', '6 issues']] },
-    trustAria: 'Key facts', trust: ['No overlay widget', 'Built for EU teams', 'WCAG 2.2 & EN 301 549 aligned checks', 'Timestamped evidence'],
+    trustAria: 'Key facts', trust: ['No overlay widget', 'Hosted in Germany', 'WCAG 2.2 & EN 301 549 aligned checks', 'Timestamped evidence'],
     why: { eyebrow: 'Why now', h2: 'The EAA has applied since 28 June 2025', items: [
       ['New legal requirements', 'Since 28 June 2025, the European Accessibility Act – in Germany the BFSG – requires many consumer-facing digital services, such as online shops, to be accessible.'],
       ['Hard to show progress', 'One-off audits go stale with every release. Small teams need an ongoing, documented record of what they tested, what they found and what they fixed.'],
@@ -67,16 +67,16 @@ export const en = {
     faq: { eyebrow: 'FAQ', h2: 'Frequently asked questions', more: 'Something else? Email' },
   },
   pricing: {
-    title: 'Pricing', description: 'Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €49.',
-    eyebrow: 'Pricing', h1: 'Plans for every size of site', lead: 'Pick the plan that fits your site. All prices are in euros and exclude VAT. Plans and limits may change before launch.',
+    title: 'Pricing', description: 'Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €49 (one-time). PDF reports on all plans.',
+    eyebrow: 'Pricing', h1: 'Plans for every size of site', lead: 'Pick the plan that fits your site. All prices are in euros and exclude VAT. PDF reports are included on all plans. Payments, invoices and EU VAT are handled by Paddle.com Market Ltd as Merchant of Record.',
     plansSr: 'Plans', includedH: 'Included in every plan',
-    included: ['Automated scans with Playwright and axe-core', 'Manual review checklist for issues automation cannot detect', 'Timestamped history of scans and fixes', 'PDF report export', 'Built for EU teams', 'No overlay widget and no scripts on your site'],
+    included: ['Automated scans with Playwright and axe-core', 'Manual review checklist for issues automation cannot detect', 'Timestamped history of scans and fixes', 'PDF report export', 'Hosted in Germany (Hetzner, Falkenstein)', 'No overlay widget and no scripts on your site'],
     disclaimer: 'Allyfolio is a testing and documentation tool. It does not replace manual expert review or legal advice.',
     faqH: 'Pricing questions',
     faq: [
-      { q: 'How does billing work?', a: 'Plans are billed monthly. You can cancel any time and there is no minimum term.' },
+      { q: 'How does billing work?', a: 'Plans are billed monthly in euros. You can cancel any time and there is no minimum term. Payments, invoices and EU VAT are handled by Paddle.com Market Ltd as Merchant of Record.' },
       { q: 'Can I change plans later?', a: 'Yes. Upgrades take effect immediately and you pay a prorated amount for the rest of the billing cycle. Downgrades apply from the next billing cycle.' },
-      { q: 'Are prices final?', a: 'Prices are in euros and exclude VAT. Plans and limits may change before launch. The first 100 waitlist members get 30% off their first year.' },
+      { q: 'Can I get a refund?', a: 'Yes. You can request a full refund within 14 days of any payment, for subscriptions and the one-off report. See our refund policy.' },
       { q: 'What is the one-off report for?', a: 'For a single snapshot – for example before a relaunch. You get a single automated scan of 1 site (up to 100 pages) and a PDF report, without a subscription.' },
       { q: 'Does a clean scan mean my site is accessible?', a: 'No. Automated testing finds roughly 57% of issues (Deque study). The rest needs manual review by people, which our checklist helps you plan.' },
     ],
@@ -140,6 +140,6 @@ export const en = {
     h1: 'Features for showing real accessibility work', lead: 'Scheduled scans, a timestamped evidence trail, PDF reports on every plan and draft accessibility statements – for SMEs and agencies preparing for the EAA and BFSG.',
     nextH: 'Next steps', pricing: 'Compare plans and prices →', scan: 'Run a free scan of one page →', resources: 'Read the EAA and BFSG guides →',
   },
-  prose: { lastUpdated: 'Last updated', updated: 'October 2026', legal: 'Legal', about: 'About' },
+  prose: { lastUpdated: 'Last updated', updated: 'November 2026', legal: 'Legal', about: 'About' },
 };
 export type Dict = typeof en;

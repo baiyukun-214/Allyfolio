@@ -15,6 +15,10 @@ const link = 'text-muted hover:text-brand-700 hover:underline underline-offset-4
       <p class="flex items-center gap-2 font-semibold text-ink text-base"><Logo size={24} />Allyfolio</p>
       <p class="mt-3 text-muted">{t.footer.tagline}</p>
       <p class="mt-3"><a class="text-brand-700 underline underline-offset-4" href="mailto:hello@allyfolio.com">hello@allyfolio.com</a></p>
+      <ul class="mt-3 space-y-1 text-muted" aria-label={t.footer.trustAria}>
+        <li>{t.footer.hosting}</li>
+        <li>{t.footer.payments}</li>
+      </ul>
     </div>
     <nav aria-label={t.footer.product}>
       <h2 class="font-semibold text-ink">{t.footer.product}</h2>
@@ -44,6 +48,7 @@ const link = 'text-muted hover:text-brand-700 hover:underline underline-offset-4
       <ul class="mt-3 space-y-2">
         <li><a class={link} href={l('/privacy')}>{t.footer.privacy}</a></li>
         <li><a class={link} href={l('/terms')}>{t.footer.terms}</a></li>
+        <li><a class={link} href={l('/refund')}>{t.footer.refund}</a></li>
         <li><a class={link} href={l('/dpa')}>{t.footer.dpa}</a></li>
         <li><a class={link} href={l('/imprint')}>{t.footer.imprint}</a></li>
         <li><a class={link} href={l('/accessibility-statement')}>{t.footer.statement}</a></li>

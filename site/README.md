@@ -50,4 +50,4 @@ Custom domains (`allyfolio.com`, `www`) are attached in the dashboard. `wrangler
 Never claim the product makes sites "compliant", "certified" or guarantees anything. Always mention that automated testing finds roughly 57% of issues (Deque) and that manual review is needed. No overlay widgets. Mention the microenterprise exemption honestly.
 
 ## Open TODOs
-Search for `TODO` in `src/`: plan limits, waitlist API, free scan API, imprint legal details, privacy policy review, hosting region.
+Legal pages (terms, privacy, refund, imprint, DPA) live in `src/i18n/pages.ts`. Have them reviewed by a lawyer; the governing-law clause in Terms §12 is an open decision.

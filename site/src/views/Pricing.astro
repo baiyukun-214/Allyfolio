@@ -8,7 +8,6 @@ import Icon from '../components/Icon.astro';
 import { i18n } from '../i18n';
 const { t } = i18n(Astro.url.pathname);
 const P = t.pricing;
-// TODO: switch "Built for EU teams" to "EU data hosting" once backend hosting in the EU is confirmed.
 const icons = ['check', 'doc', 'clock', 'file', 'globe', 'ban'];
 ---
 <Base title={P.title} description={P.description}>
