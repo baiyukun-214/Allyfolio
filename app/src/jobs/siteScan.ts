@@ -44,7 +44,9 @@ export async function runSiteScan(p: SiteScanPayload, log: any = console): Promi
     return null;
   };
   try {
+    let batches = 0;
     while (pages.length < cap) {
+      if (batches++ && config.scanPageDelayMs) await new Promise((r) => setTimeout(r, config.scanPageDelayMs)); // polite spacing between batches
       const batch: string[] = [];
       while (batch.length < config.scanConcurrency && pages.length + batch.length < cap) { const u = next(); if (!u) break; batch.push(u); }
       if (!batch.length) break;

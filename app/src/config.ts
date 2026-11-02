@@ -22,6 +22,8 @@ export const config = {
   sessionSecret: e.SESSION_SECRET ?? 'dev-insecure-secret',
   scanTimeoutMs: Number(e.SCAN_TIMEOUT_MS ?? 30000),
   scanConcurrency: Number(e.SCAN_CONCURRENCY ?? 2),
+  /** Pause between page batches of a site crawl (politeness; stated on allyfolio.com/bot). */
+  scanPageDelayMs: Math.max(0, Number(e.SCAN_PAGE_DELAY_MS ?? 1000)),
   freeScanMaxQueue: Number(e.FREE_SCAN_MAX_QUEUE ?? 4),
   freeScanCacheMin: Number(e.FREE_SCAN_CACHE_MINUTES ?? 15),
   freeScanPerHour: Number(e.FREE_SCAN_PER_IP_PER_HOUR ?? 5),

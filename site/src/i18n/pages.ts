@@ -2,11 +2,66 @@ import type { Locale } from './index';
 const DEQUE = 'https://www.deque.com/automated-accessibility-testing-coverage/';
 const MAIL = '<a href="mailto:hello@allyfolio.com">hello@allyfolio.com</a>';
 export interface ProsePage { eyebrow: 'legal' | 'about'; title: string; description: string; html: string }
-type Pages = Record<'about' | 'privacy' | 'imprint' | 'statement' | 'terms' | 'dpa' | 'refund', ProsePage>;
+type Pages = Record<'about' | 'privacy' | 'imprint' | 'statement' | 'terms' | 'dpa' | 'refund' | 'bot', ProsePage>;
 const PADDLE_TERMS = 'https://www.paddle.com/legal/checkout-buyer-terms';
 const PADDLE_NET = 'https://www.paddle.net/';
+// Crawler identity page (/bot, /de/bot). Numbers mirror app/src/config.ts (SCAN_CONCURRENCY=2, SCAN_PAGE_DELAY_MS=1000, SCAN_TIMEOUT_MS=30000, FREE_SCAN_PER_IP_PER_HOUR=5, FREE_SCAN_CACHE_MINUTES=15) and app/src/lib/plans.ts; keep them in sync.
+const ROBOTS_SNIPPET = '<pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code>User-agent: AllyfolioBot\nAllow: /</code></pre>';
+const BOT_EN: ProsePage = { eyebrow: 'about', title: 'About AllyfolioBot', description: 'AllyfolioBot is the scanner behind Allyfolio’s automated accessibility monitoring for the EU EAA and the German BFSG: what it does, when it visits a site, how politely it crawls and how to allow it in robots.txt.', html: `
+<p><strong>AllyfolioBot</strong> is Allyfolio’s own scanner. It runs automated accessibility checks (axe-core rules, mapped to WCAG success criteria) for Allyfolio’s monitoring service, which helps EU businesses and web agencies prepare for the European Accessibility Act (EAA) and its German implementation, the BFSG. Automated testing finds only part of all accessibility issues; the results support, and do not replace, a manual review.</p>
+<h2>How to recognise it</h2>
+<p>AllyfolioBot sends this user agent:</p>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code>Mozilla/5.0 AllyfolioBot/0.1 (+https://allyfolio.com/bot)</code></pre>
+<p>It loads pages in a headless Chromium browser, like a visitor would: the HTML document plus the scripts, style sheets, fonts, images and data requests the page needs. It does not submit forms, log in, download files or follow links to other domains.</p>
+<h2>When it visits a site</h2>
+<ul>
+<li><strong>Monitoring (multi-page crawls):</strong> scheduled weekly or daily monitoring, and scans started from the dashboard, run only on sites whose owner has verified ownership in Allyfolio, either with a DNS TXT record or with an HTML meta tag on the home page. A crawl covers at most 100, 500 or 1,000 pages, depending on the plan.</li>
+<li><strong>Free one-off check (single page):</strong> anyone can ask for a free check of one address on allyfolio.com. AllyfolioBot then loads that single page once, on demand. It does not follow links, crawl the rest of the site or come back on a schedule. Each visitor can start at most 5 free checks per hour, and a repeat request for the same address within 15 minutes normally reuses the earlier result instead of loading the page again.</li>
+</ul>
+<h2>How politely it crawls</h2>
+<ul>
+<li><strong>Low concurrency:</strong> at most 2 pages are loaded at the same time, across all scans.</li>
+<li><strong>Request spacing:</strong> during a crawl, it pauses for 1 second after each batch of pages before it loads the next.</li>
+<li><strong>Timeouts:</strong> a page that does not load within 30 seconds is skipped and reported as not loaded.</li>
+<li><strong>Scope:</strong> it only crawls the verified host, skips files (PDFs, images, documents) and URLs with very long query strings.</li>
+</ul>
+<h2>robots.txt</h2>
+<p>For crawls, AllyfolioBot reads <code>/robots.txt</code>. If there is a group for <code>AllyfolioBot</code>, it follows that group; otherwise it follows the <code>*</code> group. The most specific (longest) rule wins, and Allow wins a tie. The start page of a verified site is always scanned. AllyfolioBot does not currently read <code>Crawl-delay</code>; it always uses the spacing above. The free one-off check of a single page is started by a person and does not consult robots.txt.</p>
+<p>To let AllyfolioBot check every page of your site, add these lines to your robots.txt:</p>
+${ROBOTS_SNIPPET}
+<p>For each scan, the Allyfolio dashboard shows how many pages robots.txt kept out of the scan, with examples, so you can see what was not checked.</p>
+<h2>Contact and appeals</h2>
+<p>If AllyfolioBot causes problems on your site, or you think a site was scanned without the owner’s permission, write to ${MAIL} with the domain concerned and, if possible, the time of the visit. We will look into it and reply.</p>
+`};
+const BOT_DE: ProsePage = { eyebrow: 'about', title: 'Über AllyfolioBot', description: 'AllyfolioBot ist der Scanner hinter dem automatisierten Barrierefreiheits-Monitoring von Allyfolio für den EU-EAA und das BFSG: was er tut, wann er eine Website besucht, wie rücksichtsvoll er crawlt und wie Sie ihn in der robots.txt zulassen.', html: `
+<p><strong>AllyfolioBot</strong> ist der eigene Scanner von Allyfolio. Er führt automatisierte Barrierefreiheitsprüfungen (axe-core-Regeln, den WCAG-Erfolgskriterien zugeordnet) für den Monitoring-Dienst von Allyfolio aus, der Unternehmen und Webagenturen in der EU bei der Vorbereitung auf den European Accessibility Act (EAA) und seine deutsche Umsetzung, das BFSG, unterstützt. Automatisierte Tests finden nur einen Teil aller Barrieren; die Ergebnisse unterstützen eine manuelle Prüfung und ersetzen sie nicht.</p>
+<h2>So erkennen Sie ihn</h2>
+<p>AllyfolioBot sendet diesen User-Agent:</p>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere"><code>Mozilla/5.0 AllyfolioBot/0.1 (+https://allyfolio.com/bot)</code></pre>
+<p>Er lädt Seiten in einem Headless-Chromium-Browser, so wie ein Besucher: das HTML-Dokument sowie die Skripte, Stylesheets, Schriften, Bilder und Datenabfragen, die die Seite benötigt. Er sendet keine Formulare ab, meldet sich nirgends an, lädt keine Dateien herunter und folgt keinen Links auf andere Domains.</p>
+<h2>Wann er eine Website besucht</h2>
+<ul>
+<li><strong>Monitoring (Prüfung mehrerer Seiten):</strong> Das geplante wöchentliche oder tägliche Monitoring und im Dashboard gestartete Prüfungen laufen nur für Websites, deren Inhaber die Inhaberschaft in Allyfolio nachgewiesen hat, entweder per DNS-TXT-Eintrag oder per HTML-Meta-Tag auf der Startseite. Eine Prüfung umfasst je nach Tarif höchstens 100, 500 oder 1.000 Seiten.</li>
+<li><strong>Kostenloser Einzelcheck (eine Seite):</strong> Auf allyfolio.com kann jeder einen kostenlosen Check einer einzelnen Adresse anfordern. AllyfolioBot lädt dann genau diese eine Seite einmal, auf Anfrage. Er folgt keinen Links, crawlt nicht den Rest der Website und kommt nicht nach Zeitplan wieder. Pro Besucher sind höchstens 5 kostenlose Checks pro Stunde möglich, und eine erneute Anfrage für dieselbe Adresse innerhalb von 15 Minuten nutzt in der Regel das vorherige Ergebnis, statt die Seite erneut zu laden.</li>
+</ul>
+<h2>Wie rücksichtsvoll er crawlt</h2>
+<ul>
+<li><strong>Geringe Parallelität:</strong> Es werden höchstens 2 Seiten gleichzeitig geladen, über alle Prüfungen hinweg.</li>
+<li><strong>Abstand zwischen Anfragen:</strong> Während einer Prüfung pausiert er nach jedem Seitenblock 1 Sekunde, bevor er den nächsten lädt.</li>
+<li><strong>Zeitlimit:</strong> Eine Seite, die nicht innerhalb von 30 Sekunden lädt, wird übersprungen und als nicht geladen gemeldet.</li>
+<li><strong>Umfang:</strong> Er crawlt nur den nachgewiesenen Host und überspringt Dateien (PDFs, Bilder, Dokumente) sowie URLs mit sehr langen Query-Parametern.</li>
+</ul>
+<h2>robots.txt</h2>
+<p>Bei Prüfungen mehrerer Seiten liest AllyfolioBot die <code>/robots.txt</code>. Gibt es eine Gruppe für <code>AllyfolioBot</code>, folgt er dieser Gruppe, sonst der Gruppe <code>*</code>. Die spezifischste (längste) Regel gilt, bei Gleichstand gewinnt Allow. Die Startseite einer nachgewiesenen Website wird immer geprüft. <code>Crawl-delay</code> wertet AllyfolioBot derzeit nicht aus; er nutzt immer den oben genannten Abstand. Der kostenlose Einzelcheck einer Seite wird von einer Person gestartet und berücksichtigt die robots.txt nicht.</p>
+<p>Damit AllyfolioBot alle Seiten Ihrer Website prüfen kann, fügen Sie diese Zeilen in Ihre robots.txt ein:</p>
+${ROBOTS_SNIPPET}
+<p>Für jede Prüfung zeigt das Allyfolio-Dashboard, wie viele Seiten durch die robots.txt ausgeschlossen wurden, mit Beispielen, damit Sie sehen, was nicht geprüft wurde.</p>
+<h2>Kontakt und Einspruch</h2>
+<p>Wenn AllyfolioBot auf Ihrer Website Probleme verursacht oder Sie glauben, dass eine Website ohne Erlaubnis des Inhabers geprüft wurde, schreiben Sie an ${MAIL} mit der betroffenen Domain und nach Möglichkeit dem Zeitpunkt des Besuchs. Wir gehen dem nach und antworten Ihnen.</p>
+`};
 const base: Record<'en' | 'zh-CN', Pages> = {
   en: {
+    bot: BOT_EN,
     about: { eyebrow: 'about', title: 'About Allyfolio', description: 'Why we are building Allyfolio: honest, evidence-based accessibility monitoring for EU SMEs and web agencies.', html: `
 <p>Allyfolio is an accessibility monitoring service for European SMEs and web agencies facing the European Accessibility Act (EAA) and Germany's BFSG.</p>
 <h2>What Allyfolio does</h2>
@@ -178,6 +233,7 @@ const base: Record<'en' | 'zh-CN', Pages> = {
 <p>If you find a barrier, please email ${MAIL}. We aim to reply within 5 working days.</p>` },
   },
   'zh-CN': {
+    bot: BOT_EN, // no Chinese /bot page (internal locale); kept only for the type
     about: { eyebrow: 'about', title: '关于 Allyfolio', description: '我们为什么打造 Allyfolio：为欧盟中小企业和网页代理商提供诚实、以证据为基础的无障碍监测。', html: `
 <p>Allyfolio 是一项无障碍监测服务，面向需要应对《欧洲无障碍法案》（EAA）和德国 BFSG 要求的欧洲中小企业和网页代理商。</p>
 <h2>Allyfolio 的作用</h2>
@@ -353,6 +409,7 @@ const NOTE = (en: string) => `<p><strong>Diese Übersetzung dient nur zur Inform
 // German legal pages: informational translations of the English versions (which prevail). Pages without a German version reuse the English text.
 const de: Pages = {
   ...base.en,
+  bot: BOT_DE,
   privacy: { eyebrow: 'legal', title: 'Datenschutzerklärung', description: 'Wie Allyfolio personenbezogene Daten verarbeitet: Website, Warteliste, Konten, Scans, Abrechnung und E-Mail. Auftragsverarbeiter, Speicherdauer und Ihre Rechte nach der DSGVO.', html: `
 ${NOTE('/privacy')}
 <p>Diese Erklärung beschreibt, welche personenbezogenen Daten Allyfolio auf allyfolio.com und app.allyfolio.com verarbeitet, zu welchem Zweck und wie lange.</p>

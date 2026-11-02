@@ -8,7 +8,7 @@ export const PUBLIC_LOCALES: Locale[] = ['en', 'de'];
 const dicts: Record<Locale, Dict> = { en, 'zh-CN': zh, de };
 export const prefix = (l: Locale) => (l === 'zh-CN' ? '/zh' : l === 'de' ? '/de' : '');
 /** Locale-independent paths that have a German page under /de. Everything else links to the English page. */
-export const DE_PATHS = new Set(['/', '/pricing', '/free-scan', '/terms', '/privacy', '/refund', '/imprint', '/blog/what-the-eaa-means-for-smes']);
+export const DE_PATHS = new Set(['/', '/pricing', '/free-scan', '/terms', '/privacy', '/refund', '/imprint', '/bot', '/blog/what-the-eaa-means-for-smes']);
 export const hasDe = (base: string) => DE_PATHS.has(base);
 /** Strip a locale prefix and .html suffix → the locale-independent page path ("/" for home). */
 export function basePath(pathname: string): string {
