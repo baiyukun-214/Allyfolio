@@ -96,6 +96,8 @@ test('scheduled scan → evidence trail, diff, alert, immutability, retention', 
   await workOnce({});
   const s2 = db.get("SELECT * FROM scans WHERE kind = 'manual'");
   assert.ok(s2.new_issues >= 1); assert.equal(s2.fixed_issues, 0); assert.equal(s2.prev_hash, s1.evidence_hash, 'hash chain links to previous scan');
+  assert.equal(s2.hash_version, 2, 'new scans use hash scheme v2');
+  { const vc = (await import('../../src/lib/evidence.ts')).verifyScanChain(s2.site_id); assert.equal(vc.ok, true, JSON.stringify(vc)); assert.deepEqual(vc.versions, { v2: 2 }); assert.equal(vc.pruned, false); assert.equal(vc.head, s2.evidence_hash); }
   assert.ok(sentMail.slice(before).some((m) => /new serious accessibility issue/.test(m.subject)), 'alert email sent');
   // dashboard polish: status JSON for the progress bar, score ring + KPIs, danger zone lives in Settings
   const st = JSON.parse((await c.req('GET', sitePath + '/scan-status')).body);

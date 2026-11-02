@@ -14,6 +14,7 @@
     "test:e2e": "tsx --test test/e2e/*.test.ts",
     "test:a11y": "tsx scripts/axe-dashboard.ts",
     "set-plan": "tsx scripts/set-plan.ts",
+    "verify-chain": "tsx scripts/verify-chain.ts",
     "paddle:setup": "tsx scripts/paddle-setup.ts"
   },
   "dependencies": {

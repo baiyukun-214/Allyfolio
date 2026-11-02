@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS scan_issues (
   impact TEXT NOT NULL, wcag TEXT, help TEXT NOT NULL, help_url TEXT, target TEXT NOT NULL, html TEXT, fingerprint TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS issues_scan ON scan_issues(scan_id);
--- Evidence trail is append-only: issues can never be edited, finished scans can never be edited.
+-- Evidence trail is append-only for the app: issues and finished scans cannot be edited through normal writes
+-- (a database administrator could still drop these triggers; the hash chain and off-site anchors make that detectable).
 CREATE TRIGGER IF NOT EXISTS issues_no_update BEFORE UPDATE ON scan_issues BEGIN SELECT RAISE(ABORT, 'scan_issues are immutable'); END;
 CREATE TRIGGER IF NOT EXISTS scans_no_update_done BEFORE UPDATE ON scans WHEN OLD.status IN ('done','failed') BEGIN SELECT RAISE(ABORT, 'finished scans are immutable'); END;
 CREATE TABLE IF NOT EXISTS jobs (
@@ -106,6 +107,8 @@ export function db(): DatabaseSync {
     // Client workspaces (Agency): optional grouping of sites per agency client. Deleting a client keeps its sites.
     "ALTER TABLE sites ADD COLUMN client_id TEXT REFERENCES clients(id) ON DELETE SET NULL",
     "CREATE INDEX IF NOT EXISTS sites_client ON sites(client_id)",
+    // Evidence hash scheme per scan (NULL = v1, see lib/evidence.ts). Old rows keep their scheme and stay verifiable.
+    "ALTER TABLE scans ADD COLUMN hash_version INTEGER",
   ]) { try { _db.exec(m); } catch { /* already applied */ } }
   return _db;
 }

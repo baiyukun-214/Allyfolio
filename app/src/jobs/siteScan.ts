@@ -1,4 +1,5 @@
-import { randomUUID, createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
+import { evidenceHashV1, evidenceHashV2, HASH_VERSION, type IssueRecord } from '../lib/evidence.ts';
 import { get, all, run, now, tx } from '../db.ts';
 import { planOf, pageCap, effectivePlanSql } from '../lib/plans.ts';
 import { scanPage, ruleHelp, type Issue } from '../lib/scanner.ts';
@@ -9,10 +10,8 @@ import { config } from '../config.ts';
 
 export interface SiteScanPayload { siteId: string; kind: 'scheduled' | 'manual' | 'oneoff' }
 
-export function evidenceHash(prevHash: string | null, scan: { id: string; siteId: string; finishedAt: string; pages: string[]; fingerprints: string[] }) {
-  const canonical = JSON.stringify({ prev: prevHash ?? null, id: scan.id, site: scan.siteId, finished: scan.finishedAt, pages: [...scan.pages].sort(), issues: [...scan.fingerprints].sort() });
-  return createHash('sha256').update(canonical).digest('hex');
-}
+/** @deprecated v1 scheme, kept for old records – new scans use evidenceHashV2 (see lib/evidence.ts). */
+export const evidenceHash = evidenceHashV1;
 
 export async function runSiteScan(p: SiteScanPayload, log: any = console): Promise<string | null> {
   const site = get<any>(`SELECT s.*, ${effectivePlanSql()} AS plan, t.name AS team_name FROM sites s JOIN teams t ON t.id = s.team_id WHERE s.id = ?`, p.siteId);
@@ -82,12 +81,17 @@ export async function runSiteScan(p: SiteScanPayload, log: any = console): Promi
     const counts = { critical: 0, serious: 0, moderate: 0, minor: 0 } as Record<string, number>;
     for (const i of issues) counts[i.impact]++;
     const finishedAt = now();
-    const hash = evidenceHash(prev?.evidence_hash ?? null, { id, siteId: site.id, finishedAt, pages: pages.map((p) => p.url), fingerprints: [...curFps] });
+    const crawlJson = JSON.stringify(crawl);
+    const pageRows = [...new Map(pages.map((pg) => [pg.url, { url: pg.url, status: pg.status, error: pg.error ?? null }])).values()];
+    const issueRows: IssueRecord[] = issues.map((i) => ({ page_url: i.pageUrl, rule_id: i.ruleId, impact: i.impact, wcag: i.wcag.join(', '), help: i.help, help_url: i.helpUrl ?? null, target: i.target, html: i.html ?? null, fingerprint: i.fingerprint }));
+    const rec = { id, site_id: site.id, kind: p.kind, finished_at: finishedAt, page_limit: cap, pages_scanned: pages.length, critical: counts.critical, serious: counts.serious,
+      moderate: counts.moderate, minor: counts.minor, new_issues: prev ? newIssues.length : null, fixed_issues: prev ? fixed : null, crawl: crawlJson };
+    const hash = evidenceHashV2(prev?.evidence_hash ?? null, rec, pageRows, issueRows);
     tx(() => {
-      for (const pg of pages) run('INSERT OR IGNORE INTO scan_pages (scan_id, url, status, error) VALUES (?,?,?,?)', id, pg.url, pg.status, pg.error ?? null);
-      for (const i of issues) run('INSERT INTO scan_issues (scan_id, page_url, rule_id, impact, wcag, help, help_url, target, html, fingerprint) VALUES (?,?,?,?,?,?,?,?,?,?)', id, i.pageUrl, i.ruleId, i.impact, i.wcag.join(', '), i.help, i.helpUrl, i.target, i.html, i.fingerprint);
-      run(`UPDATE scans SET status='done', crawl=?, finished_at=?, pages_scanned=?, critical=?, serious=?, moderate=?, minor=?, new_issues=?, fixed_issues=?, prev_hash=?, evidence_hash=? WHERE id=?`,
-        JSON.stringify(crawl), finishedAt, pages.length, counts.critical, counts.serious, counts.moderate, counts.minor, prev ? newIssues.length : null, prev ? fixed : null, prev?.evidence_hash ?? null, hash, id);
+      for (const pg of pageRows) run('INSERT OR IGNORE INTO scan_pages (scan_id, url, status, error) VALUES (?,?,?,?)', id, pg.url, pg.status, pg.error);
+      for (const i of issueRows) run('INSERT INTO scan_issues (scan_id, page_url, rule_id, impact, wcag, help, help_url, target, html, fingerprint) VALUES (?,?,?,?,?,?,?,?,?,?)', id, i.page_url, i.rule_id, i.impact, i.wcag, i.help, i.help_url, i.target, i.html, i.fingerprint);
+      run(`UPDATE scans SET status='done', crawl=?, finished_at=?, pages_scanned=?, critical=?, serious=?, moderate=?, minor=?, new_issues=?, fixed_issues=?, prev_hash=?, evidence_hash=?, hash_version=? WHERE id=?`,
+        crawlJson, finishedAt, pages.length, counts.critical, counts.serious, counts.moderate, counts.minor, rec.new_issues, rec.fixed_issues, prev?.evidence_hash ?? null, hash, HASH_VERSION, id);
     });
     const newSerious = newIssues.filter((i) => i.impact === 'serious' || i.impact === 'critical');
     if (prev && newSerious.length) await alertTeam(site, id, newSerious);
