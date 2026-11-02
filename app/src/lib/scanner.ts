@@ -3,6 +3,7 @@ import { AxeBuilder } from '@axe-core/playwright';
 import { createHash } from 'node:crypto';
 import { config } from '../config.ts';
 import { assertPublicHost, parsePublicUrl, UnsafeUrlError } from './ssrf.ts';
+import { dismissConsent } from './consent.ts';
 
 export type Impact = 'critical' | 'serious' | 'moderate' | 'minor';
 export const IMPACTS: Impact[] = ['critical', 'serious', 'moderate', 'minor'];
@@ -70,6 +71,7 @@ export async function scanPage(rawUrl: string, opts: { collectLinks?: boolean } 
     const finalUrl = page.url();
     parsePublicUrl(finalUrl); // final URL after redirects must still be acceptable
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    await dismissConsent(page).catch(() => {}); // best effort, capped at 2 s, never fails the scan
     const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
     const issues: Issue[] = [];
     for (const v of r.violations) for (const n of v.nodes) {

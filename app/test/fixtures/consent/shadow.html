@@ -1,0 +1,3 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Consent fixture</title></head><body><main><h1>Shop</h1><p>Clean page content.</p></main>
+<div id="usercentrics-root"></div>
+<script>const r=document.getElementById('usercentrics-root').attachShadow({mode:'open'});r.innerHTML='<div><button data-testid="uc-deny-all-button">Deny</button><button data-testid="uc-accept-all-button">Accept All</button></div>';r.querySelector('[data-testid=uc-accept-all-button]').onclick=()=>{window.__consent='uc';document.getElementById('usercentrics-root').remove()};</script></body></html>

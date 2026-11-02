@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Consent fixture</title></head><body><main><h1>Shop</h1><p>Clean page content.</p></main>
+<div id="banner"><p>Cookies</p><button id="onetrust-accept-btn-handler" onclick="done('slow')">Accept</button></div>
+<script>function done(n){window.__consent=n;var b=document.getElementById("banner");if(b)b.remove();}</script>
+<script>addEventListener('load',()=>setTimeout(()=>{const e=Date.now()+4000;while(Date.now()<e){}},20));</script></body></html>
