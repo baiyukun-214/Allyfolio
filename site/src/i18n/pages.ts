@@ -45,6 +45,7 @@ const base: Record<'en' | 'zh-CN', Pages> = {
 <p>Payments, invoices and EU VAT are handled by <strong>Paddle.com Market Ltd</strong> (UK) as Merchant of Record. Our order process is conducted by our online reseller Paddle.com: Paddle is the seller of record, collects payment details, issues invoices and handles VAT. Paddle processes your payment and billing data as an independent controller under its own privacy notice. We receive your customer and subscription IDs, plan, status and billing period, not your card details.</p>
 <h2>Email</h2>
 <p>Transactional emails (login links, password resets, invitations, alerts, receipts of account changes) are sent via <strong>Resend</strong> from servers in the EU (Ireland region). Emails you send to ${MAIL} are received through <strong>Cloudflare</strong> Email Routing and forwarded to our mailbox.</p>
+<p>If you or your team send accessibility reports by email (once or on a schedule), the email addresses of the report recipients are processed via <strong>Resend</strong> to deliver those reports. We keep a delivery log (recipient, time, status) so you can see what was sent, and recipients can unsubscribe from scheduled reports with the link in each email.</p>
 <h2>Processors</h2>
 <ul>
 <li><strong>Hetzner Online GmbH</strong> (Germany): app servers, database and backups in Falkenstein, Germany.</li>
@@ -215,6 +216,7 @@ const base: Record<'en' | 'zh-CN', Pages> = {
 <p>付款、发票和欧盟增值税由 <strong>Paddle.com Market Ltd</strong>（英国）作为记录商户（Merchant of Record）处理。我们的订单流程由我们的在线经销商 Paddle.com 执行：Paddle 是销售方，负责收集付款信息、开具发票并处理增值税。Paddle 作为独立控制者根据其自身的隐私声明处理您的付款和账单数据。我们只会收到您的客户和订阅 ID、方案、状态和计费周期，不会收到您的银行卡信息。</p>
 <h2>电子邮件</h2>
 <p>事务性邮件（登录链接、密码重置、邀请、提醒、账户变更通知）通过 <strong>Resend</strong> 从欧盟（爱尔兰区域）的服务器发送。您发送到 ${MAIL} 的邮件通过 <strong>Cloudflare</strong> Email Routing 接收并转发到我们的邮箱。</p>
+<p>如果您或您的团队通过电子邮件发送无障碍报告（单次或定期），报告收件人的电子邮件地址将通过 <strong>Resend</strong> 处理，用于投递这些报告。我们会保留发送记录（收件人、时间、状态），以便您查看已发送的内容；收件人可通过每封邮件中的链接退订定期报告。</p>
 <h2>数据处理方</h2>
 <ul>
 <li><strong>Hetzner Online GmbH</strong>（德国）：位于德国法尔肯施泰因的应用服务器、数据库和备份。</li>
@@ -380,6 +382,7 @@ ${NOTE('/privacy')}
 <p>Zahlungen, Rechnungen und EU-Umsatzsteuer wickelt <strong>Paddle.com Market Ltd</strong> (Vereinigtes Königreich) als Merchant of Record ab. Unser Bestellprozess wird von unserem Online-Wiederverkäufer Paddle.com durchgeführt: Paddle ist Verkäufer, erhebt die Zahlungsdaten, stellt Rechnungen aus und kümmert sich um die Umsatzsteuer. Paddle verarbeitet Ihre Zahlungs- und Abrechnungsdaten als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung. Wir erhalten Ihre Kunden- und Abonnement-IDs, Tarif, Status und Abrechnungszeitraum, nicht aber Ihre Kartendaten.</p>
 <h2>E-Mail</h2>
 <p>Transaktions-E-Mails (Anmeldelinks, Passwort-Zurücksetzungen, Einladungen, Benachrichtigungen, Bestätigungen von Kontoänderungen) werden über <strong>Resend</strong> von Servern in der EU (Region Irland) versendet. E-Mails, die Sie an ${MAIL} senden, gehen über <strong>Cloudflare</strong> Email Routing ein und werden an unser Postfach weitergeleitet.</p>
+<p>Wenn Sie oder Ihr Team Barrierefreiheitsberichte per E-Mail versenden (einmalig oder regelmäßig), werden die E-Mail-Adressen der Berichtsempfänger über <strong>Resend</strong> verarbeitet, um diese Berichte zuzustellen. Wir führen ein Versandprotokoll (Empfänger, Zeitpunkt, Status), damit Sie sehen, was versendet wurde; Empfänger können regelmäßige Berichte über den Link in jeder E-Mail abbestellen.</p>
 <h2>Auftragsverarbeiter</h2>
 <ul>
 <li><strong>Hetzner Online GmbH</strong> (Deutschland): App-Server, Datenbank und Backups in Falkenstein, Deutschland.</li>

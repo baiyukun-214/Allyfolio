@@ -7,6 +7,9 @@ import { draftStatement } from '../lib/statement.ts';
 import { contrast } from '../lib/contrast.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { requireUser, render, back, ownSite, loc, T } from './guard.ts';
+import { normReportLocale, type ReportLocale } from '../i18n.ts';
+/** Report language: ?language=en|de|zh-CN, otherwise the user's UI language. */
+const reportLoc = (req: any, ctx: any): ReportLocale => normReportLocale(req.query?.language) ?? loc(req, ctx);
 
 export async function reportRoutes(app: FastifyInstance) {
   const scanFor = (ctx: any, id: string) => get<any>("SELECT c.* FROM scans c JOIN sites s ON s.id = c.site_id WHERE c.id = ? AND s.team_id = ? AND c.status = 'done'", id, ctx.team.id);
@@ -16,14 +19,14 @@ export async function reportRoutes(app: FastifyInstance) {
     const scan = scanFor(ctx, (req.params as any).id); if (!scan) return reply.code(404).send('Not found');
     // Same entitlement as the PDF: the printable HTML is the PDF's source.
     if (!canPdf(planOf(ctx.team.plan), scan.kind === 'oneoff')) return back(reply, `/app/scans/${scan.id}`, 'err', T(req, ctx).rep.pdfGate);
-    return reply.type('text/html').send(reportHtml(scan.id, await brandingFor(ctx.team), loc(req, ctx)));
+    return reply.type('text/html').send(reportHtml(scan.id, await brandingFor(ctx.team), reportLoc(req, ctx)));
   });
 
   app.get('/app/scans/:id/report.pdf', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
     const scan = scanFor(ctx, (req.params as any).id); if (!scan) return reply.code(404).send('Not found');
     if (!canPdf(planOf(ctx.team.plan), scan.kind === 'oneoff')) return back(reply, `/app/scans/${scan.id}`, 'err', T(req, ctx).rep.pdfGate);
-    const pdf = await reportPdf(scan.id, await brandingFor(ctx.team), loc(req, ctx));
+    const pdf = await reportPdf(scan.id, await brandingFor(ctx.team), reportLoc(req, ctx));
     return reply.type('application/pdf').header('content-disposition', `attachment; filename="accessibility-report-${scan.finished_at.slice(0, 10)}.pdf"`).send(pdf);
   });
 

@@ -126,3 +126,10 @@ html { scroll-padding-top: 88px; }
 .score-block { display: flex; gap: 16px; align-items: center; }
 .score-block p { margin: 0 0 4px; }
 .score-note { max-width: 46ch; }
+/* Scan details: per-rule guidance, element snippets, crawl coverage */
+.guide { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 8px 0; }
+.guide dt { font-weight: 600; color: var(--ink); } .guide dd { margin: 0; }
+code.snippet { white-space: pre-wrap; word-break: break-all; font-size: 12px; }
+table.cov .cap, table .cap { caption-side: top; text-align: left; font-weight: 600; padding: 4px 0; }
+td code { word-break: break-all; }
+@media (max-width: 640px) { .guide { grid-template-columns: 1fr; } }

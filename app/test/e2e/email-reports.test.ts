@@ -49,13 +49,21 @@ test('send now: validation, queued job, one email per recipient with the PDF, de
     assert.equal(m.subject, 'Accessibility report: Shop (1 November 2026)');
     assert.equal(m.replyTo, 'sender@example.com'); assert.equal(m.fromName, undefined);
     assert.equal(m.attachments[0].filename, 'accessibility-report-2026-11-01.pdf'); assert.equal(m.attachments[0].content.subarray(0, 5).toString(), '%PDF-');
-    assert.match(m.text, /3 pages checked\. Issues found by automated checks: 1 critical, 2 serious, 3 moderate, 4 minor\./);
+    assert.match(m.text, /3 pages checked\. Affected elements found by automated checks: 1 critical, 2 serious, 3 moderate, 4 minor\./);
     assert.match(m.text, /2 new, 1 fixed/); assert.match(m.text, /not legal advice/); assert.match(m.text, /on behalf of sender@example\.com/);
     assert.doesNotMatch(m.text, /Unsubscribe/); assert.equal(m.headers, undefined);
   }
   const d = db.all("SELECT * FROM report_deliveries WHERE site_id = 'er1' ORDER BY recipient");
   assert.deepEqual(d.map((x: any) => [x.recipient, x.status, x.kind, x.scan_id, x.sent_by]), [['boss@client.example', 'sent', 'manual', 'scan-er1', uid], ['client@agency.example', 'sent', 'manual', 'scan-er1', uid]]);
+  // German is a report language (the app UI stays EN/ZH)
+  const b2 = sentMail.length;
+  const de = await rm.sendLatestReport({ siteId: 'er1', recipients: ['de@client.example'], locale: 'de', kind: 'manual' });
+  assert.equal(de.sent, 1); const dm = sentMail[b2];
+  assert.equal(dm.subject, 'Barrierefreiheitsbericht: Shop (1. November 2026)'); assert.match(dm.text, /^Guten Tag,/); assert.match(dm.text, /betroffene Elemente/);
+  assert.doesNotMatch(dm.text, new RegExp(['konf' + 'orm', 'zertifizi', 'garanti'].join('|'), 'i'), 'no banned claims');
+  db.run("DELETE FROM report_deliveries WHERE recipient = 'de@client.example'");
   r = await c.req('GET', P);
+  assert.match(r.body, /<option value="de" lang="de"\s*>Deutsch<\/option>/);
   assert.match(r.body, /Sent now/); assert.match(r.body, /client@agency\.example/);
 
   // A failing recipient is recorded and the job is not retried (no duplicate mail to the others).

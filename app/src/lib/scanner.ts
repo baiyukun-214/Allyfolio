@@ -79,7 +79,8 @@ export async function scanPage(rawUrl: string, opts: { collectLinks?: boolean } 
       issues.push({ pageUrl: finalUrl, ruleId: v.id, impact: (v.impact ?? 'minor') as Impact, wcag: wcagRefs(v.tags), help: v.help, helpUrl: v.helpUrl, target, html: (n.html ?? '').slice(0, 500), fingerprint: fingerprint(finalUrl, v.id, target) });
     }
     let links: string[] = [];
-    if (opts.collectLinks) links = await page.$$eval('a[href]', (as) => as.map((a) => (a as HTMLAnchorElement).href)).catch(() => []);
+    // Rendered DOM (after scripts ran), including open shadow roots; plus hreflang alternates and rel=next.
+    if (opts.collectLinks) links = await page.locator('a[href], area[href], link[rel="alternate"][hreflang][href], link[rel="next"][href]').evaluateAll((els) => els.map((a) => (a as HTMLAnchorElement).href)).catch(() => []);
     return { url: url.href, finalUrl, status: res.status(), issues, links };
   } catch (e: any) {
     if (e instanceof UnsafeUrlError) throw e;
@@ -89,11 +90,14 @@ export async function scanPage(rawUrl: string, opts: { collectLinks?: boolean } 
 }
 
 import { createRequire } from 'node:module';
-import { t, type Locale } from '../i18n.ts';
-const axeZh = createRequire(import.meta.url)('axe-core/locales/zh_CN.json') as { rules: Record<string, { help: string }> };
+import { t, type Locale, type ReportLocale } from '../i18n.ts';
+type AxeLocale = { rules: Record<string, { help: string }> };
+const axeZh = createRequire(import.meta.url)('axe-core/locales/zh_CN.json') as AxeLocale;
+const axeDe = createRequire(import.meta.url)('axe-core/locales/de.json') as AxeLocale;
 /** Localised rule help text: axe-core's own zh_CN translations, falling back to English. */
-export function ruleHelp(ruleId: string, english: string, l: Locale | string = 'en'): string {
-  return t(l).htmlLang === 'zh-CN' ? axeZh.rules[ruleId]?.help ?? english : english;
+export function ruleHelp(ruleId: string, english: string, l: ReportLocale | string = 'en'): string {
+  const h = t(l).htmlLang;
+  return h === 'zh-CN' ? axeZh.rules[ruleId]?.help ?? english : h === 'de' ? axeDe.rules[ruleId]?.help ?? english : english;
 }
 export function summarize(issues: Issue[]) {
   const counts: Record<Impact, number> = { critical: 0, serious: 0, moderate: 0, minor: 0 };

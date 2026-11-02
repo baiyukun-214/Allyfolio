@@ -1,5 +1,9 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 export type Locale = 'en' | 'zh-CN';
+/** Languages for PDF reports and report emails. German is report-only; the app UI is English or Chinese. */
+export type ReportLocale = Locale | 'de';
+export const REPORT_LOCALES: ReportLocale[] = ['en', 'de', 'zh-CN'];
+export const normReportLocale = (v: unknown): ReportLocale | null => String(v ?? '').toLowerCase().startsWith('de') ? 'de' : normLocale(v);
 export const LOCALES: Locale[] = ['en', 'zh-CN'];
 export const LANG_COOKIE = 'af_lang';
 export const normLocale = (v: unknown): Locale | null => {
@@ -118,6 +122,22 @@ const en = {
     alertSubject: (n: number, site: string) => `${n} new serious accessibility ${plural(n, 'issue', 'issues')} on ${site}`,
     alertBody: (origin: string, lines: string, link: string) => `The latest scan of ${origin} found new serious or critical issues:\n\n${lines}\n\nDetails: ${link}\n\nAutomated checks find only part of all issues; manual review is still needed.`,
   },
+  cov: {
+    counts: (el: number, rules: number, occ: number, pages: number) => `${el} affected ${plural(el, 'element', 'elements')} · ${rules} ${plural(rules, 'rule', 'rules')} failing · ${occ} rule ${plural(occ, 'occurrence', 'occurrences')} on ${pages} ${plural(pages, 'page', 'pages')}`,
+    countsHelp: 'An affected element is one element on one page that fails one rule; the numbers by impact count affected elements. A rule occurrence is one rule failing on one page, however many elements it affects.',
+    byImpact: 'Affected elements by impact', colElements: 'Affected elements', colRules: 'Rules failing', colPages: 'Pages',
+    topPages: 'Pages by affected elements', detailsH: 'Details by rule',
+    what: 'What is wrong', who: 'Who is affected', fix: 'How to fix', ruleGuide: 'Rule guide (Deque University)', wcagGuide: 'Understanding',
+    colPageUrl: 'Page', colSelector: 'CSS selector', colHtml: 'HTML snippet', elementsCaption: (r: string) => `Affected elements: ${r}`,
+    shown: (n: number, total: number) => `Showing ${n} of ${total} affected elements.`, moreInApp: (n: number, url: string) => `${n} more ${plural(n, 'element is', 'elements are')} listed in the app: ${url}`,
+    coverageH: 'Crawl coverage', robots: { none: 'No robots.txt found.', found: 'robots.txt found; its rules do not restrict our crawler.', rules: 'robots.txt rules for our crawler were applied (the start page is always scanned).' } as Record<string, string>,
+    sitemaps: (files: number, urls: number) => files ? `Sitemaps: ${files} ${plural(files, 'file', 'files')} with ${urls} ${plural(urls, 'URL', 'URLs')}.` : 'No sitemap found (checked robots.txt, /sitemap.xml and /sitemap_index.xml).',
+    sources: (sm: number, links: number) => `${sm} ${plural(sm, 'page', 'pages')} from sitemaps, ${links} more found by following links in the rendered pages.`,
+    skippedH: 'Found but not scanned', colReason: 'Reason', colCount: 'URLs', examples: 'Examples', noSkips: 'Every page found on this site was scanned.',
+    reasons: { other_host: 'Links to other hosts (another domain or subdomain is a separate site)', file: 'Files, not web pages (PDF, images, documents)', robots: 'Blocked by robots.txt', query: 'Very long query string (filters, tracking)', limit: 'Page limit reached', duplicate: 'Redirected to a page that was already scanned', redirect_away: 'Redirected to another host', error: 'Could not be loaded' } as Record<string, string>,
+    otherHostHint: 'Subdomains and other domains are separate sites in Allyfolio. Add them as their own site to scan them.',
+    noCrawl: 'Crawl details are recorded for scans from 2 November 2026 on.', reportLang: 'Report language',
+  },
   rep: {
     title: (s: string) => `Accessibility report – ${s}`, kind: 'Accessibility scan report', finished: 'scan finished', pagesChecked: (n: number, lim: number) => `${n} pages checked (limit ${lim})`,
     compared: (n: number, f: number) => `Compared with the previous scan: ${n} new, ${f} fixed.`,
@@ -168,7 +188,7 @@ const en = {
     reasons: { plan: 'plan does not include reports', no_scan: 'no finished scan' } as Record<string, string>,
     mailSubject: (site: string, date: string) => `Accessibility report: ${site} (${date})`, mailHello: 'Hello,',
     mailIntro: (site: string, origin: string, date: string) => `attached is the latest automated accessibility report for ${site} (${origin}), from the scan finished on ${date}.`,
-    mailCounts: (p: number, c: number, s: number, m: number, mi: number) => `${p} ${plural(p, 'page', 'pages')} checked. Issues found by automated checks: ${c} critical, ${s} serious, ${m} moderate, ${mi} minor.`,
+    mailCounts: (p: number, c: number, s: number, m: number, mi: number) => `${p} ${plural(p, 'page', 'pages')} checked. Affected elements found by automated checks: ${c} critical, ${s} serious, ${m} moderate, ${mi} minor.`,
     mailCompared: (n: number, f: number) => `Compared with the previous scan: ${n} new, ${f} fixed.`,
     mailLimits: 'Automated checks find only part of all accessibility issues. The report explains what still needs manual review. It is not legal advice.',
     mailSentBy: (brand: string, wl: boolean, who: string) => wl ? `Sent by ${brand}. Questions? Reply to this email (${who}).` : `Sent with Allyfolio on behalf of ${who}. Questions? Reply to this email.`,
@@ -340,6 +360,22 @@ const zh: Dict = {
     alertSubject: (n, site) => `${site} 新增 ${n} 个较严重的无障碍问题`,
     alertBody: (origin, lines, link) => `最近一次对 ${origin} 的扫描发现了新的严重或较严重问题：\n\n${lines}\n\n详情：${link}\n\n自动化检测只能发现部分问题，仍需要人工审查。`,
   },
+  cov: {
+    counts: (el, rules, occ, pages) => `${el} 个受影响元素 · ${rules} 条规则未通过 · 在 ${pages} 个页面上共 ${occ} 次规则命中`,
+    countsHelp: '受影响元素：某个页面上未通过某条规则的一个元素；按影响程度的数字统计的是受影响元素。规则命中：某条规则在某个页面上未通过，无论涉及多少个元素都只计一次。',
+    byImpact: '按影响程度统计的受影响元素', colElements: '受影响元素', colRules: '未通过的规则', colPages: '页面数',
+    topPages: '按受影响元素排序的页面', detailsH: '各规则详情',
+    what: '问题所在', who: '受影响人群', fix: '修复方法', ruleGuide: '规则说明（Deque University）', wcagGuide: '理解 WCAG',
+    colPageUrl: '页面', colSelector: 'CSS 选择器', colHtml: 'HTML 片段', elementsCaption: (r) => `受影响元素：${r}`,
+    shown: (n, total) => `显示 ${total} 个受影响元素中的 ${n} 个。`, moreInApp: (n, url) => `其余 ${n} 个元素可在应用中查看：${url}`,
+    coverageH: '抓取覆盖范围', robots: { none: '未找到 robots.txt。', found: '已找到 robots.txt，其规则未限制我们的爬虫。', rules: '已应用 robots.txt 中适用于我们爬虫的规则（起始页始终会被扫描）。' },
+    sitemaps: (files, urls) => files ? `站点地图：${files} 个文件，共 ${urls} 个网址。` : '未找到站点地图（已检查 robots.txt、/sitemap.xml 和 /sitemap_index.xml）。',
+    sources: (sm, links) => `${sm} 个页面来自站点地图，另有 ${links} 个通过渲染后页面中的链接发现。`,
+    skippedH: '已发现但未扫描', colReason: '原因', colCount: '网址数', examples: '示例', noSkips: '在本网站上发现的所有页面均已扫描。',
+    reasons: { other_host: '指向其他主机的链接（其他域名或子域名属于单独的网站）', file: '文件而非网页（PDF、图片、文档）', robots: '被 robots.txt 禁止', query: '查询字符串过长（筛选、跟踪参数）', limit: '已达到页面上限', duplicate: '重定向到已扫描过的页面', redirect_away: '重定向到其他主机', error: '无法加载' },
+    otherHostHint: '在 Allyfolio 中，子域名和其他域名属于单独的网站。如需扫描，请将其作为单独的网站添加。',
+    noCrawl: '自 2026 年 11 月 2 日起的扫描会记录抓取详情。', reportLang: '报告语言',
+  },
   rep: {
     title: (s) => `无障碍报告 – ${s}`, kind: '无障碍扫描报告', finished: '扫描完成于', pagesChecked: (n, lim) => `已检测 ${n} 个页面（上限 ${lim}）`,
     compared: (n, f) => `与上一次扫描相比：新增 ${n} 个，已修复 ${f} 个。`,
@@ -390,7 +426,7 @@ const zh: Dict = {
     reasons: { plan: '方案不包含报告', no_scan: '没有已完成的扫描' },
     mailSubject: (site, date) => `无障碍报告：${site}（${date}）`, mailHello: '您好：',
     mailIntro: (site, origin, date) => `附件是 ${site}（${origin}）最新的自动化无障碍报告，来自 ${date} 完成的扫描。`,
-    mailCounts: (p, c, s, m, mi) => `已检查 ${p} 个页面。自动化检测发现的问题：严重 ${c} 个，较严重 ${s} 个，中等 ${m} 个，轻微 ${mi} 个。`,
+    mailCounts: (p, c, s, m, mi) => `已检查 ${p} 个页面。自动化检测发现的受影响元素：严重 ${c} 个，较严重 ${s} 个，中等 ${m} 个，轻微 ${mi} 个。`,
     mailCompared: (n, f) => `与上次扫描相比：新增 ${n} 个，已修复 ${f} 个。`,
     mailLimits: '自动化检测只能发现部分无障碍问题。报告说明了哪些内容仍需人工审查。本报告不构成法律意见。',
     mailSentBy: (brand, wl, who) => wl ? `由 ${brand} 发送。如有问题，请直接回复本邮件（${who}）。` : `通过 Allyfolio 代表 ${who} 发送。如有问题，请直接回复本邮件。`,
@@ -464,8 +500,9 @@ const zh: Dict = {
     enforceH: '执行程序', enforce: '[请填写您所在国家的市场监督机构。在德国为：Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen（MLBF）。请核实最新联系方式。]',
   },
 };
-const dicts: Record<Locale, Dict> = { en, 'zh-CN': zh };
-export const t = (l: Locale | string | null | undefined): Dict => dicts[(normLocale(l) ?? 'en') as Locale];
+const dicts: Record<ReportLocale, Dict> = { en, 'zh-CN': zh, de: deReport() };
+/** UI dictionary; 'de' (reports only) is accepted here too. */
+export const t = (l: ReportLocale | string | null | undefined): Dict => dicts[(normReportLocale(l) ?? 'en') as ReportLocale];
 /** Translate an English message produced by lower layers (SSRF guard, scanner) into the target locale. */
 export function trError(l: Locale, msg: string): string {
   const E = en.errors as Record<string, any>, Z = t(l).errors as Record<string, any>;
@@ -486,4 +523,73 @@ export function scanError(l: Locale, msg: string | null | undefined): { code: Sc
   const S = t(l).scanErrors;
   if (code === 'invalid_url' || code === 'not_public') return { code, error: `${trError(l, msg!)} ${S[code]}` };
   return { code, error: S[code] as string };
+}
+
+type Over<T> = { [K in keyof T]?: T[K] extends (...a: any[]) => any ? T[K] : T[K] extends object ? Over<T[K]> : T[K] };
+function merge<T>(base: T, o: Over<T>): T {
+  const out: any = Array.isArray(base) ? [...(base as any)] : { ...(base as any) };
+  for (const [k, v] of Object.entries(o as any)) out[k] = v && typeof v === 'object' && !Array.isArray(v) && typeof (base as any)[k] === 'object' ? merge((base as any)[k], v as any) : v;
+  return out;
+}
+/** German texts for PDF reports and report emails (the app UI itself is English or Chinese). Keys not listed fall back to English. */
+function deReport(): Dict {
+  const pl = plural;
+  return merge<Dict>(en, {
+    langName: 'Deutsch', htmlLang: 'de', dateLocale: 'de-DE',
+    layout: { skip: 'Zum Hauptinhalt springen', main: 'Hauptnavigation', website: 'Website', terms: 'AGB', privacy: 'Datenschutz', refund: 'Widerrufsbelehrung', imprint: 'Impressum', legal: 'Rechtliches', site: 'Allyfolio-Website', backToSite: '← Zurück zur Website', homeAria: 'Startseite der Allyfolio-Website', login: 'Anmelden', footer: 'Allyfolio ist ein Werkzeug zum Testen und Dokumentieren, keine Rechtsberatung. Automatisierte Prüfungen finden nur einen Teil aller Barrieren.' },
+    impacts: { critical: 'Kritisch', serious: 'Schwerwiegend', moderate: 'Mittel', minor: 'Gering' },
+    mon: {
+      score: 'Wert der automatisierten Prüfungen',
+      scoreNote: 'Automatisierte Tests finden nur einen Teil der Barrieren (laut Deque etwa 57 %). Dieser Wert ist kein vollständiges Barrierefreiheits-Audit und keine rechtliche Bewertung.',
+      bestPractice: 'Best Practice',
+    },
+    rep: {
+      title: (s) => `Barrierefreiheitsbericht – ${s}`, kind: 'Bericht zur Barrierefreiheitsprüfung', finished: 'Prüfung abgeschlossen am', pagesChecked: (n, lim) => `${n} ${pl(n, 'Seite', 'Seiten')} geprüft (Limit ${lim})`,
+      compared: (n, f) => `Im Vergleich zur vorherigen Prüfung: ${n} neu, ${f} behoben.`,
+      coversH: 'Was dieser Bericht abdeckt.', covers: 'Er listet Probleme auf, die automatisierte Prüfungen (axe-core in einem echten Chromium-Browser) anhand der WCAG-2.0–2.2-Regeln der Stufen A und AA gefunden haben. Automatisierte Tests finden etwa 57 % der Barrieren (Deque-Studie). Der Bericht zeigt nicht, dass die Website die WCAG oder den European Accessibility Act erfüllt; eine manuelle Prüfung durch Menschen ist weiterhin nötig.',
+      byRule: 'Probleme nach Regel', colImpact: 'Auswirkung', colIssue: 'Problem', colWcag: 'WCAG', colElements: 'Betroffene Elemente', colPages: 'Seiten', none: 'Die automatisierten Prüfungen haben keine Probleme gefunden.',
+      topPages: 'Seiten nach betroffenen Elementen', colPage: 'Seite', colIssues: 'Betroffene Elemente', evidence: 'Nachweis',
+      evidenceText: 'Diese Prüfung wird unverändert in einem Verlauf mit Zeitstempeln gespeichert. Ihr Nachweis-Hash verknüpft sie mit der vorherigen Prüfung, sodass spätere Änderungen erkennbar wären.',
+      scanId: 'Prüfungs-ID', hash: 'Nachweis-Hash (SHA-256)', prev: 'Vorheriger Hash', firstScan: '– (erste Prüfung)',
+      preparedBy: (n) => `Erstellt von ${n}.`, generated: 'Erstellt mit Allyfolio.', notLegal: 'Dieser Bericht dokumentiert automatisierte Tests und ist keine Rechtsberatung.', page: 'Seite', of: 'von',
+    },
+    manual: {
+      h: 'Manuelle Prüfung',
+      summary: (s) => `${s.pass} bestanden · ${s.fail} nicht bestanden · ${s.na} nicht anwendbar · ${s.not_checked} nicht geprüft (von ${s.total} Kriterien)`,
+      statuses: { not_checked: 'Nicht geprüft', pass: 'Bestanden', fail: 'Nicht bestanden', na: 'Nicht anwendbar' },
+      colCriterion: 'Kriterium', colLevel: 'Stufe', colStatus: 'Status', colNotes: 'Notizen', colLast: 'Zuletzt geprüft', lastBy: (who) => `von ${who}`,
+      pdfLead: 'Status, den das Team in Allyfolio erfasst hatte, als dieser Bericht erstellt wurde. Aufgeführt sind nur Kriterien mit erfasstem Status. Allyfolio prüft diese Einträge nicht.',
+      pdfNone: 'Noch keine Einträge der manuellen Prüfung erfasst.', evLatest: 'Hash des letzten Eintrags',
+      pdfEv: (n, ok) => ok ? `Nachweisprotokoll der manuellen Prüfung: ${n} ${pl(n, 'Eintrag', 'Einträge')}, Hash-Kette bei Erstellung dieses Berichts intakt.` : `Nachweisprotokoll der manuellen Prüfung: ${n} Einträge. Die Hash-Kette ließ sich bei Erstellung dieses Berichts nicht bestätigen.`,
+    },
+    er: {
+      mailSubject: (site, date) => `Barrierefreiheitsbericht: ${site} (${date})`, mailHello: 'Guten Tag,',
+      mailIntro: (site, origin, date) => `anbei erhalten Sie den aktuellen automatisierten Barrierefreiheitsbericht für ${site} (${origin}) aus der Prüfung vom ${date}.`,
+      mailCounts: (p, c, s, m, mi) => `${p} ${pl(p, 'Seite', 'Seiten')} geprüft. Von automatisierten Prüfungen gefundene betroffene Elemente: ${c} kritisch, ${s} schwerwiegend, ${m} mittel, ${mi} gering.`,
+      mailCompared: (n, f) => `Im Vergleich zur vorherigen Prüfung: ${n} neu, ${f} behoben.`,
+      mailLimits: 'Automatisierte Prüfungen finden nur einen Teil aller Barrieren. Der Bericht erklärt, was weiterhin manuell geprüft werden muss. Er ist keine Rechtsberatung.',
+      mailSentBy: (brand, wl, who) => wl ? `Gesendet von ${brand}. Fragen? Antworten Sie einfach auf diese E-Mail (${who}).` : `Gesendet mit Allyfolio im Auftrag von ${who}. Fragen? Antworten Sie einfach auf diese E-Mail.`,
+      mailWhy: (f) => `Sie erhalten diesen Bericht ${f}, weil ein Mitglied des Teams Ihre Adresse hinzugefügt hat.`, mailUnsub: (u) => `Abmelden: ${u}`,
+      freq: { weekly: 'Wöchentlich', monthly: 'Monatlich' }, weekly: 'wöchentlich', monthly: 'monatlich',
+      unsubTitle: 'Von Bericht-E-Mails abmelden', unsubText: (site, email) => `Geplante Barrierefreiheitsberichte für ${site} nicht mehr an ${email} senden?`, unsubBtn: 'Abmelden',
+      unsubDone: 'Sie sind abgemeldet. Sie erhalten diese geplanten Berichte nicht mehr.', unsubInvalid: 'Dieser Abmeldelink ist ungültig oder wurde bereits verwendet.',
+    },
+    cl: { pdfFor: (c) => `Erstellt für ${c}` },
+    cov: {
+      counts: (el, rules, occ, pages) => `${el} betroffene ${pl(el, 'Element', 'Elemente')} · ${rules} ${pl(rules, 'Regel', 'Regeln')} nicht erfüllt · ${occ} Regelverstöße auf ${pages} ${pl(pages, 'Seite', 'Seiten')}`,
+      countsHelp: 'Ein betroffenes Element ist ein Element auf einer Seite, das eine Regel nicht erfüllt; die Zahlen nach Auswirkung zählen betroffene Elemente. Ein Regelverstoß ist eine Regel, die auf einer Seite nicht erfüllt ist, egal wie viele Elemente betroffen sind.',
+      byImpact: 'Betroffene Elemente nach Auswirkung', colElements: 'Betroffene Elemente', colRules: 'Nicht erfüllte Regeln', colPages: 'Seiten',
+      topPages: 'Seiten nach betroffenen Elementen', detailsH: 'Details nach Regel',
+      what: 'Was ist das Problem', who: 'Wer ist betroffen', fix: 'So beheben Sie es', ruleGuide: 'Regelbeschreibung (Deque University)', wcagGuide: 'WCAG verstehen',
+      colPageUrl: 'Seite', colSelector: 'CSS-Selektor', colHtml: 'HTML-Ausschnitt', elementsCaption: (r) => `Betroffene Elemente: ${r}`,
+      shown: (n, total) => `${n} von ${total} betroffenen Elementen angezeigt.`, moreInApp: (n, url) => `${n} ${pl(n, 'weiteres Element ist', 'weitere Elemente sind')} in der App aufgeführt: ${url}`,
+      coverageH: 'Abdeckung der Prüfung', robots: { none: 'Keine robots.txt gefunden.', found: 'robots.txt gefunden; ihre Regeln schränken unseren Crawler nicht ein.', rules: 'Die Regeln der robots.txt für unseren Crawler wurden angewendet (die Startseite wird immer geprüft).' },
+      sitemaps: (files, urls) => files ? `Sitemaps: ${files} ${pl(files, 'Datei', 'Dateien')} mit ${urls} ${pl(urls, 'URL', 'URLs')}.` : 'Keine Sitemap gefunden (geprüft: robots.txt, /sitemap.xml und /sitemap_index.xml).',
+      sources: (sm, links) => `${sm} ${pl(sm, 'Seite', 'Seiten')} aus Sitemaps, ${links} weitere über Links in den gerenderten Seiten gefunden.`,
+      skippedH: 'Gefunden, aber nicht geprüft', colReason: 'Grund', colCount: 'URLs', examples: 'Beispiele', noSkips: 'Alle auf dieser Website gefundenen Seiten wurden geprüft.',
+      reasons: { other_host: 'Links zu anderen Hosts (eine andere Domain oder Subdomain ist eine eigene Website)', file: 'Dateien statt Webseiten (PDF, Bilder, Dokumente)', robots: 'Durch robots.txt gesperrt', query: 'Sehr lange Query-Parameter (Filter, Tracking)', limit: 'Seitenlimit erreicht', duplicate: 'Weiterleitung auf eine bereits geprüfte Seite', redirect_away: 'Weiterleitung auf einen anderen Host', error: 'Konnte nicht geladen werden' },
+      otherHostHint: 'Subdomains und andere Domains sind in Allyfolio eigene Websites. Fügen Sie sie als eigene Website hinzu, um sie zu prüfen.',
+      noCrawl: 'Details zur Abdeckung werden für Prüfungen ab dem 2. November 2026 erfasst.', reportLang: 'Berichtssprache',
+    },
+  });
 }

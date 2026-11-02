@@ -5,12 +5,11 @@ import { all, get, run, now } from '../db.ts';
 import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { planOf } from '../lib/plans.ts';
-import { t, normLocale, type Locale } from '../i18n.ts';
+import { t, normReportLocale, REPORT_LOCALES, type Locale } from '../i18n.ts';
 import { enqueue } from '../jobs/queue.ts';
 import { requireUser, render, back, ownSite, loc, T, localTime, pg } from './guard.ts';
 import { parseRecipients, nextRunAt, unsubOk, unsubscribe, manualSendsToday, MANUAL_SENDS_PER_DAY, SCHEDULES_PER_TEAM, type Frequency } from '../lib/reportMail.ts';
 
-const LOCALES: Locale[] = ['en', 'zh-CN'];
 const recipientsError = (E: any, r: any) => r.reason === 'empty' ? E.errEmpty : r.reason === 'tooMany' ? E.errTooMany : E.errInvalid(r.value ?? '');
 
 export async function emailReportRoutes(app: FastifyInstance) {
@@ -23,7 +22,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
     const schedules = all<any>('SELECT * FROM report_schedules WHERE site_id = ? ORDER BY created_at', s.id);
     const deliveries = all<any>('SELECT d.*, u.email AS sent_by_email FROM report_deliveries d LEFT JOIN users u ON u.id = d.sent_by WHERE d.site_id = ? ORDER BY d.created_at DESC LIMIT 30', s.id);
     const contact = clientOfSite(s.id)?.contact_email ?? '';
-    const langSelect = (id: string) => html`<select id="${id}" name="locale">${LOCALES.map((x) => html`<option value="${x}" ${x === l ? 'selected' : ''}>${t(x).langName}</option>`)}</select>`;
+    const langSelect = (id: string) => html`<select id="${id}" name="locale">${REPORT_LOCALES.map((x) => html`<option value="${x}" lang="${t(x).htmlLang}" ${x === l ? 'selected' : ''}>${t(x).langName}</option>`)}</select>`;
     return render(reply, ctx, { title: `${E.h} – ${s.name}`, current: '/app', body: html`
       <p><a href="/app/sites/${s.id}">${E.back}</a></p>
       <h1>${E.h}</h1><p class="muted">${s.name} · ${s.origin}</p><p>${E.lead}</p>
@@ -37,7 +36,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
       </section>
       <section class="card" aria-labelledby="sched-h" style="margin-top:24px"><h2 id="sched-h" style="margin-top:0">${E.schedH}</h2><p class="small muted">${E.schedLead}</p>
         ${schedules.length ? html`<div class="table-wrap" tabindex="0" role="region" aria-labelledby="sched-h"><table><thead><tr><th scope="col">${E.colRecipients}</th><th scope="col">${E.colFrequency}</th><th scope="col">${E.colLanguage}</th><th scope="col">${E.colNext}</th><th scope="col">${E.colLast}</th><th scope="col">${E.colStatus}</th><th scope="col">${E.colActions}</th></tr></thead><tbody>
-          ${schedules.map((r) => { const who = r.recipients.split(',').join(', ') || '–'; return html`<tr><td>${who}</td><td>${E.freq[r.frequency]}</td><td>${t(normLocale(r.locale) ?? 'en').langName}</td>
+          ${schedules.map((r) => { const who = r.recipients.split(',').join(', ') || '–'; return html`<tr><td>${who}</td><td>${E.freq[r.frequency]}</td><td>${t(normReportLocale(r.locale) ?? 'en').langName}</td>
             <td>${r.active ? localTime(r.next_run_at, l) : '–'}</td><td>${localTime(r.last_run_at, l)}</td><td>${r.active ? E.active : E.paused}</td>
             <td><form method="post" action="/app/sites/${s.id}/email-reports/${r.id}/toggle" style="display:inline">${csrfField(req)}<button class="btn btn-secondary" type="submit" aria-label="${E.actionFor(r.active ? E.pause : E.resume, who)}">${r.active ? E.pause : E.resume}</button></form>
             <form method="post" action="/app/sites/${s.id}/email-reports/${r.id}/delete" style="display:inline">${csrfField(req)}<button class="btn btn-secondary" type="submit" aria-label="${E.actionFor(E.del, who)}">${E.del}</button></form></td></tr>`; })}
@@ -72,7 +71,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
     if (!get("SELECT 1 FROM scans WHERE site_id = ? AND status = 'done'", s.id)) return back(reply, path, 'err', E.noScan);
     const pendingN = all<any>("SELECT payload FROM jobs WHERE type = 'report_email_now' AND status IN ('queued','running')").map((j) => JSON.parse(j.payload)).filter((p) => p.teamId === ctx.team.id).reduce((n, p) => n + p.recipients.length, 0);
     if (manualSendsToday(ctx.team.id) + pendingN + r.list.length > MANUAL_SENDS_PER_DAY) return back(reply, path, 'err', E.limit(MANUAL_SENDS_PER_DAY));
-    enqueue('report_email_now', { siteId: s.id, teamId: ctx.team.id, recipients: r.list, locale: normLocale(body.locale) ?? 'en', sentBy: ctx.user.id });
+    enqueue('report_email_now', { siteId: s.id, teamId: ctx.team.id, recipients: r.list, locale: normReportLocale(body.locale) ?? 'en', sentBy: ctx.user.id });
     return back(reply, path, 'ok', E.queued(r.list.length));
   });
 
@@ -83,7 +82,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
     const freq: Frequency = body.frequency === 'monthly' ? 'monthly' : 'weekly';
     if (get<any>('SELECT COUNT(*) AS n FROM report_schedules WHERE team_id = ?', ctx.team.id).n >= SCHEDULES_PER_TEAM) return back(reply, path, 'err', E.tooMany(SCHEDULES_PER_TEAM));
     run('INSERT INTO report_schedules (id, team_id, site_id, recipients, frequency, locale, active, next_run_at, created_by, created_at) VALUES (?,?,?,?,?,?,1,?,?,?)',
-      randomUUID(), ctx.team.id, s.id, r.list.join(','), freq, normLocale(body.locale) ?? 'en', nextRunAt(freq), ctx.user.id, now());
+      randomUUID(), ctx.team.id, s.id, r.list.join(','), freq, normReportLocale(body.locale) ?? 'en', nextRunAt(freq), ctx.user.id, now());
     return back(reply, path, 'ok', E.added);
   });
 

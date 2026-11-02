@@ -7,7 +7,10 @@ import { planOf, canPdf } from '../lib/plans.ts';
 import { enqueue, hasPendingScan } from '../jobs/queue.ts';
 import { IMPACTS, ruleHelp } from '../lib/scanner.ts';
 import { requireUser, render, back, ownSite, loc, T, fmtDate, localTime } from './guard.ts';
-import { t, scanError, type Locale } from '../i18n.ts';
+import { t, scanError, REPORT_LOCALES, type Locale } from '../i18n.ts';
+import { scanSummary, coverageSection, guidance, ruleTitle, snippet } from '../lib/scanSummary.ts';
+/** Affected elements listed per rule on the scan page. */
+const APP_ELEMENTS = 200;
 import { automatedScore, weeklyTrend, totalIssues } from '../lib/insights.ts';
 import { scoreBlock, sparkline, sevChips, emptyState } from '../views/ui.ts';
 import { checklist, summary as manualSummary } from '../lib/manualReview.ts';
@@ -108,28 +111,36 @@ export async function monitoringRoutes(app: FastifyInstance) {
     const prev = get<any>("SELECT id FROM scans WHERE site_id = ? AND status = 'done' AND finished_at < ? ORDER BY finished_at DESC LIMIT 1", scan.site_id, scan.finished_at);
     const prevFps = new Set(prev ? all<any>('SELECT fingerprint FROM scan_issues WHERE scan_id = ?', prev.id).map((r) => r.fingerprint) : []);
     const fixed = prev ? all<any>('SELECT * FROM scan_issues WHERE scan_id = ? AND fingerprint NOT IN (SELECT fingerprint FROM scan_issues WHERE scan_id = ?)', prev.id, scan.id) : [];
-    const rules = new Map<string, any>();
-    for (const i of issues) { const r = rules.get(i.rule_id) ?? { ...i, nodes: [], isNew: 0 }; r.nodes.push(i); if (prev && !prevFps.has(i.fingerprint)) r.isNew++; rules.set(i.rule_id, r); }
+    const S = scanSummary(scan.id), C = Tx.cov;
+    const newIn = (r: { elements: { fingerprint: string }[] }) => prev ? r.elements.filter((e) => !prevFps.has(e.fingerprint)).length : 0;
     const plan = planOf(ctx.team.plan);
     const d = M.diff(scan.new_issues, scan.fixed_issues);
     return render(reply, ctx, { title: M.scanOf(scan.site_name), current: '/app', body: html`
       <p><a href="/app/sites/${scan.sid}">← ${scan.site_name}</a></p>
       <h1>${M.scanOf(scan.site_name)}</h1>
       <p class="muted">${M.finished} ${lt(scan.finished_at, l)} · ${M.pagesN(scan.pages_scanned)} (${M.limit} ${scan.page_limit}) · ${M.hash} <code>${scan.evidence_hash}</code></p>
-      <div class="row">${canPdf(plan, scan.kind === 'oneoff') ? html`<a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a><a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a>` : ''}</div>
-      <dl class="grid g4" style="margin-top:16px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
+      ${canPdf(plan, scan.kind === 'oneoff') ? html`<div class="row"><a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a><a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a></div>
+      <p class="small" style="margin-top:8px">${C.reportLang}: ${REPORT_LOCALES.map((rl, i) => html`${i ? ' · ' : ''}<a href="/app/scans/${scan.id}/report.pdf?language=${rl}" hreflang="${t(rl).htmlLang}" lang="${t(rl).htmlLang}">${t(rl).langName} (PDF)</a>`)}</p>` : ''}
+      <p style="margin-top:16px"><strong data-counts>${C.counts(S.elements, S.rules, S.occurrences, S.pagesWithIssues)}</strong></p>
+      <p class="small muted">${C.countsHelp}</p>
+      <p class="small" style="margin:16px 0 0"><strong>${C.byImpact}</strong></p>
+      <dl class="grid g4" style="margin-top:8px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
       <div class="card kpi-score" style="margin-top:16px">${scoreBlock('scan-score', automatedScore(scan), M)}</div>
       ${prev ? html`<p class="small" style="margin-top:12px"><strong>${d[0]}</strong>${d[1]}<strong>${d[2]}</strong>${d[3]}</p>` : html`<p class="small muted" style="margin-top:12px">${M.first}</p>`}
       ${unscanned.length ? html`<section class="card alert" aria-labelledby="unscanned-h" style="margin-top:16px"><h2 id="unscanned-h">${Tx.scanErrors.unscannedH}</h2><ul>${unscanned.map((p: any) => { const se = scanError(l, p.error); return html`<li data-code="${se.code}"><code>${new URL(p.url).pathname}</code> – ${se.error}</li>`; })}</ul></section>` : ''}
       ${note(l)}
       <h2>${M.byRule}</h2>
-      ${[...rules.values()].sort((a, b) => IMPACTS.indexOf(a.impact) - IMPACTS.indexOf(b.impact)).map((r) => html`
-        <details class="card" style="margin-bottom:8px"><summary><span class="pill imp-${r.impact}">${Tx.impacts[r.impact] ?? r.impact}</span> <strong>${ruleHelp(r.rule_id, r.help, l)}</strong> – ${M.elements(r.nodes.length)}${r.isNew ? html` · <span class="pill">${M.newN(r.isNew)}</span>` : ''}</summary>
-          <p class="small muted" style="margin-top:8px">${r.wcag || M.bestPractice} · <a href="${r.help_url}">${M.howFix}</a></p>
-          <div class="table-wrap"><table><caption class="sr-only">${M.affected}</caption><thead><tr><th scope="col">${M.colPage}</th><th scope="col">${M.colElement}</th></tr></thead><tbody>
-          ${r.nodes.slice(0, 50).map((n: any) => html`<tr><td>${new URL(n.page_url).pathname}</td><td><code>${n.target}</code></td></tr>`)}</tbody></table></div>
-          ${r.nodes.length > 50 ? html`<p class="small muted">${M.more(r.nodes.length - 50)}</p>` : ''}
-        </details>`)}
+      ${S.byRule.map((r) => { const isNew = newIn(r); return html`
+        <details class="card" style="margin-bottom:8px" data-rule="${r.ruleId}"><summary><span class="pill imp-${r.impact}">${Tx.impacts[r.impact] ?? r.impact}</span> <strong>${ruleTitle(r, l)}</strong> – ${M.elements(r.elements.length)} · ${M.pagesN(r.pages)}${isNew ? html` · <span class="pill">${M.newN(isNew)}</span>` : ''}</summary>
+          <p class="small muted" style="margin-top:8px">${r.wcag || M.bestPractice} · <code>${r.ruleId}</code></p>
+          <div class="small">${guidance(r, l)}</div>
+          <div class="table-wrap"><table><caption class="sr-only">${C.elementsCaption(ruleTitle(r, l))}</caption><thead><tr><th scope="col">${C.colPageUrl}</th><th scope="col">${C.colSelector}</th><th scope="col">${C.colHtml}</th></tr></thead><tbody>
+          ${r.elements.slice(0, APP_ELEMENTS).map((n) => html`<tr><td><a href="${n.pageUrl}">${n.pageUrl}</a></td><td><code>${n.target}</code></td><td><code class="snippet">${snippet(n.html, 600)}</code></td></tr>`)}</tbody></table></div>
+          ${r.elements.length > APP_ELEMENTS ? html`<p class="small muted">${M.more(r.elements.length - APP_ELEMENTS)}</p>` : ''}
+        </details>`; })}
+      ${S.byPage.length ? html`<h2>${C.topPages}</h2><div class="table-wrap"><table><caption class="sr-only">${C.topPages}</caption><thead><tr><th scope="col">${M.colPage}</th><th scope="col">${C.colElements}</th><th scope="col">${C.colRules}</th></tr></thead><tbody>
+        ${S.byPage.slice(0, 100).map((p) => html`<tr><td><a href="${p.url}">${p.url}</a></td><td>${p.elements}</td><td>${p.rules}</td></tr>`)}</tbody></table></div>` : ''}
+      <div class="card" style="margin-top:16px">${coverageSection(scan, l, 'coverage-h')}</div>
       ${!issues.length ? html`<p>${M.noIssues}</p>` : ''}
       ${fixed.length ? html`<h2>${M.fixedH}</h2><ul>${[...new Map(fixed.map((f) => [f.rule_id + f.target, f])).values()].slice(0, 100).map((f: any) => html`<li>${ruleHelp(f.rule_id, f.help, l)} – <code>${f.target}</code> ${M.on} ${new URL(f.page_url).pathname}</li>`)}</ul>` : ''}` });
   });

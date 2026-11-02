@@ -61,6 +61,20 @@ export const CRITERIA: { id: string; level: 'A' | 'AA'; en: string; zh: string }
   { id: '4.1.2', level: 'A', en: 'Name, Role, Value (custom widgets)', zh: '名称、角色、值（自定义控件）' },
   { id: '4.1.3', level: 'AA', en: 'Status Messages', zh: '状态消息' },
 ];
+/** German titles (following the authorised German WCAG translation), used in German PDF reports. */
+export const CRITERIA_DE: Record<string, string> = {
+  '1.1.1': 'Nicht-Text-Inhalt (sinnvolle Alternativen)', '1.2.1': 'Reines Audio und reines Video (aufgezeichnet)', '1.2.2': 'Untertitel (aufgezeichnet)',
+  '1.2.3': 'Audiodeskription oder Medienalternative (aufgezeichnet)', '1.2.4': 'Untertitel (live)', '1.2.5': 'Audiodeskription (aufgezeichnet)',
+  '1.3.1': 'Info und Beziehungen', '1.3.2': 'Bedeutungstragende Reihenfolge', '1.3.3': 'Sensorische Eigenschaften', '1.3.4': 'Ausrichtung', '1.3.5': 'Bestimmung des Eingabezwecks',
+  '1.4.1': 'Benutzung von Farbe', '1.4.2': 'Audio-Steuerelement', '1.4.3': 'Kontrast (Minimum) – Text auf Bildern und Verläufen', '1.4.4': 'Textgröße ändern', '1.4.5': 'Bilder eines Textes',
+  '1.4.10': 'Umbruch (Reflow)', '1.4.11': 'Nicht-Text-Kontrast', '1.4.12': 'Textabstand', '1.4.13': 'Eingeblendete Inhalte bei Hover oder Fokus',
+  '2.1.1': 'Tastatur', '2.1.2': 'Keine Tastaturfalle', '2.1.4': 'Tastaturkurzbefehle', '2.2.1': 'Zeiteinteilung anpassbar', '2.2.2': 'Pausieren, beenden, ausblenden', '2.3.1': 'Grenzwert von dreimaligem Blitzen oder weniger',
+  '2.4.1': 'Blöcke umgehen', '2.4.2': 'Seite mit Titel (aussagekräftige Titel)', '2.4.3': 'Fokus-Reihenfolge', '2.4.4': 'Linkzweck (im Kontext)', '2.4.5': 'Verschiedene Methoden', '2.4.6': 'Überschriften und Beschriftungen', '2.4.7': 'Fokus sichtbar', '2.4.11': 'Fokus nicht verdeckt (Minimum)',
+  '2.5.1': 'Zeigergesten', '2.5.2': 'Zeigeraktion abbrechen', '2.5.3': 'Beschriftung im Namen', '2.5.4': 'Auslösung durch Bewegung', '2.5.7': 'Ziehbewegungen', '2.5.8': 'Zielgröße (Minimum)',
+  '3.1.2': 'Sprache von Teilen', '3.2.1': 'Bei Fokus', '3.2.2': 'Bei Eingabe', '3.2.3': 'Konsistente Navigation', '3.2.4': 'Konsistente Erkennung', '3.2.6': 'Konsistente Hilfe',
+  '3.3.1': 'Fehlererkennung', '3.3.2': 'Beschriftungen oder Anweisungen', '3.3.3': 'Fehlerempfehlung', '3.3.4': 'Fehlervermeidung (rechtlich, finanziell, Daten)', '3.3.7': 'Redundante Eingaben', '3.3.8': 'Barrierefreie Authentifizierung (Minimum)',
+  '4.1.2': 'Name, Rolle, Wert (eigene Bedienelemente)', '4.1.3': 'Statusmeldungen',
+};
 export const STATUSES = ['not_checked', 'pass', 'fail', 'na'] as const;
 export type Status = typeof STATUSES[number];
 export const fieldKey = (id: string) => 'c' + id.replace(/\./g, '_');

@@ -101,6 +101,8 @@ export function db(): DatabaseSync {
     "ALTER TABLE teams ADD COLUMN verify_bypass INTEGER NOT NULL DEFAULT 0",
     // Admin-only complimentary plan: overrides the billed plan; billing webhooks and the downgrade job never change it. SQL only.
     "ALTER TABLE teams ADD COLUMN plan_override TEXT",
+    // Crawl coverage per scan (JSON): sitemap/link discovery and skipped URLs by reason.
+    "ALTER TABLE scans ADD COLUMN crawl TEXT",
     // Client workspaces (Agency): optional grouping of sites per agency client. Deleting a client keeps its sites.
     "ALTER TABLE sites ADD COLUMN client_id TEXT REFERENCES clients(id) ON DELETE SET NULL",
     "CREATE INDEX IF NOT EXISTS sites_client ON sites(client_id)",

@@ -1,7 +1,7 @@
 import { randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
 import { all, get, run, now } from '../db.ts';
 import { config } from '../config.ts';
-import { t, normLocale, type Locale } from '../i18n.ts';
+import { t, normReportLocale, type ReportLocale } from '../i18n.ts';
 import { planOf, effectivePlanSql } from './plans.ts';
 import { brandingFor, reportPdf } from './report.ts';
 import { mailer } from './mailer.ts';
@@ -46,7 +46,7 @@ export function manualSendsToday(teamId: string) {
   return get<any>("SELECT COUNT(*) AS n FROM report_deliveries WHERE team_id = ? AND kind = 'manual' AND status != 'skipped' AND created_at >= ?", teamId, new Date(Date.now() - 86_400_000).toISOString()).n as number;
 }
 
-export interface SendInput { siteId: string; recipients: string[]; locale: Locale; kind: 'manual' | 'scheduled'; scheduleId?: string | null; sentBy?: string | null; frequency?: Frequency }
+export interface SendInput { siteId: string; recipients: string[]; locale: ReportLocale; kind: 'manual' | 'scheduled'; scheduleId?: string | null; sentBy?: string | null; frequency?: Frequency }
 export interface SendResult { status: 'sent' | 'partial' | 'failed' | 'skipped'; reason?: 'no_site' | 'plan' | 'no_scan'; sent: number; failed: number; scanId?: string }
 
 /**
@@ -66,7 +66,7 @@ export async function sendLatestReport(x: SendInput): Promise<SendResult> {
   if (!plan.pdf) { record(x.recipients.join(','), 'skipped', null, 'plan'); return { status: 'skipped', reason: 'plan', sent: 0, failed: 0 }; }
   const scan = get<any>("SELECT * FROM scans WHERE site_id = ? AND status = 'done' ORDER BY finished_at DESC LIMIT 1", site.id);
   if (!scan) { record(x.recipients.join(','), 'skipped', null, 'no_scan'); return { status: 'skipped', reason: 'no_scan', sent: 0, failed: 0 }; }
-  const l = normLocale(x.locale) ?? 'en', E = t(l).er;
+  const l = normReportLocale(x.locale) ?? 'en', E = t(l).er;
   const branding = await brandingFor({ plan: site.plan, brand_name: site.brand_name, brand_color: site.brand_color, brand_logo_url: site.brand_logo_url });
   const pdf = await reportPdf(scan.id, branding, l);
   const sender = x.sentBy ? get<any>('SELECT u.email FROM users u JOIN memberships m ON m.user_id = u.id WHERE u.id = ? AND m.team_id = ?', x.sentBy, site.tid)?.email : null;
@@ -106,6 +106,6 @@ export async function runScheduledReport(p: { scheduleId: string }) {
   if (!s || !s.active || !s.recipients) return null;
   return sendLatestReport({ siteId: s.site_id, recipients: s.recipients.split(','), locale: s.locale, kind: 'scheduled', scheduleId: s.id, sentBy: s.created_by, frequency: s.frequency });
 }
-export async function runManualReport(p: { siteId: string; recipients: string[]; locale: Locale; sentBy: string }) {
+export async function runManualReport(p: { siteId: string; recipients: string[]; locale: ReportLocale; sentBy: string }) {
   return sendLatestReport({ ...p, kind: 'manual' });
 }

@@ -36,6 +36,29 @@ test('crawler respects sitemap, same-origin and the page cap', async () => {
   assert.equal((await sitemapUrls(fx.base, 1)).length, 1);
 });
 
+test('discovery: robots.txt Sitemap lines, nested and gzipped sitemaps, other hosts ignored', async () => {
+  const { gzipSync } = await import('node:zlib');
+  const { discover } = await import('../../src/lib/crawler.ts');
+  const f2 = await fixtureServer({});
+  const B = f2.base, xml = (r: any, b: string | Buffer) => { r.writeHead(200, { 'content-type': 'application/xml' }); r.end(b); };
+  const routes: any = {
+    '/robots.txt': (_q: any, r: any) => { r.writeHead(200, { 'content-type': 'text/plain' }); r.end(`User-agent: *\nDisallow: /private\nSitemap: ${B}/sm/index.xml\nSitemap: https://other.example/sitemap.xml`); },
+    '/sm/index.xml': (_q: any, r: any) => xml(r, `<sitemapindex><sitemap><loc>${B}/sm/a.xml.gz</loc></sitemap><sitemap><loc>${B}/sm/b.xml</loc></sitemap></sitemapindex>`),
+    '/sm/a.xml.gz': (_q: any, r: any) => xml(r, gzipSync(`<urlset>${[1, 2, 3].map((n) => `<url><loc>${B}/p${n}</loc></url>`).join('')}<url><loc>${B}/private/x</loc></url></urlset>`)),
+    '/sm/b.xml': (_q: any, r: any) => xml(r, `<urlset><url><loc>${B}/p4</loc></url><url><loc>${B}/doc.pdf</loc></url></urlset>`),
+  };
+  f2.server.removeAllListeners('request');
+  f2.server.on('request', (q: any, r: any) => { const h = routes[q.url.split('?')[0]]; if (h) return h(q, r); r.writeHead(404); r.end(); });
+  try {
+    const d = await discover(B, 10);
+    assert.deepEqual(d.pages, [1, 2, 3, 4].map((n) => `${B}/p${n}`));
+    assert.equal(d.sitemapFiles.length, 3, 'index + 2 child sitemaps; other-host sitemap not fetched');
+    const why = (u: string) => d.skipped.find((x) => x.url === u)?.reason;
+    assert.equal(why(`${B}/private/x`), 'robots'); assert.equal(why(`${B}/doc.pdf`), 'file');
+    assert.equal((await discover(B, 2)).pages.length, 2);
+  } finally { f2.server.close(); }
+});
+
 test('scheduled scan → evidence trail, diff, alert, immutability, retention', async () => {
   const c = client(app);
   await c.post('/signup', { email: 'mon@example.com', password: 'a very long password' }, '/signup');
@@ -49,6 +72,22 @@ test('scheduled scan → evidence trail, diff, alert, immutability, retention', 
   assert.equal(await workOnce({}), true);
   const s1 = db.get("SELECT * FROM scans WHERE kind = 'scheduled'");
   assert.equal(s1.status, 'done'); assert.equal(s1.pages_scanned, 4, 'home + 2 sitemap pages + 1 linked page');
+  // crawl coverage is recorded with skip reasons; scan_pages keeps final URLs so counts line up with issues
+  const crawl = JSON.parse(s1.crawl);
+  assert.equal(crawl.fromSitemap, 2); assert.equal(crawl.fromLinks, 1); assert.equal(crawl.robots, 'none');
+  assert.equal(crawl.skipped.other_host.n, 1); assert.deepEqual(crawl.skipped.other_host.examples, ['https://other.example/x']);
+  assert.equal(db.get("SELECT COUNT(*) AS n FROM scan_pages WHERE scan_id = ? AND url = ?", s1.id, fx.base + '/').n, 1, 'final URL stored for the home page');
+  const { scanSummary } = await import('../../src/lib/scanSummary.ts');
+  const sum = scanSummary(s1.id);
+  assert.equal(sum.elements, s1.critical + s1.serious + s1.moderate + s1.minor, 'element count matches the impact counts');
+  assert.equal(sum.byPage.reduce((n: number, p: any) => n + p.elements, 0), sum.elements, 'top pages add up to the summary');
+  assert.equal(sum.byRule.reduce((n: number, r: any) => n + r.elements.length, 0), sum.elements, 'rules add up to the summary');
+  assert.equal(sum.occurrences, sum.byRule.reduce((n: number, r: any) => n + r.pages, 0));
+  const page1 = (await c.req('GET', `/app/scans/${s1.id}`)).body;
+  assert.match(page1, new RegExp(`data-counts>${sum.elements} affected element`));
+  assert.match(page1, /id="coverage-h">Crawl coverage</); assert.match(page1, /data-reason="other_host"/);
+  assert.match(page1, /<th scope="col">CSS selector<\/th>/); assert.match(page1, /How to fix/);
+  assert.match(page1, /report\.pdf\?language=de/);
   assert.ok(s1.critical + s1.serious >= 1); assert.equal(s1.new_issues, null); assert.match(s1.evidence_hash, /^[0-9a-f]{64}$/);
   // break a page, run a manual scan
   state.broken = true;
@@ -105,6 +144,15 @@ test('reports: PDF gating, white-label branding, statement draft', async () => {
   r = await c.req('GET', `/app/scans/${scan.id}/report.pdf`);
   assert.equal(r.statusCode, 200); assert.equal(r.headers['content-type'], 'application/pdf');
   assert.equal(r.rawPayload.subarray(0, 4).toString(), '%PDF');
+  // German report: localized headings, per-rule details with selector + snippet, coverage, no banned words
+  r = await c.req('GET', `/app/scans/${scan.id}/report?language=de`);
+  assert.match(r.body, /<html lang="de"/); assert.match(r.body, /Details nach Regel/); assert.match(r.body, /So beheben Sie es|Behebung/);
+  assert.match(r.body, /Abdeckung der Prüfung/); assert.match(r.body, /<pre/);
+  assert.doesNotMatch(r.body, new RegExp(['konf' + 'orm', 'zertifizi', 'garanti', 'complian', 'certifi', 'guarant'].join('|'), 'i'), 'no banned claims');
+  r = await c.req('GET', `/app/scans/${scan.id}/report?language=zh-CN`);
+  assert.match(r.body, /<html lang="zh-CN"/); assert.match(r.body, /各规则详情/);
+  r = await c.req('GET', `/app/scans/${scan.id}/report.pdf?language=de`);
+  assert.equal(r.statusCode, 200); assert.equal(r.rawPayload.subarray(0, 4).toString(), '%PDF');
   r = await c.req('GET', `/app/sites/${scan.site_id}/statement`);
   assert.match(r.body, /DRAFT generated by Allyfolio/); assert.doesNotMatch(r.body, /complian|certified|guarantee/i);
 });
