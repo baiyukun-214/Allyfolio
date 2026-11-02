@@ -14,6 +14,8 @@ export async function reportRoutes(app: FastifyInstance) {
   app.get('/app/scans/:id/report', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
     const scan = scanFor(ctx, (req.params as any).id); if (!scan) return reply.code(404).send('Not found');
+    // Same entitlement as the PDF: the printable HTML is the PDF's source.
+    if (!canPdf(planOf(ctx.team.plan), scan.kind === 'oneoff')) return back(reply, `/app/scans/${scan.id}`, 'err', T(req, ctx).rep.pdfGate);
     return reply.type('text/html').send(reportHtml(scan.id, await brandingFor(ctx.team), loc(req, ctx)));
   });
 

@@ -98,7 +98,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
       <p><a href="/app/sites/${scan.sid}">← ${scan.site_name}</a></p>
       <h1>${M.scanOf(scan.site_name)}</h1>
       <p class="muted">${M.finished} ${lt(scan.finished_at, l)} · ${M.pagesN(scan.pages_scanned)} (${M.limit} ${scan.page_limit}) · ${M.hash} <code>${scan.evidence_hash}</code></p>
-      <div class="row">${canPdf(plan, scan.kind === 'oneoff') ? html`<a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a>` : ''}<a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a></div>
+      <div class="row">${canPdf(plan, scan.kind === 'oneoff') ? html`<a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a><a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a>` : ''}</div>
       <dl class="grid g4" style="margin-top:16px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
       <div class="card kpi-score" style="margin-top:16px">${scoreBlock('scan-score', automatedScore(scan), M)}</div>
       ${prev ? html`<p class="small" style="margin-top:12px"><strong>${d[0]}</strong>${d[1]}<strong>${d[2]}</strong>${d[3]}</p>` : html`<p class="small muted" style="margin-top:12px">${M.first}</p>`}
