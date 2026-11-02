@@ -17,3 +17,5 @@ export async function verifySite(origin: string, token: string): Promise<'dns' |
   } catch {}
   return null;
 }
+/** Admin-only ownership-verification bypass (teams.verify_bypass = 1, set via SQL). Off for everyone else. */
+export const bypassesVerification = (team: any): boolean => Number(team?.verify_bypass ?? 0) === 1;

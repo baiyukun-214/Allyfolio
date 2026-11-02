@@ -68,6 +68,8 @@ export function db(): DatabaseSync {
     // Stripe → provider-neutral billing columns (Paddle)
     "ALTER TABLE teams RENAME COLUMN stripe_customer_id TO billing_customer_id", "ALTER TABLE teams RENAME COLUMN stripe_subscription_id TO billing_subscription_id",
     "ALTER TABLE teams ADD COLUMN cancel_at TEXT", "DROP TABLE IF EXISTS stripe_events",
+    // Admin-only: lets a team scan sites it does not own (demos). Set via SQL only; no UI toggles it.
+    "ALTER TABLE teams ADD COLUMN verify_bypass INTEGER NOT NULL DEFAULT 0",
   ]) { try { _db.exec(m); } catch { /* already applied */ } }
   return _db;
 }

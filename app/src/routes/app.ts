@@ -5,7 +5,7 @@ import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { parsePublicUrl, UnsafeUrlError } from '../lib/ssrf.ts';
 import { planOf, assertCanAddSite, assertCanAddSeat, LimitError } from '../lib/plans.ts';
-import { verifySite, TXT_PREFIX, META_NAME } from '../lib/verify.ts';
+import { verifySite, bypassesVerification, TXT_PREFIX, META_NAME } from '../lib/verify.ts';
 import { mailer } from '../lib/mailer.ts';
 import { validEmail } from '../lib/waitlist.ts';
 import { config } from '../config.ts';
@@ -47,6 +47,11 @@ export async function dashboardRoutes(app: FastifyInstance) {
     if (get('SELECT 1 FROM sites WHERE team_id = ? AND origin = ?', ctx.team.id, o)) return back(reply, '/app', 'err', D.dup);
     const id = randomUUID();
     run('INSERT INTO sites (id, team_id, name, origin, verify_token, created_at) VALUES (?,?,?,?,?,?)', id, ctx.team.id, String(name || o).slice(0, 80), o, randomBytes(16).toString('hex'), now());
+    if (bypassesVerification(ctx.team)) {
+      run("UPDATE sites SET verified_at = ?, verify_method = 'admin' WHERE id = ?", now(), id);
+      const { scheduleFirstScan } = await import('../jobs/queue.ts');
+      scheduleFirstScan(id, ctx.team);
+    }
     return reply.redirect(`/app/sites/${id}`, 303);
   });
 
@@ -71,7 +76,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
   app.post('/app/sites/:id/verify', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
     const s = ownSite(ctx, (req.params as any).id); if (!s) return reply.code(404).send();
-    const method = await verifySite(s.origin, s.verify_token);
+    const method = bypassesVerification(ctx.team) ? 'admin' : await verifySite(s.origin, s.verify_token);
     if (!method) return back(reply, `/app/sites/${s.id}`, 'err', T(req, ctx).dash.verifyFail);
     run('UPDATE sites SET verified_at = ?, verify_method = ? WHERE id = ?', now(), method, s.id);
     const { scheduleFirstScan } = await import('../jobs/queue.ts');
