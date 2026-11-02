@@ -45,3 +45,13 @@ test('deploy files: env example has placeholders only and PUBLIC_APP_LIVE is nev
     assert.doesNotMatch(readFileSync(new URL(f, import.meta.url), 'utf8'), /PUBLIC_APP_LIVE\s*=\s*["']?true/);
   assert.match(readFileSync(new URL('../../deploy/Caddyfile', import.meta.url), 'utf8'), /^app\.allyfolio\.com \{/m);
 });
+
+test('backups: R2 retention only prunes top-level backup files; the daily evidence anchor runs after each backup', () => {
+  const b = readFileSync(new URL('../../deploy/backup.sh', import.meta.url), 'utf8');
+  const del = b.split('\n').filter((l) => /rclone delete/.test(l));
+  assert.equal(del.length, 1); assert.match(del[0], /--include "\/allyfolio-\*\.db\.gz"/, 'retention must not touch anchors/');
+  assert.match(b, /\/deploy\/anchor\.sh \|\| echo "\[anchor\] FAILED"/);
+  const a = readFileSync(new URL('../../deploy/anchor.sh', import.meta.url), 'utf8');
+  assert.match(a, /sqlite3 -readonly/); assert.match(a, /\$BACKUP_RCLONE_REMOTE\/anchors/); assert.doesNotMatch(a, /rclone (delete|purge|sync)/);
+  assert.doesNotMatch(a, /rclone\.conf|config show/, 'never print rclone config');
+});

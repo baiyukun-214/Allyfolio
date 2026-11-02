@@ -33,7 +33,8 @@ connections to this host take 25–50 s to open and sometimes drop.
   written and rotated, `backup.sh` runs `rclone copy <file> r2:allyfolio-backups`. The log line is
   `[backup] copied offsite to r2:allyfolio-backups` (`docker compose logs backup`).
 - **Retention:** locally the 14 newest files (`BACKUP_KEEP_DAILY`). On R2, objects older than `BACKUP_REMOTE_KEEP_DAYS`
-  (30) days are deleted by `rclone delete --min-age 30d` after each copy. That step is `|| true`, so if the R2 token
+  (30) days are deleted by `rclone delete --min-age 30d --include "/allyfolio-*.db.gz"` after each copy (top-level
+  backup files only; the `anchors/` prefix is never pruned). That step is `|| true`, so if the R2 token
   has no delete permission the old objects just accumulate silently. Check the bucket now and then, or add an R2 lifecycle
   rule as a backstop.
 - **Configuration (no secrets in git):**
@@ -56,6 +57,30 @@ connections to this host take 25–50 s to open and sometimes drop.
   wrote `allyfolio-20261102T031500Z.db.gz` (6928 B) and logged `copied offsite to r2:allyfolio-backups`.
   `rclone ls` shows it next to the manual `allyfolio-20261102T031316Z.db.gz`. The R2 delete path (30-day pruning) has
   not been exercised yet; nothing is older than 30 days.
+
+### Evidence chain anchors (R2, `anchors/` prefix)
+
+- **What:** once a day, right after the backup, `deploy/backup.sh` runs `deploy/anchor.sh` in the `backup` container. It reads
+  the DB read-only (`sqlite3 -readonly`) and writes `anchor-<UTCSTAMP>.json` with, per site, the head of the scan chain
+  (latest finished scan: `site_id`, `scan_id`, `finished_at`, `hash_version`, `evidence_hash`) and the head of the
+  manual-check chain (`site_id`, `seq`, `hash`), plus `anchored_at` (UTC) and a SHA-256 `digest` of those heads.
+- **Where:** locally `app/backups/anchors/`, off-site `r2:allyfolio-backups/anchors/` (override with `ANCHOR_RCLONE_REMOTE`;
+  `ANCHOR_DISABLED=1` turns it off). Same rclone remote and config as the backups. Anchors are not rotated or deleted.
+  A failed anchor logs `[anchor] FAILED` and does not fail the backup.
+- **Why:** the hash chain in the DB shows whether the stored records still match their hashes, but someone with DB access
+  could rewrite a whole chain and recompute every hash. A head that was copied off-site on an earlier day pins the
+  history up to that day: if that hash later disappears from, or no longer matches, the DB, the history was rewritten.
+  Stronger still (recommended): enable R2 object lock / a bucket retention rule on `anchors/` so anchors cannot be
+  deleted with the same token.
+- **Check it:**
+  ```sh
+  cd /srv/allyfolio-mono/app
+  docker compose exec -T backup sh -c 'rclone lsl r2:allyfolio-backups/anchors | tail -n 3'
+  docker compose exec -T backup sh -c 'rclone cat r2:allyfolio-backups/anchors/<file>' > /tmp/anchor.json
+  docker compose cp /tmp/anchor.json app:/tmp/anchor.json
+  docker compose exec -T app npx tsx scripts/verify-chain.ts --anchor /tmp/anchor.json   # read-only
+  ```
+  Run an extra anchor by hand (no scan, no email): `docker compose exec -T backup /deploy/anchor.sh`.
 
 #### Restore from R2 (host still alive)
 

@@ -123,7 +123,7 @@ const base: Record<'en' | 'zh-CN', Pages> = {
 <li>Access to the dashboard only after login; passwords stored as salted hashes; sessions can be ended; reset links are single use and expire after 60 minutes.</li>
 <li>Strict separation of customers' data by team; ownership verification before site scans.</li>
 <li>Scanner isolated from internal networks by an egress proxy that only allows public addresses.</li>
-<li>Daily backups with limited retention; traceable, hash-chained scan history.</li>
+<li>Daily backups with limited retention; traceable, hash-chained scan history, with the latest chain hashes stored off-site once a day.</li>
 </ul>
 <h2>6. Sub-processors</h2>
 <p>The controller agrees to the following sub-processors: Hetzner Online GmbH (hosting, Falkenstein, Germany); Resend (transactional email, EU region); Cloudflare, Inc. (DNS and inbound email). The processor informs the controller of intended changes at least 30 days in advance by email; the controller may object for important reasons and terminate.</p>
@@ -294,7 +294,7 @@ const base: Record<'en' | 'zh-CN', Pages> = {
 <li>仅在登录后才能访问控制台；密码以加盐哈希形式保存；会话可以结束；重置链接只能使用一次，60 分钟后失效。</li>
 <li>按团队严格隔离客户数据；扫描网站前须验证所有权。</li>
 <li>扫描器通过仅允许公开地址的出站代理与内部网络隔离。</li>
-<li>每日备份，保存期限有限；可追溯、哈希链接的扫描历史。</li>
+<li>每日备份，保存期限有限；可追溯、哈希链接的扫描历史，每天将最新的链哈希另存到异地。</li>
 </ul>
 <h2>6. 次级处理者</h2>
 <p>控制者同意以下次级处理者：Hetzner Online GmbH（托管，德国法尔肯施泰因）；Resend（事务性邮件，欧盟区域）；Cloudflare, Inc.（DNS 和入站邮件）。处理者会至少提前 30 天通过电子邮件告知计划中的变更；控制者可因重要理由提出异议并终止合同。</p>

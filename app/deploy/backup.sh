@@ -19,5 +19,8 @@ echo "[backup] wrote $OUT ($(wc -c < "$OUT") bytes)"
 ls -1t "$DIR"/allyfolio-*.db.gz 2>/dev/null | tail -n +"$((KEEP + 1))" | while read -r f; do rm -f "$f"; echo "[backup] rotated out $f"; done
 if [ -n "$REMOTE" ]; then
   rclone copy "$OUT" "$REMOTE" && echo "[backup] copied offsite to $REMOTE"
-  [ -n "${BACKUP_REMOTE_KEEP_DAYS:-}" ] && rclone delete --min-age "${BACKUP_REMOTE_KEEP_DAYS}d" "$REMOTE" || true
+  # Retention touches only top-level backup files, never the anchors/ prefix.
+  [ -n "${BACKUP_REMOTE_KEEP_DAYS:-}" ] && rclone delete --min-age "${BACKUP_REMOTE_KEEP_DAYS}d" --include "/allyfolio-*.db.gz" "$REMOTE" || true
 fi
+# Daily off-site anchor of the evidence chain heads (see anchor.sh). A failed anchor does not fail the backup.
+[ "${ANCHOR_DISABLED:-0}" = "1" ] || /deploy/anchor.sh || echo "[anchor] FAILED" >&2
