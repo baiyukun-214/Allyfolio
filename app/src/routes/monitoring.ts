@@ -10,6 +10,7 @@ import { requireUser, render, back, ownSite, loc, T, fmtDate, localTime } from '
 import { t, scanError, type Locale } from '../i18n.ts';
 import { automatedScore, weeklyTrend, totalIssues } from '../lib/insights.ts';
 import { scoreBlock, sparkline, sevChips, emptyState } from '../views/ui.ts';
+import { checklist, summary as manualSummary } from '../lib/manualReview.ts';
 
 export const fmt = (iso?: string | null, l: Locale = 'en') => fmtDate(iso, l);
 const lt = (iso?: string | null, l: Locale = 'en') => localTime(iso, l);
@@ -44,6 +45,7 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
     <div class="scan-progress" id="scan-progress" ${running ? '' : 'hidden'}><p class="small" id="scan-progress-text">${running ? M.scanning(running.pages_scanned ?? 0, running.page_limit ?? plan.pagesPerSite) : M.scanStarting}</p>
       <div class="prog" role="progressbar" aria-label="${M.progressLabel}" aria-valuemin="0" aria-valuemax="${running?.page_limit ?? plan.pagesPerSite ?? 0}" aria-valuenow="${running?.pages_scanned ?? 0}"><span style="width:${running ? Math.round(100 * (running.pages_scanned ?? 0) / Math.max(1, running.page_limit ?? 1)) : 0}%"></span></div></div>
     <template id="scan-i18n" data-starting="${M.scanStarting}" data-scanning="${M.scanning('{n}' as any, '{limit}' as any)}" data-failed="${M.scanFailed}" data-view="${M.viewScan}" data-dismiss="${M.dismiss}" data-done="${M.scanDone('{n}' as any, '{f}' as any)}"></template>
+    ${manualSection(s, l)}
     <section id="history" aria-labelledby="history-h"><h2 id="history-h">${M.historyH}</h2>
     ${scans.length ? html`<div class="card table-wrap" style="padding:8px 16px"><table><caption class="sr-only">${M.historyCaption}</caption>
       <thead><tr><th scope="col">${M.colFinished}</th><th scope="col">${M.colType}</th><th scope="col">${M.colPages}</th><th scope="col">${M.colCounts}</th><th scope="col">${M.colDiff}</th><th scope="col">${M.colHash}</th></tr></thead><tbody>
@@ -51,6 +53,14 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
         <td>${sevChips(c, Tx.impacts)}</td><td>${c.new_issues ?? '–'} / ${c.fixed_issues ?? '–'}</td><td><code>${(c.evidence_hash ?? '').slice(0, 12)}</code></td></tr>`)}
     </tbody></table></div>` : emptyState(M.emptyScansH, M.emptyScansText + (pending ? M.firstQueued : ''))}</section>
     <p class="small muted" style="margin-top:24px">${M.removeInSettings} <a href="/app/settings#danger-h">${M.settingsLink}</a>.</p>`;
+}
+
+function manualSection(s: any, l: Locale) {
+  const X = t(l).manual, sm = manualSummary(s.id), failing = checklist(s.id).filter((r) => r.status === 'fail');
+  return html`<section class="card" aria-labelledby="manual-h" style="margin-top:24px"><h2 id="manual-h" style="margin-top:0">${X.h}</h2>
+    <p class="small muted">${X.lead}</p><p>${X.summary(sm)}</p>
+    ${failing.length ? html`<p class="small"><strong>${X.failing}:</strong> ${failing.map((r) => r.criterion).join(', ')}</p>` : ''}
+    <p><a class="btn btn-secondary" href="/app/sites/${s.id}/manual">${X.open}</a></p></section>`;
 }
 
 export async function monitoringRoutes(app: FastifyInstance) {

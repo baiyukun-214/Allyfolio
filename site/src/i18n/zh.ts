@@ -18,7 +18,7 @@ export const zh: Dict = {
     pageTitle: '候补名单', back: '返回首页',
   },
   plans: {
-    recommended: '推荐', inDev: '开发中：人工审查清单、定时发送报告、客户工作区。', perMonth: '/月', exVat: '不含增值税', join: '加入候补名单', joinFor: '–',
+    recommended: '推荐', inDev: '开发中：定时发送报告、客户工作区。', perMonth: '/月', exVat: '不含增值税', join: '加入候补名单', joinFor: '–',
     oneoffTitle: '单次报告', oneoffText: '1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。', tabsLabel: '方案类型', tabSubs: '订阅套餐', tabOneoff: '一次性报告', oneoffPer: '一次性', oneoffFeatures: ['1 个网站', '最多 100 个页面', '单次扫描', 'PDF 报告', '无需订阅'], oneoffSr: '– 单次报告',
     items: {
       starter: { name: '入门版', blurb: '适合单个小型企业网站。', features: ['1 个网站', '最多 100 个页面', '每周扫描', '12 个月证据历史', 'PDF 报告导出', '1 个席位'], extra: ['带时间戳的审计记录', '无障碍声明草稿'] },
@@ -71,7 +71,7 @@ export const zh: Dict = {
     title: '价格', description: 'Allyfolio 价格：入门版 €19/月，商业版 €39/月，代理商版 €99/月，或一次性付费 €49 的单次无障碍报告。所有方案均含 PDF 报告。',
     eyebrow: '价格', h1: '适合各种规模网站的方案', lead: '选择适合您网站的方案。所有价格均以欧元计价，不含增值税。所有方案均包含 PDF 报告。付款、发票和欧盟增值税由 Paddle.com Market Ltd 作为记录商户处理。',
     plansSr: '方案', includedH: '所有方案均包含',
-    included: ['使用 Playwright 和 axe-core 进行自动化扫描', '带时间戳的扫描与修复历史', 'PDF 报告导出', '托管于德国（Hetzner，法尔肯施泰因）', '不使用覆盖层插件，不在您的网站上运行脚本'],
+    included: ['使用 Playwright 和 axe-core 进行自动化扫描', '带时间戳的扫描与修复历史', 'PDF 报告导出', '人工审查清单，涵盖自动化检测无法完全覆盖的 WCAG 2.2 A/AA 级标准', '托管于德国（Hetzner，法尔肯施泰因）', '不使用覆盖层插件，不在您的网站上运行脚本'],
     disclaimer: 'Allyfolio 是一款测试与记录工具，不能替代专家的人工审查或法律建议。',
     faqH: '价格相关问题',
     faq: [

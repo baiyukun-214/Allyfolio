@@ -52,6 +52,12 @@ CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, scan_id TEXT NOT NULL R
 CREATE TABLE IF NOT EXISTS free_scan_hits (ip_hash TEXT NOT NULL, at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS free_scan_hits_ip ON free_scan_hits (ip_hash, at);
 CREATE TABLE IF NOT EXISTS billing_events (id TEXT PRIMARY KEY, type TEXT NOT NULL, received_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS manual_checks (
+  site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE, criterion TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'not_checked' CHECK (status IN ('not_checked', 'pass', 'fail', 'na')), notes TEXT,
+  assignee_id TEXT REFERENCES users(id) ON DELETE SET NULL, checked_by TEXT REFERENCES users(id) ON DELETE SET NULL, checked_at TEXT, updated_at TEXT NOT NULL,
+  PRIMARY KEY (site_id, criterion)
+);
 CREATE TABLE IF NOT EXISTS password_resets (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL);
 `;
 

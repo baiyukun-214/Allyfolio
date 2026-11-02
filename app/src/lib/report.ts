@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs';
 const FONT = 'data:font/woff2;base64,' + readFileSync(new URL('../../public/inter.woff2', import.meta.url)).toString('base64');
 import { raw } from './html.ts';
 import { automatedScore } from './insights.ts';
+import { checklist, summary as manualSummary } from './manualReview.ts';
 
 export interface Branding { name: string; color: string; logoDataUri: string | null; whiteLabel: boolean }
 /** Logo is fetched server-side through the SSRF guard and inlined, so the PDF renderer never touches the network. */
@@ -33,6 +34,7 @@ export function reportHtml(scanId: string, b: Branding, l: Locale = 'en'): strin
   const scan = get<any>('SELECT c.*, s.name AS site_name, s.origin FROM scans c JOIN sites s ON s.id = c.site_id WHERE c.id = ?', scanId);
   const issues = all<any>('SELECT rule_id, impact, help, help_url, wcag, COUNT(*) AS n, COUNT(DISTINCT page_url) AS pages FROM scan_issues WHERE scan_id = ? GROUP BY rule_id ORDER BY n DESC', scanId);
   const pages = all<any>('SELECT p.url, (SELECT COUNT(*) FROM scan_issues i WHERE i.scan_id = p.scan_id AND i.page_url = p.url) AS n FROM scan_pages p WHERE p.scan_id = ? ORDER BY n DESC LIMIT 50', scanId);
+  const X = Tx.manual, manual = checklist(scan.site_id).filter((r) => r.status !== 'not_checked'), msum = manualSummary(scan.site_id);
   const sorted = issues.sort((a, c) => IMPACTS.indexOf(a.impact) - IMPACTS.indexOf(c.impact) || c.n - a.n);
   const body: Html = html`<!doctype html><html lang="${Tx.htmlLang}"><head><meta charset="utf-8"><title>${R.title(scan.site_name)}</title><style>
     @font-face { font-family: Inter; src: url(${raw(FONT)}) format('woff2'); font-weight: 100 900; }
@@ -61,6 +63,12 @@ export function reportHtml(scanId: string, b: Branding, l: Locale = 'en'): strin
   ${!sorted.length ? html`<p>${R.none}</p>` : ''}
   <h2>${R.topPages}</h2>
   <table><thead><tr><th>${R.colPage}</th><th>${R.colIssues}</th></tr></thead><tbody>${pages.map((p) => html`<tr><td>${p.url}</td><td>${p.n}</td></tr>`)}</tbody></table>
+  <h2>${X.h}</h2>
+  <p class="muted">${X.pdfLead}</p>
+  <p>${X.summary(msum)}</p>
+  ${manual.length ? html`<table><thead><tr><th>${X.colCriterion}</th><th>${X.colLevel}</th><th>${X.colStatus}</th><th>${X.colNotes}</th><th>${X.colLast}</th></tr></thead><tbody>
+  ${manual.map((r) => html`<tr><td>${r.criterion} ${l === 'zh-CN' ? r.zh : r.en}</td><td>${r.level}</td><td>${X.statuses[r.status]}</td><td>${r.notes ?? ''}</td><td>${r.checked_at ? fmt(r.checked_at, l) : '–'}${r.checked_by_email ? html`<br>${X.lastBy(r.checked_by_email)}` : ''}</td></tr>`)}
+  </tbody></table>` : html`<p>${X.pdfNone}</p>`}
   <h2>${R.evidence}</h2>
   <p>${R.evidenceText}</p>
   <p>${R.scanId} <code>${scan.id}</code><br>${R.hash} <code>${scan.evidence_hash}</code><br>${R.prev} <code>${scan.prev_hash ?? R.firstScan}</code></p>

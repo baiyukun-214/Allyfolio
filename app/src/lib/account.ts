@@ -49,7 +49,8 @@ export function exportUserData(userId: string) {
       members: all<any>('SELECT u.email, m.role, m.created_at AS joined_at FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.team_id = ? ORDER BY m.created_at', t.id),
       invites: all<any>('SELECT email, created_at, accepted_at FROM invites WHERE team_id = ?', t.id),
       sites: all<any>('SELECT id, name, origin, verified_at, verify_method, created_at, next_scan_at FROM sites WHERE team_id = ? ORDER BY created_at', t.id).map((s) => ({
-        ...s, scans: all<any>('SELECT id, kind, status, created_at, finished_at, pages_scanned, critical, serious, moderate, minor, new_issues, fixed_issues, evidence_hash FROM scans WHERE site_id = ? ORDER BY created_at', s.id),
+        ...s, manual_checks: all<any>('SELECT criterion, status, notes, assignee_id, checked_by, checked_at, updated_at FROM manual_checks WHERE site_id = ? ORDER BY criterion', s.id),
+        scans: all<any>('SELECT id, kind, status, created_at, finished_at, pages_scanned, critical, serious, moderate, minor, new_issues, fixed_issues, evidence_hash FROM scans WHERE site_id = ? ORDER BY created_at', s.id),
       })),
     })),
     invites_received: all<any>('SELECT i.created_at, i.accepted_at, t.name AS team FROM invites i JOIN teams t ON t.id = i.team_id WHERE i.email = ?', user.email),

@@ -17,7 +17,7 @@ export const en = {
     pageTitle: 'Waitlist', back: 'Back to the home page',
   },
   plans: {
-    recommended: 'Recommended', inDev: 'In development: manual review checklist, scheduled report delivery, client workspaces.', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
+    recommended: 'Recommended', inDev: 'In development: scheduled report delivery, client workspaces.', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
     oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-time', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
     items: {
       starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', 'PDF report export', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },
@@ -70,7 +70,7 @@ export const en = {
     title: 'Pricing', description: 'Allyfolio pricing: Starter €19/month, Business €39/month, Agency €99/month, or a one-off accessibility report for €49 (one-time). PDF reports on all plans.',
     eyebrow: 'Pricing', h1: 'Plans for every size of site', lead: 'Pick the plan that fits your site. All prices are in euros and exclude VAT. PDF reports are included on all plans. Payments, invoices and EU VAT are handled by Paddle.com Market Ltd as Merchant of Record.',
     plansSr: 'Plans', includedH: 'Included in every plan',
-    included: ['Automated scans with Playwright and axe-core', 'Timestamped history of scans and fixes', 'PDF report export', 'Hosted in Germany (Hetzner, Falkenstein)', 'No overlay widget and no scripts on your site'],
+    included: ['Automated scans with Playwright and axe-core', 'Timestamped history of scans and fixes', 'PDF report export', 'Manual review checklist for WCAG 2.2 A/AA criteria that automated checks cannot fully cover', 'Hosted in Germany (Hetzner, Falkenstein)', 'No overlay widget and no scripts on your site'],
     disclaimer: 'Allyfolio is a testing and documentation tool. It does not replace manual expert review or legal advice.',
     faqH: 'Pricing questions',
     faq: [
