@@ -27,11 +27,14 @@ test('mailer falls back to console logging when RESEND_API_KEY is missing', () =
   assert.equal(evalWith({}, code), 'ConsoleMailer');
   assert.equal(evalWith({ RESEND_API_KEY: 're_placeholder_for_test' }, code), 'ResendMailer');
 });
-test('score label is "Automated checks score" / 自动化检测得分 in UI copy', () => {
-  assert.equal(t('en').mon.score, 'Automated checks score');
-  assert.equal(t('zh-CN').mon.score, '自动化检测得分');
-  assert.match(t('en').mon.scoreAria(80), /^Automated checks score/);
-  assert.match(t('zh-CN').mon.scoreAria(80), /^自动化检测得分/);
+test('score is labelled as an internal score, not a compliance measure (en / de / zh)', () => {
+  assert.equal(t('en').mon.score, 'Allyfolio internal score – not a measure of legal conformance');
+  assert.equal(t('zh-CN').mon.score, 'Allyfolio 内部评分——不代表是否符合法规要求');
+  assert.equal(t('de').mon.score, 'Interner Allyfolio-Wert – kein Maß für die Einhaltung rechtlicher Anforderungen');
+  assert.match(t('en').mon.scoreAria(80), /^Allyfolio internal score: 80 out of 100\. Not a measure of legal conformance/);
+  assert.match(t('zh-CN').mon.scoreAria(80), /^Allyfolio 内部评分/);
+  for (const l of ['en', 'de', 'zh-CN'] as const) assert.match(t(l).mon.scoreNote, /57/);
+  assert.match(t('en').mon.scoreNote, /not a full accessibility audit or legal assessment/);
 });
 test('deploy files: env example has placeholders only and PUBLIC_APP_LIVE is never true', () => {
   const ex = readFileSync(new URL('../../.env.example', import.meta.url), 'utf8');

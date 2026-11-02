@@ -21,7 +21,7 @@ test('automation note keeps the 57% caveat and manual review in both languages',
 });
 const FORBIDDEN = /\b(compliant|compliance|certified|certificat\w*|guarantee\w*)\b|合规认证|保证合规|已认证/i;
 test('score note keeps the 57% caveat and says it is not a legal assessment in both languages', () => {
-  assert.equal(t('en').mon.score, 'Automated checks score'); assert.equal(t('zh-CN').mon.score, '自动化检测得分');
+  assert.match(t('en').mon.score, /^Allyfolio internal score/); assert.match(t('zh-CN').mon.score, /^Allyfolio 内部评分/);
   assert.match(t('en').mon.scoreNote, /about 57%, per Deque.*not a full accessibility audit or legal assessment/s);
   assert.match(t('zh-CN').mon.scoreNote, /约 57%.*不是完整的无障碍审查或法律评估/s);
 });

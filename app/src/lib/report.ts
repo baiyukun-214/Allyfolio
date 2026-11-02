@@ -50,7 +50,7 @@ export function reportHtml(scanId: string, b: Branding, l: ReportLocale = 'en'):
     .muted { color: #475569; } table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; } th { color: #475569; font-weight: 600; }
     .stats { display: flex; gap: 12px; } .stat { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; } .stat b { display: block; font-size: 22px; }
     .note { background: #eef2ff; border-left: 4px solid #3b5bdb; padding: 10px 14px; border-radius: 6px; margin: 16px 0; }
-    .score { display: flex; gap: 16px; align-items: center; border: 1px solid #c7d2fe; background: #f8faff; border-radius: 8px; padding: 12px 14px; margin: 16px 0; } .score .v { font-size: 30px; font-weight: 700; color: ${b.color}; white-space: nowrap; } .score .v small { font-size: 12px; color: #475569; font-weight: 400; } .score p { margin: 2px 0 0; }
+    .vs-last { margin: 12px 0 0; font-size: 13px; } .score { border-top: 1px solid #e2e8f0; padding: 8px 0 0; margin: 12px 0; font-size: 10px; } .score .v { font-weight: 600; } .score p { margin: 2px 0 0; }
     code { font-size: 10px; word-break: break-all; } h3 { font-size: 13px; margin: 18px 0 4px; break-after: avoid; } .rule { break-inside: avoid-page; }
     .guide { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 4px 0; } .guide dt { font-weight: 600; color: #334155; } .guide dd { margin: 0; }
     .links a { color: ${b.color}; } .el { table-layout: fixed; } .el td { font-size: 10px; } .el pre { white-space: pre-wrap; word-break: break-all; margin: 0; font-size: 9px; font-family: ui-monospace, Menlo, Consolas, monospace; }
@@ -65,8 +65,8 @@ export function reportHtml(scanId: string, b: Branding, l: ReportLocale = 'en'):
   <p class="muted" style="margin-top:0">${C.countsHelp}</p>
   <h2 style="margin-top:8px">${C.byImpact}</h2>
   <div class="stats">${IMPACTS.map((k) => html`<div class="stat"><span class="muted">${Tx.impacts[k]}</span><b>${scan[k]}</b></div>`)}</div>
-  <section class="score" aria-labelledby="score-h" aria-describedby="score-note"><div class="v">${automatedScore(scan)} <small>/ 100</small></div><div><b id="score-h">${Tx.mon.score}</b><p class="muted" id="score-note">${Tx.mon.scoreNote}</p></div></section>
-  ${scan.new_issues != null ? html`<p>${R.compared(scan.new_issues, scan.fixed_issues)}</p>` : ''}
+  ${scan.new_issues != null ? html`<p class="vs-last"><b>${R.compared(scan.new_issues, scan.fixed_issues)}</b></p>` : ''}
+  <section class="score" aria-labelledby="score-h" aria-describedby="score-note"><p><b id="score-h">${Tx.mon.score}:</b> <span class="v">${automatedScore(scan)}</span> <span class="muted">${Tx.mon.scoreOutOf}</span></p><p class="muted" id="score-note">${Tx.mon.scoreNote}</p></section>
   <div class="note"><b>${R.coversH}</b> ${R.covers}</div>
   <h2>${R.byRule}</h2>
   <table><thead><tr><th>${R.colImpact}</th><th>${R.colIssue}</th><th>${R.colWcag}</th><th>${C.colElements}</th><th>${C.colPages}</th></tr></thead><tbody>

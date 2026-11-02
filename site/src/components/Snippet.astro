@@ -9,8 +9,8 @@ const shell = `snippet rounded-2xl border border-brand-100 bg-white p-5 shadow-x
 {kind === 'score' && (
   <div class={shell}>
     <div class="flex items-center gap-4">
-      <svg role="img" aria-label={V.score.aria} aria-describedby={`${idp}-score-note`} width="84" height="84" viewBox="0 0 120 120" class="shrink-0"><circle cx="60" cy="60" r="50" fill="none" stroke="#e0e7ff" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="#4f46e5" stroke-width="12" stroke-linecap="round" stroke-dasharray={C.toFixed(1)} stroke-dashoffset={(C * 0.18).toFixed(1)} transform="rotate(-90 60 60)"/><text x="60" y="69" text-anchor="middle" font-size="30" font-weight="700" fill="#0f172a">82</text></svg>
-      <div><p class="text-sm font-semibold text-ink">{V.score.label} <span class="font-normal text-muted">· {V.score.outOf}</span></p><p id={`${idp}-score-note`} class="mt-1 text-xs leading-relaxed text-muted">{V.score.note}</p></div>
+      <svg role="img" aria-label={V.score.aria} aria-describedby={`${idp}-score-note`} width="56" height="56" viewBox="0 0 120 120" class="shrink-0"><circle cx="60" cy="60" r="50" fill="none" stroke="#e0e7ff" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="#4f46e5" stroke-width="12" stroke-linecap="round" stroke-dasharray={C.toFixed(1)} stroke-dashoffset={(C * 0.18).toFixed(1)} transform="rotate(-90 60 60)"/><text x="60" y="69" text-anchor="middle" font-size="30" font-weight="700" fill="#0f172a">82</text></svg>
+      <div><p class="text-xs font-semibold text-ink">{V.score.label} <span class="font-normal text-muted">· {V.score.outOf}</span></p><p id={`${idp}-score-note`} class="mt-1 text-xs leading-relaxed text-muted">{V.score.note}</p></div>
     </div>
   </div>
 )}

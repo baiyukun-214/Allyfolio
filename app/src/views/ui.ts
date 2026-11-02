@@ -1,8 +1,12 @@
 // Small server-rendered UI pieces shared by dashboard pages. Final values are in the HTML; app.js only animates them.
 import { html, type Html } from '../lib/html.ts';
-/** Score ring + visible label and caption; the caption is tied to the ring with aria-describedby. */
-export function scoreBlock(id: string, score: number, M: { score: string; scoreOutOf: string; scoreAria: (n: number) => string; scoreNote: string }): Html {
-  return html`<div class="score-block">${scoreRing(score, M.scoreAria(score), M.scoreOutOf, `${id}-note`)}<div><p class="small"><strong>${M.score}</strong></p><p class="small muted score-note" id="${id}-note">${M.scoreNote}</p></div></div>`;
+/** Secondary, deliberately small: our own weighted score, labelled as internal and not a compliance measure. Counts by severity are the primary display. */
+export function scoreMini(id: string, score: number, M: { score: string; scoreOutOf: string; scoreNote: string }): Html {
+  return html`<div class="score-mini" data-score="${score}"><p class="small"><strong id="${id}-label">${M.score}:</strong> <span class="score-v">${score}</span> <span class="muted">${M.scoreOutOf}</span></p><p class="small muted score-note" id="${id}-note">${M.scoreNote}</p></div>`;
+}
+/** Open issues per severity with visible labels (primary KPI). */
+export function sevGrid(c: any, labels: Record<string, string>, aria: string): Html {
+  return html`<dl class="sev-grid" aria-label="${aria}">${(['critical', 'serious', 'moderate', 'minor'] as const).map((k) => html`<div class="sev imp-${k}${c[k] ? '' : ' zero'}"><dt>${labels[k]}</dt><dd>${c[k] ?? 0}</dd></div>`)}</dl>`;
 }
 export function scoreRing(score: number, aria: string, sub: string, describedBy = ''): Html {
   return html`<div class="ring" style="--p:${score}" data-p="${score}" role="img" aria-label="${aria}" ${describedBy ? html`aria-describedby="${describedBy}"` : ''}><svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg><span class="ring-v" aria-hidden="true"><b data-to="${score}">${score}</b><small>${sub}</small></span></div>`;

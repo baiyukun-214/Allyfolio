@@ -34,10 +34,10 @@ test('Paddle webhook rejects missing/invalid signatures and accepts a valid one'
   await app.close();
 });
 
-test('free scan API labels the score "Automated checks score" (en) / 自动化检测得分 (zh)', async () => {
+test('free scan API labels the score as an internal score, not a compliance measure (en / zh)', async () => {
   const { server, base } = await fixtureServer({ '/': '<!doctype html><html lang="en"><head><title>t</title></head><body><main><img src="x.png"></main></body></html>' });
   const app = await buildServer();
-  for (const [lang, label] of [['en', 'Automated checks score'], ['zh-CN', '自动化检测得分']]) {
+  for (const [lang, label] of [['en', 'Allyfolio internal score – not a measure of legal conformance'], ['zh-CN', 'Allyfolio 内部评分——不代表是否符合法规要求']]) {
     const r = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: base + '/', lang } });
     assert.equal(r.statusCode, 200, r.body);
     const j = r.json();

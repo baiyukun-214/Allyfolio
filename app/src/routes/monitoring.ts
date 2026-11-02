@@ -12,7 +12,7 @@ import { scanSummary, coverageSection, guidance, ruleTitle, snippet } from '../l
 /** Affected elements listed per rule on the scan page. */
 const APP_ELEMENTS = 200;
 import { automatedScore, weeklyTrend, totalIssues } from '../lib/insights.ts';
-import { scoreBlock, sparkline, sevChips, emptyState } from '../views/ui.ts';
+import { scoreMini, sevGrid, sevChips, sparkline, emptyState } from '../views/ui.ts';
 import { checklist, summary as manualSummary } from '../lib/manualReview.ts';
 
 export const fmt = (iso?: string | null, l: Locale = 'en') => fmtDate(iso, l);
@@ -26,14 +26,16 @@ export function siteDetailExtras(req: FastifyRequest, ctx: Ctx, s: any) {
   const pending = hasPendingScan(s.id);
   const done = scans.filter((c) => c.status === 'done');
   const latest = done[0]; const tr = weeklyTrend(done);
+  const prevDone = done[1]; const vsLast = latest && prevDone ? totalIssues(latest) - totalIssues(prevDone) : null;
   const running = scans.find((c) => c.status === 'running');
   const scanBtn = plan.frequency ? html`<form method="post" action="/app/sites/${s.id}/scan" data-scan-form data-status-url="/app/sites/${s.id}/scan-status">${csrfField(req)}<button class="btn btn-primary" type="submit" ${pending || running ? html`disabled aria-busy="true"` : ''}>${running ? M.scanningBtn : pending ? M.queued : M.scanNow}</button></form>` : '';
   return html`
     ${latest ? html`<section class="kpis" aria-label="${M.status}" id="kpis">
-      <div class="card kpi kpi-score">${scoreBlock('site-score', automatedScore(latest), M)}</div>
-      <div class="card kpi"><p class="muted small">${M.openIssues} <span class="sub">· ${M.openSub}</span></p><p class="stat" data-to="${totalIssues(latest)}">${totalIssues(latest)}</p>${sevChips(latest, Tx.impacts)}</div>
-      <div class="card kpi"><p class="muted small">${M.fixedWeek} <span class="sub">· ${M.fixedSub}</span></p><p class="stat" data-to="${tr.fixedWeek}">${tr.fixedWeek}</p></div>
+      <div class="card kpi kpi-main" data-kpi="issues"><p class="muted small">${M.openIssues} <span class="sub">· ${M.openSub}</span></p><p class="stat" data-to="${totalIssues(latest)}">${totalIssues(latest)}</p>${sevGrid(latest, Tx.impacts, M.bySeverity)}</div>
+      <div class="card kpi" data-kpi="vs-last"><p class="muted small">${M.vsLast}</p>${prevDone ? html`<p class="stat ${vsLast! < 0 ? 'good' : ''}">${vsLast! > 0 ? '+' : vsLast! < 0 ? '−' : '±'}${Math.abs(vsLast!)}</p><p class="small">${M.vsLastDelta(vsLast!)}</p><p class="small muted">${M.vsLastNF(latest.new_issues ?? 0, latest.fixed_issues ?? 0)}</p>` : html`<p class="small muted">${M.vsLastNone}</p>`}</div>
       <div class="card kpi"><p class="muted small">${M.trend}</p>${sparkline(tr.series, M.trendAria)}<p class="small ${tr.delta !== null && tr.delta < 0 ? 'good' : 'muted'}">${tr.delta === null ? M.trendNone : M.trendDelta(tr.delta)}</p></div>
+      <div class="card kpi"><p class="muted small">${M.fixedWeek} <span class="sub">· ${M.fixedSub}</span></p><p class="stat" data-to="${tr.fixedWeek}">${tr.fixedWeek}</p></div>
+      <div class="kpi-secondary">${scoreMini('site-score', automatedScore(latest), M)}</div>
     </section>` : ''}
     <section class="facts" aria-label="${M.schedule}">
       <p><span class="muted small">${M.schedule}</span> <strong>${plan.frequency ? (plan.frequency === 'daily' ? M.daily : M.weekly) : M.none}</strong> <span class="small muted">${M.next}: ${lt(s.next_scan_at, l)}</span></p>
@@ -125,8 +127,8 @@ export async function monitoringRoutes(app: FastifyInstance) {
       <p class="small muted">${C.countsHelp}</p>
       <p class="small" style="margin:16px 0 0"><strong>${C.byImpact}</strong></p>
       <dl class="grid g4" style="margin-top:8px">${IMPACTS.map((k) => html`<div class="card imp-${k}" style="border:0"><dt class="small">${Tx.impacts[k]}</dt><dd class="stat" style="margin:0">${scan[k]}</dd></div>`)}</dl>
-      <div class="card kpi-score" style="margin-top:16px">${scoreBlock('scan-score', automatedScore(scan), M)}</div>
-      ${prev ? html`<p class="small" style="margin-top:12px"><strong>${d[0]}</strong>${d[1]}<strong>${d[2]}</strong>${d[3]}</p>` : html`<p class="small muted" style="margin-top:12px">${M.first}</p>`}
+      ${prev ? html`<p style="margin-top:12px" data-vs-last><strong>${d[0]}</strong>${d[1]}<strong>${d[2]}</strong>${d[3]}</p>` : html`<p class="small muted" style="margin-top:12px">${M.first}</p>`}
+      <div style="margin-top:12px">${scoreMini('scan-score', automatedScore(scan), M)}</div>
       ${unscanned.length ? html`<section class="card alert" aria-labelledby="unscanned-h" style="margin-top:16px"><h2 id="unscanned-h">${Tx.scanErrors.unscannedH}</h2><ul>${unscanned.map((p: any) => { const se = scanError(l, p.error); return html`<li data-code="${se.code}"><code>${new URL(p.url).pathname}</code> – ${se.error}</li>`; })}</ul></section>` : ''}
       ${note(l)}
       <h2>${M.byRule}</h2>

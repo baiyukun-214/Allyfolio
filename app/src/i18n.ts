@@ -98,8 +98,10 @@ const en = {
     settings: 'Settings', language: 'Language', languageHint: 'Used for the dashboard, emails, reports and statement drafts.', save: 'Save', saved: 'Settings saved.',
   },
   mon: {
-    score: 'Automated checks score', scoreOutOf: 'out of 100', scoreAria: (n: number) => `Automated checks score: ${n} out of 100`,
-    scoreNote: 'Automated testing catches only part of accessibility issues (about 57%, per Deque). This score is not a full accessibility audit or legal assessment.',
+    score: 'Allyfolio internal score – not a measure of legal conformance', scoreOutOf: 'out of 100', scoreAria: (n: number) => `Allyfolio internal score: ${n} out of 100. Not a measure of legal conformance.`,
+    scoreNote: 'Our own weighted summary of the automated checks (critical issues count most), not an industry standard. Automated testing catches only part of accessibility issues (about 57%, per Deque). This score is not a full accessibility audit or legal assessment.',
+    bySeverity: 'Open issues by severity', vsLast: 'Since the last scan', vsLastNone: 'First scan – nothing to compare yet',
+    vsLastDelta: (d: number) => d < 0 ? `${-d} fewer open issues` : d > 0 ? `${d} more open issues` : 'No change in open issues', vsLastNF: (n: number, f: number) => `${n} new · ${f} fixed`,
     openIssues: 'Open issues', openSub: 'latest scan', fixedWeek: 'Fixed', fixedSub: 'last 7 days', trend: 'Weekly trend', trendAria: 'Issues per scan, oldest to newest',
     trendDelta: (d: number) => d < 0 ? `${-d} fewer than a week ago` : d > 0 ? `${d} more than a week ago` : 'No change from a week ago', trendNone: 'Not enough history yet',
     scanStarting: 'Starting scan…', scanning: (n: number, limit: number) => `Scanning… ${n} of up to ${limit} pages`, scanDone: (n: number, f: number) => `Scan finished: ${n} new and ${f} fixed issues.`,
@@ -336,8 +338,10 @@ const zh: Dict = {
     settings: '设置', language: '语言', languageHint: '用于控制台、邮件、报告和声明草稿。', save: '保存', saved: '设置已保存。',
   },
   mon: {
-    score: '自动化检测得分', scoreOutOf: '满分 100', scoreAria: (n) => `自动化检测得分：${n}（满分 100）`,
-    scoreNote: '自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是完整的无障碍审查或法律评估。',
+    score: 'Allyfolio 内部评分——不代表是否符合法规要求', scoreOutOf: '满分 100', scoreAria: (n) => `Allyfolio 内部评分：${n}（满分 100），不代表是否符合法规要求。`,
+    scoreNote: '这是我们自己对自动化检测结果的加权汇总（严重问题权重最高），并非行业标准。自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是完整的无障碍审查或法律评估。',
+    bySeverity: '按严重程度的未解决问题', vsLast: '与上次扫描相比', vsLastNone: '首次扫描，暂无可比较的数据',
+    vsLastDelta: (d) => d < 0 ? `未解决问题减少 ${-d} 个` : d > 0 ? `未解决问题增加 ${d} 个` : '未解决问题数量不变', vsLastNF: (n, f) => `新增 ${n} 个 · 修复 ${f} 个`,
     openIssues: '未解决问题', openSub: '最近一次扫描', fixedWeek: '已修复', fixedSub: '最近 7 天', trend: '每周趋势', trendAria: '每次扫描的问题数，从旧到新',
     trendDelta: (d) => d < 0 ? `比一周前少 ${-d} 个` : d > 0 ? `比一周前多 ${d} 个` : '与一周前持平', trendNone: '历史记录还不够',
     scanStarting: '正在启动扫描…', scanning: (n, limit) => `正在扫描… 已完成 ${n} 个页面（上限 ${limit}）`, scanDone: (n, f) => `扫描完成：新增 ${n} 个问题，修复 ${f} 个问题。`,
@@ -539,8 +543,10 @@ function deReport(): Dict {
     layout: { skip: 'Zum Hauptinhalt springen', main: 'Hauptnavigation', website: 'Website', terms: 'AGB', privacy: 'Datenschutz', refund: 'Widerrufsbelehrung', imprint: 'Impressum', legal: 'Rechtliches', site: 'Allyfolio-Website', backToSite: '← Zurück zur Website', homeAria: 'Startseite der Allyfolio-Website', login: 'Anmelden', footer: 'Allyfolio ist ein Werkzeug zum Testen und Dokumentieren, keine Rechtsberatung. Automatisierte Prüfungen finden nur einen Teil aller Barrieren.' },
     impacts: { critical: 'Kritisch', serious: 'Schwerwiegend', moderate: 'Mittel', minor: 'Gering' },
     mon: {
-      score: 'Wert der automatisierten Prüfungen',
-      scoreNote: 'Automatisierte Tests finden nur einen Teil der Barrieren (laut Deque etwa 57 %). Dieser Wert ist kein vollständiges Barrierefreiheits-Audit und keine rechtliche Bewertung.',
+      score: 'Interner Allyfolio-Wert – kein Maß für die Einhaltung rechtlicher Anforderungen', scoreOutOf: 'von 100', scoreAria: (n) => `Interner Allyfolio-Wert: ${n} von 100. Kein Maß für die Einhaltung rechtlicher Anforderungen.`,
+      scoreNote: 'Unsere eigene gewichtete Zusammenfassung der automatisierten Prüfungen (kritische Probleme zählen am stärksten), kein Branchenstandard. Automatisierte Tests finden nur einen Teil der Barrieren (laut Deque etwa 57 %). Dieser Wert ist kein vollständiges Barrierefreiheits-Audit und keine rechtliche Bewertung.',
+      bySeverity: 'Offene Probleme nach Schweregrad', vsLast: 'Seit der letzten Prüfung', vsLastNone: 'Erste Prüfung – noch kein Vergleich möglich',
+      vsLastDelta: (d) => d < 0 ? `${-d} offene Probleme weniger` : d > 0 ? `${d} offene Probleme mehr` : 'Keine Veränderung bei den offenen Problemen', vsLastNF: (n, f) => `${n} neu · ${f} behoben`,
       bestPractice: 'Best Practice',
     },
     rep: {

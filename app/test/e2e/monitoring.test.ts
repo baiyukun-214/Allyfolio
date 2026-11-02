@@ -101,10 +101,17 @@ test('scheduled scan → evidence trail, diff, alert, immutability, retention', 
   const st = JSON.parse((await c.req('GET', sitePath + '/scan-status')).body);
   assert.equal(st.pending, false); assert.equal(st.running, null); assert.equal(st.last.id, s2.id); assert.equal(st.last.newIssues, s2.new_issues);
   const sp = (await c.req('GET', sitePath)).body;
-  assert.match(sp, /class="ring"[^>]*role="img"[^>]*aria-label="Automated checks score: \d+ out of 100"[^>]*aria-describedby="site-score-note"/);
-  assert.match(sp, /id="site-score-note">Automated testing catches only part of accessibility issues \(about 57%, per Deque\)\. This score is not a full accessibility audit or legal assessment\./);
+  // counts by severity + vs-last-scan are primary; the score is a small secondary line labelled as internal
+  const kp = sp.slice(sp.indexOf('id="kpis"'));
+  assert.ok(kp.indexOf('data-kpi="issues"') < kp.indexOf('data-kpi="vs-last"') && kp.indexOf('data-kpi="vs-last"') < kp.indexOf('class="score-mini"'));
+  assert.match(kp, /<dl class="sev-grid" aria-label="Open issues by severity"><div class="sev imp-critical[^"]*"><dt>Critical<\/dt><dd>\d+<\/dd>/);
+  assert.match(kp, /data-kpi="vs-last"><p class="muted small">Since the last scan<\/p><p class="stat[^"]*">[+−±]\d+<\/p>[\s\S]*?\d+ new · \d+ fixed/);
+  assert.match(sp, /<strong id="site-score-label">Allyfolio internal score – not a measure of legal conformance:<\/strong> <span class="score-v">\d+<\/span>/);
+  assert.doesNotMatch(sp, /class="ring"/);
+  assert.match(sp, /id="site-score-note">Our own weighted summary of the automated checks \(critical issues count most\), not an industry standard\. Automated testing catches only part of accessibility issues \(about 57%, per Deque\)\. This score is not a full accessibility audit or legal assessment\./);
   const sd = (await c.req('GET', `/app/scans/${s2.id}`)).body;
-  assert.match(sd, /aria-describedby="scan-score-note"/); assert.match(sd, />Automated checks score</);
+  assert.match(sd, /id="scan-score-note"/); assert.match(sd, />Allyfolio internal score – not a measure of legal conformance:</);
+  assert.ok(sd.indexOf('data-vs-last') < sd.indexOf('class="score-mini"'), 'diff vs last scan comes before the score');
   assert.match(sp, /data-scan-form/); assert.doesNotMatch(sp, /action="[^"]+\/delete"/, 'no remove button on the site page');
   assert.match((await c.req('GET', '/app/settings')).body, /id="danger-h"[\s\S]*\/delete"/);
   // scan detail page renders the diff
@@ -140,7 +147,7 @@ test('reports: PDF gating, white-label branding, statement draft', async () => {
   assert.match(decodeURIComponent(r.headers.location), /Branding saved/);
   r = await c.req('GET', `/app/scans/${scan.id}/report`);
   assert.match(r.body, /Pixel Agency/); assert.match(r.body, /#7c2d12/); assert.match(r.body, /57%/);
-  assert.match(r.body, /Automated checks score<\/b>/); assert.match(r.body, /aria-describedby="score-note"/); assert.match(r.body, /not a full accessibility audit or legal assessment/);
+  assert.match(r.body, /Allyfolio internal score – not a measure of legal conformance:<\/b>/); assert.ok(r.body.indexOf('class="stats"') < r.body.indexOf('class="score"')); assert.match(r.body, /aria-describedby="score-note"/); assert.match(r.body, /not a full accessibility audit or legal assessment/);
   r = await c.req('GET', `/app/scans/${scan.id}/report.pdf`);
   assert.equal(r.statusCode, 200); assert.equal(r.headers['content-type'], 'application/pdf');
   assert.equal(r.rawPayload.subarray(0, 4).toString(), '%PDF');
