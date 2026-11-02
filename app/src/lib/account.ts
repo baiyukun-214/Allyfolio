@@ -1,4 +1,5 @@
 // Account self-service: password reset, GDPR data export (Art. 15/20) and account deletion (Art. 17).
+import { withEffectivePlan } from './plans.ts';
 import { randomBytes } from 'node:crypto';
 import { get, all, run, now, tx } from '../db.ts';
 import { sha256, hashPassword } from './auth.ts';
@@ -42,7 +43,7 @@ export function exportUserData(userId: string) {
     format: 'allyfolio-data-export', version: 1, exported_at: now(),
     user: { ...user, has_password: !!user.has_password },
     teams: memberships.map((t) => ({
-      id: t.id, name: t.name, role: t.role, joined_at: t.joined_at, plan: t.plan,
+      id: t.id, name: t.name, role: t.role, joined_at: t.joined_at, plan: withEffectivePlan(t).plan,
       ...(t.role === 'owner' ? { billing: { provider_customer_id: t.billing_customer_id, provider_subscription_id: t.billing_subscription_id, status: t.subscription_status, current_period_end: t.current_period_end, pending_plan: t.pending_plan, cancel_at: t.cancel_at, oneoff_credits: t.oneoff_credits },
         branding: { name: t.brand_name, color: t.brand_color, logo_url: t.brand_logo_url } } : {}),
       members: all<any>('SELECT u.email, m.role, m.created_at AS joined_at FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.team_id = ? ORDER BY m.created_at', t.id),

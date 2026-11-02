@@ -70,6 +70,8 @@ export function db(): DatabaseSync {
     "ALTER TABLE teams ADD COLUMN cancel_at TEXT", "DROP TABLE IF EXISTS stripe_events",
     // Admin-only: lets a team scan sites it does not own (demos). Set via SQL only; no UI toggles it.
     "ALTER TABLE teams ADD COLUMN verify_bypass INTEGER NOT NULL DEFAULT 0",
+    // Admin-only complimentary plan: overrides the billed plan; billing webhooks and the downgrade job never change it. SQL only.
+    "ALTER TABLE teams ADD COLUMN plan_override TEXT",
   ]) { try { _db.exec(m); } catch { /* already applied */ } }
   return _db;
 }

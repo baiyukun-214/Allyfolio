@@ -146,3 +146,39 @@ test('return-URL sync applies a checkout without a webhook (local sandbox), idem
   assert.equal(team('tsync').oneoff_credits, 1);
   assert.match((await c.req('GET', '/app/billing')).body, /txn=|paddle-config|billing\.js/);
 });
+
+test('plan_override: effective plan wins; webhooks, downgrade job and billing UI never touch it or call Paddle', async () => {
+  const c = client(app);
+  await c.post('/signup', { email: 'comped@example.com', password: 'comped password long' }, '/signup');
+  const tid = db.get("SELECT t.id FROM teams t JOIN memberships m ON m.team_id = t.id JOIN users u ON u.id = m.user_id WHERE u.email = 'comped@example.com'").id;
+  // Billed Business via a (sandbox) subscription, admin override to Agency.
+  db.run("UPDATE teams SET plan = 'business', billing_subscription_id = 'sub_c', billing_customer_id = 'ctm_c', subscription_status = 'active', current_period_end = ?, plan_override = 'agency' WHERE id = ?", new Date(Date.now() + 86400_000).toISOString(), tid);
+  db.run("INSERT INTO sites (id, team_id, name, origin, verify_token, verified_at, created_at, next_scan_at) VALUES ('sc1', ?, 'S', 'https://comped.example', 'x', '2026-01-01', '2026-01-01', '2030-01-01')", tid);
+  // Entitlements use the override: 15 sites.
+  let r = await c.req('GET', '/app');
+  assert.match(r.body, /Agency plan · 1\/15 sites/);
+  const { planOf, withEffectivePlan } = await import('../../src/lib/plans.ts');
+  assert.equal(planOf(withEffectivePlan(team(tid)).plan).sites, 15);
+  // Billing page: complimentary, no checkout/change/cancel/portal, no Paddle.js.
+  r = await c.req('GET', '/app/billing');
+  assert.match(r.body, /Complimentary plan \(admin\)/);
+  assert.doesNotMatch(r.body, /billing\/(checkout|change|cancel|portal)|paddle\.js|data-checkout/);
+  const before = calls.length;
+  for (const [path, form] of [['/app/billing/checkout', { plan: 'starter' }], ['/app/billing/change', { plan: 'starter' }], ['/app/billing/cancel', {}], ['/app/billing/portal', {}]] as const) {
+    r = await c.post(path, form as any);
+    assert.match(decodeURIComponent(String(r.headers.location ?? r.body)), /Complimentary plan/, path);
+  }
+  await c.req('GET', '/app/billing?txn=txn_sub'); // return-URL sync is skipped too
+  assert.equal(calls.length, before, 'no Paddle API calls for a comped team');
+  // Renewal webhook reporting a lower plan, then the downgrade job, then cancel: effective plan stays Agency, monitoring stays on.
+  await send('subscription.updated', { ...SUB('pri_s'), id: 'sub_c', customer_id: 'ctm_c', custom_data: { team_id: tid } });
+  assert.equal(await applyDueDowngrades(new Date(Date.now() + 10 * 86400_000).toISOString()) >= 0, true);
+  assert.equal(withEffectivePlan(team(tid)).plan, 'agency');
+  await send('subscription.canceled', { id: 'sub_c', status: 'canceled' });
+  assert.equal(team(tid).plan_override, 'agency'); assert.equal(withEffectivePlan(team(tid)).plan, 'agency');
+  assert.equal(db.get("SELECT next_scan_at FROM sites WHERE id = 'sc1'").next_scan_at, '2030-01-01', 'schedule untouched');
+  r = await c.req('GET', '/app/billing/status'); assert.equal(r.json().plan, 'agency');
+  // Removing the override restores normal billing behaviour.
+  db.run('UPDATE teams SET plan_override = NULL WHERE id = ?', tid);
+  assert.equal(withEffectivePlan(team(tid)).plan, team(tid).plan);
+});

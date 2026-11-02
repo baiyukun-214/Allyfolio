@@ -9,6 +9,15 @@ export const PLANS: Record<PlanId, Plan> = {
 export const ONE_OFF = { priceCents: 4900, sites: 1, pages: 100, pdf: true };
 export const PAID: PlanId[] = ['starter', 'business', 'agency'];
 export const planOf = (id: string | null | undefined): Plan => PLANS[(id as PlanId)] ?? PLANS.none;
+/** Admin-set complimentary plan (teams.plan_override, SQL only). Takes precedence over the billed plan everywhere. */
+export const isComped = (team: any): boolean => !!team?.plan_override && team.plan_override in PLANS;
+/** Team row with `plan` = effective plan; the billed plan stays available as `billing_plan`. */
+export function withEffectivePlan<T extends Record<string, any> | undefined>(team: T): T {
+  if (!team) return team;
+  return { ...team, billing_plan: team.plan, plan: isComped(team) ? team.plan_override : team.plan, comped: isComped(team) } as T;
+}
+/** SQL expression for the effective plan of a teams row aliased `a`. Keep in sync with withEffectivePlan. */
+export const effectivePlanSql = (a = 't') => `(CASE WHEN ${a}.plan_override IN ('none','starter','business','agency') THEN ${a}.plan_override ELSE ${a}.plan END)`;
 export const rank = (id: PlanId) => ['none', 'starter', 'business', 'agency'].indexOf(id);
 
 import { t, type Locale } from '../i18n.ts';

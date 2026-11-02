@@ -3,7 +3,7 @@ import { get } from '../db.ts';
 import type { FastifyInstance } from 'fastify';
 import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
-import { PLANS, PAID, planOf, ONE_OFF, rank, LimitError, type PlanId } from '../lib/plans.ts';
+import { PLANS, PAID, planOf, ONE_OFF, rank, LimitError, withEffectivePlan, type PlanId } from '../lib/plans.ts';
 import { provider, syncCheckout, changePlan, cancelSubscription, applyBillingEvents, WebhookSignatureError, type Purchase } from '../lib/billing/index.ts';
 import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
@@ -18,15 +18,20 @@ const eur = (c: number) => `€${(c / 100).toFixed(0)}`;
  */
 async function syncReturn(req: any, ctx: any) {
   const txn = String((req.query as any).txn ?? '');
-  if (!txn || ctx.role !== 'owner') return;
+  if (!txn || ctx.role !== 'owner' || ctx.team.comped) return;
   await syncCheckout(ctx.team, txn).catch((e) => req.log.warn(e, 'checkout sync failed'));
-  ctx.team = get<any>('SELECT * FROM teams WHERE id = ?', ctx.team.id);
+  ctx.team = withEffectivePlan(get<any>('SELECT * FROM teams WHERE id = ?', ctx.team.id));
 }
 export async function billingRoutes(app: FastifyInstance) {
   app.get('/app/billing', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
     await syncReturn(req, ctx);
     const t = ctx.team, plan = planOf(t.plan), owner = ctx.role === 'owner';
+    if (t.comped) { const Bc = tr(loc(req, ctx)).bill; const pnc = tr(loc(req, ctx)).plans[plan.id] ?? plan.name;
+      // Complimentary plan (admin): no checkout, change, cancel or portal, and no Paddle.js on the page.
+      return render(reply, ctx, { title: Bc.title, current: '/app/billing', body: html`
+        <h1>${Bc.title}</h1>
+        <div class="card"><p class="muted small">${Bc.current}</p><p class="stat">${pnc}</p><p><span class="pill ok">${Bc.comped}</span></p><p class="small muted">${Bc.compedNote}</p></div>` }); }
     const prov = await provider(); const ready = !!prov?.configured(); const client = ready ? prov!.clientConfig() : null;
     const eb = isEarlyBird(ctx.user.email) && !t.billing_subscription_id;
     const l = loc(req, ctx), Tx = tr(l), B = Tx.bill; const pn = (id: string) => Tx.plans[id] ?? planOf(id).name;
@@ -82,6 +87,7 @@ export async function billingRoutes(app: FastifyInstance) {
     const wantsJson = String(req.headers.accept ?? '').includes('application/json');
     const fail = (msg: string, code = 400) => wantsJson ? reply.code(code).send({ error: msg }) : back(reply, '/app/billing', 'err', msg);
     if (ctx.role !== 'owner') return fail(B.ownerOnly, 403);
+    if (ctx.team.comped) return fail(B.comped, 409);
     const what = String((req.body as any).plan) as Purchase;
     if (what !== 'oneoff' && !PAID.includes(what as PlanId)) return fail(B.unknown);
     if (what !== 'oneoff' && ctx.team.billing_subscription_id) return fail(B.hasSub);
@@ -96,6 +102,7 @@ export async function billingRoutes(app: FastifyInstance) {
 
   app.post('/app/billing/change', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return; const l = loc(req, ctx), Tx = tr(l), B = Tx.bill;
+    if (ctx.team.comped) return back(reply, '/app/billing', 'err', B.comped);
     if (ctx.role !== 'owner' || !ctx.team.billing_subscription_id) return back(reply, '/app/billing', 'err', B.noSub);
     const to = String((req.body as any).plan) as PlanId; if (!PAID.includes(to)) return back(reply, '/app/billing', 'err', B.unknown);
     try {
@@ -106,6 +113,7 @@ export async function billingRoutes(app: FastifyInstance) {
 
   app.post('/app/billing/cancel', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return; const l = loc(req, ctx), B = tr(l).bill;
+    if (ctx.team.comped) return back(reply, '/app/billing', 'err', B.comped);
     if (ctx.role !== 'owner' || !ctx.team.billing_subscription_id) return back(reply, '/app/billing', 'err', B.noSub);
     try { await cancelSubscription(ctx.team, 'period_end'); return back(reply, '/app/billing', 'ok', B.canceled); }
     catch (e) { req.log.error(e); return back(reply, '/app/billing', 'err', B.changeFail); }
@@ -113,6 +121,7 @@ export async function billingRoutes(app: FastifyInstance) {
 
   app.post('/app/billing/portal', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return; const B = tr(loc(req, ctx)).bill;
+    if (ctx.team.comped) return back(reply, '/app/billing', 'err', B.comped);
     if (ctx.role !== 'owner' || !ctx.team.billing_customer_id) return back(reply, '/app/billing', 'err', B.noAccount);
     try { return reply.redirect(await (await provider())!.portalUrl(ctx.team), 303); } catch (e) { req.log.error(e); return back(reply, '/app/billing', 'err', B.portalFail); }
   });

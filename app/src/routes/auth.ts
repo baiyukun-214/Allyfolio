@@ -7,7 +7,7 @@ import { mailer } from '../lib/mailer.ts';
 import { validEmail } from '../lib/waitlist.ts';
 import { rateLimiter } from '../lib/ratelimit.ts';
 import { hashPassword, verifyPassword, createUserWithTeam, startSession, endSession, createLoginToken, consumeLoginToken, currentUser } from '../lib/auth.ts';
-import { planOf, assertCanAddSeat, LimitError } from '../lib/plans.ts';
+import { planOf, assertCanAddSeat, LimitError, effectivePlanSql } from '../lib/plans.ts';
 import { pg, loc, T } from './guard.ts';
 import { LANG_COOKIE, normLocale, t } from '../i18n.ts';
 
@@ -103,7 +103,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/logout', async (req, reply) => { endSession(req, reply); return reply.redirect('/login', 303); });
 
   app.get('/invite/:token', async (req, reply) => {
-    const inv = get<any>('SELECT i.*, t.name AS team_name, t.plan FROM invites i JOIN teams t ON t.id = i.team_id WHERE i.token = ? AND i.accepted_at IS NULL', (req.params as any).token);
+    const inv = get<any>(`SELECT i.*, t.name AS team_name, ${effectivePlanSql()} AS plan FROM invites i JOIN teams t ON t.id = i.team_id WHERE i.token = ? AND i.accepted_at IS NULL`, (req.params as any).token);
     reply.type('text/html');
     const ctx = currentUser(req); const A = T(req, ctx).auth;
     if (!inv) return reply.code(404).send(pg(req, { title: A.inviteNotFound, body: html`<div class="narrow card"><h1>${A.inviteNotFound}</h1><p>${A.inviteUsed}</p></div>` }, ctx));

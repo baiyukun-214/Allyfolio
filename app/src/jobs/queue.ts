@@ -1,5 +1,5 @@
 import { get, run, now, all } from '../db.ts';
-import { planOf, nextScanAt } from '../lib/plans.ts';
+import { planOf, nextScanAt, effectivePlanSql } from '../lib/plans.ts';
 export type JobType = 'site_scan' | 'retention' | 'apply_downgrades';
 export function enqueue(type: JobType, payload: object, runAt = now()) {
   return run('INSERT INTO jobs (type, payload, run_at, created_at) VALUES (?,?,?,?)', type, JSON.stringify(payload), runAt, now()).lastInsertRowid;
@@ -24,7 +24,7 @@ export function scheduleFirstScan(siteId: string, team: any) {
 }
 /** Scheduler tick: enqueue due scheduled scans per plan frequency. */
 export function enqueueDueScans(): number {
-  const due = all<any>(`SELECT s.id, t.plan FROM sites s JOIN teams t ON t.id = s.team_id WHERE s.verified_at IS NOT NULL AND s.next_scan_at IS NOT NULL AND s.next_scan_at <= ? AND t.plan != 'none'`, now());
+  const due = all<any>(`SELECT s.id, ${effectivePlanSql()} AS plan FROM sites s JOIN teams t ON t.id = s.team_id WHERE s.verified_at IS NOT NULL AND s.next_scan_at IS NOT NULL AND s.next_scan_at <= ? AND ${effectivePlanSql()} != 'none'`, now());
   for (const s of due) {
     if (!hasPendingScan(s.id)) enqueue('site_scan', { siteId: s.id, kind: 'scheduled' });
     run('UPDATE sites SET next_scan_at = ? WHERE id = ?', nextScanAt(planOf(s.plan)), s.id);

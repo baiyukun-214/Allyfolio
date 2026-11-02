@@ -2,7 +2,7 @@
 // The provider (Paddle Billing as Merchant of Record; Creem stub) is chosen by BILLING_PROVIDER.
 import { config } from '../../config.ts';
 import { get, all, run, now, tx } from '../../db.ts';
-import { PLANS, planOf, rank, type PlanId, LimitError } from '../plans.ts';
+import { PLANS, planOf, rank, isComped, type PlanId, LimitError } from '../plans.ts';
 import type { Locale } from '../../i18n.ts';
 
 export type Purchase = PlanId | 'oneoff';
@@ -62,7 +62,9 @@ export function assertDowngradeFits(teamId: string, to: PlanId) {
   if (sites > p.sites) throw new LimitError('downSites', to, p.sites, sites - p.sites);
   if (seats > p.seats) throw new LimitError('downSeats', to, p.seats, seats - p.seats);
 }
+export class CompedTeamError extends Error {}
 export async function changePlan(team: any, to: PlanId): Promise<ChangePreview> {
+  if (isComped(team)) throw new CompedTeamError(); // complimentary plan: never call the provider
   const prov = await provider(); if (!prov?.configured()) throw new BillingNotConfigured();
   const { start, end } = await prov.currentPeriod(team);
   const pv = previewChange(team.plan as PlanId, to, start, end);
@@ -79,7 +81,7 @@ export async function changePlan(team: any, to: PlanId): Promise<ChangePreview> 
 }
 /** Cancel at period end (dashboard) or immediately (account/team deletion). */
 export async function cancelSubscription(team: any, when: 'period_end' | 'immediately') {
-  if (!team.billing_subscription_id) return false;
+  if (!team.billing_subscription_id || isComped(team)) return false; // complimentary plan: never call the provider (IDs may be stale sandbox IDs)
   const prov = await provider(); if (!prov?.configured()) throw new BillingNotConfigured();
   await prov.cancel(team, when);
   if (when === 'immediately') run("UPDATE teams SET plan = 'none', pending_plan = NULL, subscription_status = 'canceled', billing_subscription_id = NULL, cancel_at = NULL WHERE id = ?", team.id);
@@ -88,7 +90,8 @@ export async function cancelSubscription(team: any, when: 'period_end' | 'immedi
 }
 /** Scheduler: apply downgrades whose period has ended. */
 export async function applyDueDowngrades(at = now()) {
-  const due = all<any>('SELECT id, pending_plan FROM teams WHERE pending_plan IS NOT NULL AND current_period_end <= ?', at);
+  // Teams with an admin plan override are skipped: their effective plan never changes through billing.
+  const due = all<any>("SELECT id, pending_plan FROM teams WHERE pending_plan IS NOT NULL AND current_period_end <= ? AND (plan_override IS NULL OR plan_override = '')", at);
   for (const t of due) run('UPDATE teams SET plan = pending_plan, pending_plan = NULL WHERE id = ?', t.id);
   return due.length;
 }
@@ -120,12 +123,13 @@ function applyOne(ev: BillingEvent) {
       if (ev.plan === plan) run('UPDATE teams SET pending_plan = NULL WHERE id = ? AND pending_plan = ?', team.id, plan);
       run('UPDATE teams SET plan = ?, subscription_status = ?, current_period_end = COALESCE(?, current_period_end), billing_subscription_id = ?, billing_customer_id = COALESCE(?, billing_customer_id), cancel_at = ? WHERE id = ?',
         active ? plan : 'none', ev.status, ev.periodEnd, ev.subscriptionId, ev.customerId, ev.cancelAt, team.id);
+      if (isComped(team)) return; // billed fields recorded; effective plan and monitoring schedule untouched
       if (isNew && active) scheduleSites(team.id, plan);
       if (!active) run('UPDATE sites SET next_scan_at = NULL WHERE team_id = ?', team.id);
       return;
     }
     case 'subscription_canceled':
-      run("UPDATE sites SET next_scan_at = NULL WHERE team_id IN (SELECT id FROM teams WHERE billing_subscription_id = ?)", ev.subscriptionId);
+      run("UPDATE sites SET next_scan_at = NULL WHERE team_id IN (SELECT id FROM teams WHERE billing_subscription_id = ? AND (plan_override IS NULL OR plan_override = ''))", ev.subscriptionId);
       run("UPDATE teams SET plan = 'none', pending_plan = NULL, subscription_status = 'canceled', billing_subscription_id = NULL, cancel_at = NULL WHERE billing_subscription_id = ?", ev.subscriptionId);
       return;
     case 'payment_failed':

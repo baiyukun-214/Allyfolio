@@ -1,3 +1,4 @@
+import { withEffectivePlan } from './plans.ts';
 import { randomBytes, randomUUID, scrypt as _scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -47,7 +48,7 @@ export function currentUser(req: FastifyRequest): Ctx | null {
   const u = get<any>('SELECT u.id, u.email, u.name, u.locale FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?', sha256(sid), now());
   if (!u) return null;
   const m = get<any>('SELECT t.*, m.role FROM memberships m JOIN teams t ON t.id = m.team_id WHERE m.user_id = ? ORDER BY m.created_at LIMIT 1', u.id);
-  return { user: u, team: m, role: m?.role };
+  return { user: u, team: withEffectivePlan(m), role: m?.role };
 }
 export function createLoginToken(email: string) {
   const token = randomBytes(32).toString('base64url');

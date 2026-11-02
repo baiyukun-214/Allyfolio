@@ -1,6 +1,6 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { get, all, run, now, tx } from '../db.ts';
-import { planOf, pageCap } from '../lib/plans.ts';
+import { planOf, pageCap, effectivePlanSql } from '../lib/plans.ts';
 import { scanPage, ruleHelp, type Issue } from '../lib/scanner.ts';
 import { t } from '../i18n.ts';
 import { sitemapUrls, normaliseLink } from '../lib/crawler.ts';
@@ -15,7 +15,7 @@ export function evidenceHash(prevHash: string | null, scan: { id: string; siteId
 }
 
 export async function runSiteScan(p: SiteScanPayload, log: any = console): Promise<string | null> {
-  const site = get<any>('SELECT s.*, t.plan, t.name AS team_name FROM sites s JOIN teams t ON t.id = s.team_id WHERE s.id = ?', p.siteId);
+  const site = get<any>(`SELECT s.*, ${effectivePlanSql()} AS plan, t.name AS team_name FROM sites s JOIN teams t ON t.id = s.team_id WHERE s.id = ?`, p.siteId);
   if (!site || !site.verified_at) return null;
   const plan = planOf(site.plan);
   const cap = pageCap(plan, p.kind === 'oneoff');
@@ -78,7 +78,7 @@ async function alertTeam(site: any, scanId: string, issues: Issue[]) {
 /** Delete scan history older than each team's plan retention (12 or 24 months). */
 export function applyRetention(): number {
   let n = 0;
-  for (const t of all<any>('SELECT id, plan FROM teams')) {
+  for (const t of all<any>(`SELECT id, ${effectivePlanSql('teams')} AS plan FROM teams`)) {
     const months = planOf(t.plan).retentionMonths;
     const cutoff = new Date(); cutoff.setUTCMonth(cutoff.getUTCMonth() - months);
     n += Number(run('DELETE FROM scans WHERE site_id IN (SELECT id FROM sites WHERE team_id = ?) AND created_at < ?', t.id, cutoff.toISOString()).changes);
