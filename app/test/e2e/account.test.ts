@@ -57,7 +57,7 @@ test('zh: forgot page and reset mail are localised', async () => {
   const c = client(app);
   await c.post('/signup', { email: 'zh@example.com', password: 'zh password long', locale: 'zh-CN' }, '/signup');
   db.run("UPDATE users SET locale = 'zh-CN' WHERE email = 'zh@example.com'");
-  const z = client(app); z.jar.set('lang', 'zh-CN');
+  const z = client(app); z.jar.set('af_lang', 'zh-CN');
   const r = await z.req('GET', '/forgot'); assert.match(r.body, /lang="zh-CN"/); assert.match(r.body, /[\u4e00-\u9fff]/);
   await z.post('/forgot', { email: 'zh@example.com' }, '/forgot');
   assert.match(sentMail.at(-1).subject, /[\u4e00-\u9fff]/);

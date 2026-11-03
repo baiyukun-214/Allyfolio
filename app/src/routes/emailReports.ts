@@ -5,7 +5,7 @@ import { all, get, run, now } from '../db.ts';
 import { html } from '../lib/html.ts';
 import { csrfField } from '../lib/csrf.ts';
 import { planOf } from '../lib/plans.ts';
-import { t, normReportLocale, REPORT_LOCALES, type Locale } from '../i18n.ts';
+import { t, normReportLocale, PUBLIC_REPORT_LOCALES, pickerLocales, type Locale, type ReportLocale } from '../i18n.ts';
 import { enqueue } from '../jobs/queue.ts';
 import { requireUser, render, back, ownSite, loc, T, localTime, pg } from './guard.ts';
 import { parseRecipients, nextRunAt, unsubOk, unsubscribe, manualSendsToday, MANUAL_SENDS_PER_DAY, SCHEDULES_PER_TEAM, type Frequency } from '../lib/reportMail.ts';
@@ -22,7 +22,7 @@ export async function emailReportRoutes(app: FastifyInstance) {
     const schedules = all<any>('SELECT * FROM report_schedules WHERE site_id = ? ORDER BY created_at', s.id);
     const deliveries = all<any>('SELECT d.*, u.email AS sent_by_email FROM report_deliveries d LEFT JOIN users u ON u.id = d.sent_by WHERE d.site_id = ? ORDER BY d.created_at DESC LIMIT 30', s.id);
     const contact = clientOfSite(s.id)?.contact_email ?? '';
-    const langSelect = (id: string) => html`<select id="${id}" name="locale">${REPORT_LOCALES.map((x) => html`<option value="${x}" lang="${t(x).htmlLang}" ${x === l ? 'selected' : ''}>${t(x).langName}</option>`)}</select>`;
+    const langSelect = (id: string) => html`<select id="${id}" name="locale">${pickerLocales<ReportLocale>(PUBLIC_REPORT_LOCALES, l).map((x) => html`<option value="${x}" lang="${t(x).htmlLang}" ${x === l ? 'selected' : ''}>${t(x).langName}</option>`)}</select>`;
     return render(reply, ctx, { title: `${E.h} – ${s.name}`, current: '/app', body: html`
       <p><a href="/app/sites/${s.id}">${E.back}</a></p>
       <h1>${E.h}</h1><p class="muted">${s.name} · ${s.origin}</p><p>${E.lead}</p>

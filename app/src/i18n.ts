@@ -1,10 +1,16 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 export type Locale = 'en' | 'zh-CN';
-/** Languages for PDF reports and report emails. German is report-only; the app UI is English or Chinese. */
+/** Languages for PDF reports and report emails. German is report-only for now. Chinese (zh-CN) is internal-only: never offered to customers, reachable via ?lang=zh / the af_lang cookie. */
 export type ReportLocale = Locale | 'de';
 export const REPORT_LOCALES: ReportLocale[] = ['en', 'de', 'zh-CN'];
 export const normReportLocale = (v: unknown): ReportLocale | null => String(v ?? '').toLowerCase().startsWith('de') ? 'de' : normLocale(v);
 export const LOCALES: Locale[] = ['en', 'zh-CN'];
+/** App UI languages offered to customers (header switcher, settings, Accept-Language). Add 'de' here once the German app UI exists. */
+export const PUBLIC_LOCALES: Locale[] = ['en'];
+/** Report / report-email languages offered to customers. */
+export const PUBLIC_REPORT_LOCALES: ReportLocale[] = ['en', 'de'];
+/** Options for a customer-visible picker: the public ones, plus the current value if it is internal (so internal users keep seeing what they use). */
+export const pickerLocales = <L extends string>(pub: L[], current: L): L[] => (pub.includes(current) ? pub : [...pub, current]);
 export const LANG_COOKIE = 'af_lang';
 export const normLocale = (v: unknown): Locale | null => {
   const s = String(v ?? '').toLowerCase();
@@ -15,7 +21,7 @@ export const normLocale = (v: unknown): Locale | null => {
 export function fromAcceptLanguage(h: string | undefined): Locale | null {
   if (!h) return null;
   const items = h.split(',').map((p) => { const [tag, q] = p.trim().split(';q='); return { tag, q: q ? Number(q) : 1 }; }).sort((a, b) => b.q - a.q);
-  for (const i of items) { const l = normLocale(i.tag); if (l) return l; }
+  for (const i of items) { const l = normLocale(i.tag); if (l && PUBLIC_LOCALES.includes(l)) return l; } // a Chinese browser gets English: zh is internal-only
   return null;
 }
 /** Request locale without user setting: ?lang (persisted to cookie) > cookie > Accept-Language > en. */
@@ -28,7 +34,7 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 const en = {
   langName: 'English', htmlLang: 'en', dateLocale: 'en-GB',
-  switchLabel: '中文', switchAria: '切换到简体中文',
+  switchToAria: 'Switch to English', // aria-label of a switcher link that leads TO this language (in this language)
   layout: { skip: 'Skip to main content', main: 'Main', sites: 'Sites', clients: 'Clients', team: 'Team', billing: 'Billing', settings: 'Settings', logout: 'Log out', login: 'Log in', signup: 'Create account', website: 'Website', blog: 'Blog', pricing: 'Pricing', terms: 'Terms', privacy: 'Privacy', refund: 'Refund policy', imprint: 'Imprint', legal: 'Legal', site: 'Allyfolio website', backToSite: '← Back to website', homeAria: 'Allyfolio website home', footer: 'Allyfolio is a testing and documentation tool, not legal advice. Automated checks find only part of all accessibility issues.' },
   impacts: { critical: 'Critical', serious: 'Serious', moderate: 'Moderate', minor: 'Minor' } as Record<string, string>,
   automationNote: 'Automated testing finds roughly 57% of accessibility issues (Deque study). A clean result does not mean the page is fully accessible – manual review by people is still needed.',
@@ -276,7 +282,7 @@ export type Dict = typeof en;
 
 const zh: Dict = {
   langName: '简体中文', htmlLang: 'zh-CN', dateLocale: 'zh-CN',
-  switchLabel: 'English', switchAria: 'Switch to English',
+  switchToAria: '切换到简体中文',
   layout: { skip: '跳到主要内容', main: '主导航', sites: '网站', clients: '客户', team: '团队', billing: '账单', settings: '设置', logout: '退出登录', login: '登录', signup: '注册账户', website: '官网', blog: '博客', pricing: '价格', terms: '服务条款', privacy: '隐私政策', refund: '退款政策', imprint: '网站信息（Impressum）', legal: '法律信息', site: 'Allyfolio 官网', backToSite: '← 返回官网', homeAria: 'Allyfolio 官网首页', footer: 'Allyfolio 是一款测试与记录工具，不构成法律建议。自动化检测只能发现部分无障碍问题。' },
   impacts: { critical: '严重', serious: '较严重', moderate: '中等', minor: '轻微' },
   automationNote: '自动化测试大约能发现 57% 的无障碍问题（Deque 研究）。结果中没有问题并不代表页面已完全无障碍，仍需要人工审查。',

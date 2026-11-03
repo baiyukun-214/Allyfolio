@@ -52,7 +52,7 @@ test('waitlist double opt-in grants early bird', async () => {
 test('POST /api/scan returns error codes with localized messages', async () => {
   const bad = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: 'ftp://x.example' } });
   assert.equal(bad.json().code, 'invalid_url'); assert.match(bad.json().error, /https:\/\//);
-  const r = await app.inject({ method: 'POST', url: '/api/scan', headers: { 'accept-language': 'zh-CN' }, payload: { url: base + '/forbidden' } });
+  const r = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: base + '/forbidden', lang: 'zh-CN' } });
   assert.equal(r.statusCode, 422, r.body);
   assert.equal(r.json().code, 'blocked'); assert.match(r.json().error, /海外/);
 });
@@ -71,7 +71,7 @@ test('free scan: cache, explanations, snippets, WCAG links; failed scans do not 
   freeLimit.reset(); cacheClear();
   // failed scans (403) do not use the hourly allowance
   for (let i = 0; i < 6; i++) { const r = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: base + '/forbidden' } }); assert.equal(r.statusCode, 422, r.body); }
-  const first = await app.inject({ method: 'POST', url: '/api/scan', headers: { 'accept-language': 'zh-CN' }, payload: { url: base + '/' } });
+  const first = await app.inject({ method: 'POST', url: '/api/scan', payload: { url: base + '/', lang: 'zh-CN' } });
   assert.equal(first.statusCode, 200, first.body);
   const j = first.json(); assert.equal(j.cached, false);
   assert.match(j.scoreNote, /57%.*不是完整的无障碍审查或法律评估/);

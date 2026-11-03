@@ -1,14 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { t, normLocale, fromAcceptLanguage, trError, LOCALES } from '../../src/i18n.ts';
+import { t, normLocale, fromAcceptLanguage, trError, LOCALES, PUBLIC_LOCALES, PUBLIC_REPORT_LOCALES, pickerLocales } from '../../src/i18n.ts';
 import { ruleHelp } from '../../src/lib/scanner.ts';
 import { LimitError } from '../../src/lib/plans.ts';
 
 test('normLocale and Accept-Language', () => {
   assert.equal(normLocale('zh'), 'zh-CN'); assert.equal(normLocale('zh-cn'), 'zh-CN'); assert.equal(normLocale('en-GB'), 'en'); assert.equal(normLocale('fr'), null);
-  assert.equal(fromAcceptLanguage('zh-CN,zh;q=0.9,en;q=0.8'), 'zh-CN');
+  assert.equal(fromAcceptLanguage('zh-CN,zh;q=0.9,en;q=0.8'), 'en', 'Chinese is internal-only: a Chinese browser gets English');
+  assert.equal(fromAcceptLanguage('zh-CN'), null);
   assert.equal(fromAcceptLanguage('de-DE,en;q=0.5'), 'en');
   assert.equal(fromAcceptLanguage('fr-FR'), null);
+});
+test('customer-facing languages: app UI English only, reports English + Deutsch; internal zh only shows when already in use', () => {
+  assert.deepEqual(PUBLIC_LOCALES, ['en']); assert.deepEqual(PUBLIC_REPORT_LOCALES, ['en', 'de']);
+  assert.deepEqual(pickerLocales(PUBLIC_LOCALES, 'en'), ['en']); assert.deepEqual(pickerLocales(PUBLIC_LOCALES, 'zh-CN'), ['en', 'zh-CN']);
+  assert.deepEqual(pickerLocales(PUBLIC_REPORT_LOCALES, 'en'), ['en', 'de']);
 });
 const keysDeep = (o: any, p = ''): string[] => Object.entries(o).flatMap(([k, v]) => v && typeof v === 'object' && !Array.isArray(v) ? keysDeep(v, p + k + '.') : [p + k]);
 test('zh dictionary has every key of en, with the same types', () => {

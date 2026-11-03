@@ -64,6 +64,7 @@ test('send now: validation, queued job, one email per recipient with the PDF, de
   db.run("DELETE FROM report_deliveries WHERE recipient = 'de@client.example'");
   r = await c.req('GET', P);
   assert.match(r.body, /<option value="de" lang="de"\s*>Deutsch<\/option>/);
+  assert.deepEqual([...r.body.matchAll(/<select id="send-lang" name="locale">(.*?)<\/select>/gs)].flatMap((m) => [...m[1].matchAll(/value="([\w-]+)"/g)].map((x) => x[1])), ['en', 'de'], 'customers pick English or Deutsch; Chinese is internal-only');
   assert.match(r.body, /Sent now/); assert.match(r.body, /client@agency\.example/);
 
   // A failing recipient is recorded and the job is not retried (no duplicate mail to the others).

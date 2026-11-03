@@ -3,11 +3,16 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { currentUser, type Ctx } from '../lib/auth.ts';
 import { page, type PageOpts } from '../views/layout.ts';
 import { html, type Html } from '../lib/html.ts';
-import { get } from '../db.ts';
+import { get, run } from '../db.ts';
 import { normLocale, requestLocale, t, type Locale } from '../i18n.ts';
 declare module 'fastify' { interface FastifyRequest { locale: Locale } }
-/** Locale priority: user setting > ?lang (persisted to cookie) > cookie > Accept-Language. */
-export const loc = (req: FastifyRequest, ctx?: Ctx | null): Locale => normLocale(ctx?.user?.locale) ?? req.locale ?? 'en';
+/** Locale priority: ?lang (persisted to cookie, and to the user setting when logged in) > user setting > cookie > Accept-Language (public UI languages only).
+ *  ?lang=zh is how internal users reach the Chinese UI: Chinese is never offered to customers. */
+export const loc = (req: FastifyRequest, ctx?: Ctx | null): Locale => {
+  const q = normLocale((req.query as any)?.lang);
+  if (q && ctx?.user && ctx.user.locale !== q) { run('UPDATE users SET locale = ? WHERE id = ?', q, ctx.user.id); ctx.user.locale = q; }
+  return q ?? normLocale(ctx?.user?.locale) ?? req.locale ?? 'en';
+};
 export const T = (req: FastifyRequest, ctx?: Ctx | null) => t(loc(req, ctx));
 export function localeHook(req: FastifyRequest, reply: FastifyReply, done: () => void) { req.locale = requestLocale(req, reply); done(); }
 export function requireUser(req: FastifyRequest, reply: FastifyReply): Ctx | null {

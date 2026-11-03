@@ -12,7 +12,7 @@ import { mailer } from '../lib/mailer.ts';
 import { validEmail } from '../lib/waitlist.ts';
 import { config } from '../config.ts';
 import { requireUser, render, back, ownSite, T, loc, localTime } from './guard.ts';
-import { LOCALES, normLocale, t, trError } from '../i18n.ts';
+import { PUBLIC_LOCALES, pickerLocales, normLocale, t, trError } from '../i18n.ts';
 import { siteDetailExtras } from './monitoring.ts';
 import { accountSection } from './account.ts';
 import { emptyState } from '../views/ui.ts';
@@ -148,13 +148,15 @@ export async function dashboardRoutes(app: FastifyInstance) {
     const ctx = requireUser(req, reply); if (!ctx) return;
     const l = loc(req, ctx), D = t(l).dash;
     const sites = all<any>('SELECT id, name, origin FROM sites WHERE team_id = ? ORDER BY created_at', ctx.team.id);
+    // Customer-facing UI languages only (English for now; Deutsch joins via PUBLIC_LOCALES). With a single option the language form is hidden.
+    const uiLangs = pickerLocales(PUBLIC_LOCALES, l);
     return render(reply, ctx, { title: D.settings, current: '/app/settings', body: html`
       <h1>${D.settings}</h1>
-      <form class="card narrow" style="margin:0" method="post" action="/app/settings">${csrfField(req)}
+      ${uiLangs.length > 1 ? html`<form class="card narrow" style="margin:0" method="post" action="/app/settings">${csrfField(req)}
         <div class="field"><label for="locale">${D.language}</label><p class="hint" id="locale-hint">${D.languageHint}</p>
-          <select id="locale" name="locale" aria-describedby="locale-hint">${LOCALES.map((x) => html`<option value="${x}" lang="${x}" ${x === l ? html`selected` : ''}>${t(x).langName}</option>`)}</select></div>
+          <select id="locale" name="locale" aria-describedby="locale-hint">${uiLangs.map((x) => html`<option value="${x}" lang="${t(x).htmlLang}" ${x === l ? html`selected` : ''}>${t(x).langName}</option>`)}</select></div>
         <button class="btn btn-primary" type="submit">${D.save}</button>
-      </form>
+      </form>` : ''}
       ${accountSection(req, ctx)}
       ${ctx.role === 'owner' && sites.length ? html`<section class="card danger-zone" aria-labelledby="danger-h"><h2 id="danger-h" style="margin-top:0">${D.danger}</h2><p class="muted small">${D.dangerLead}</p>
         <ul class="danger-list">${sites.map((x) => html`<li><span><strong>${x.name}</strong> <span class="muted small">${x.origin}</span></span><form method="post" action="/app/sites/${x.id}/delete">${csrfField(req)}<button class="btn btn-danger" type="submit">${D.remove}<span class="sr-only"> – ${x.name}</span></button></form></li>`)}</ul></section>` : ''}` });

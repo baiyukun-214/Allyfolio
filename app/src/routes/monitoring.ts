@@ -7,7 +7,7 @@ import { planOf, canPdf } from '../lib/plans.ts';
 import { enqueue, hasPendingScan } from '../jobs/queue.ts';
 import { IMPACTS, ruleHelp } from '../lib/scanner.ts';
 import { requireUser, render, back, ownSite, loc, T, fmtDate, localTime } from './guard.ts';
-import { t, scanError, REPORT_LOCALES, type Locale } from '../i18n.ts';
+import { t, scanError, PUBLIC_REPORT_LOCALES, pickerLocales, type Locale, type ReportLocale } from '../i18n.ts';
 import { bypassesVerification } from '../lib/verify.ts';
 import { scanSummary, coverageSection, guidance, ruleTitle, snippet } from '../lib/scanSummary.ts';
 /** Affected elements listed per rule on the scan page. */
@@ -123,7 +123,7 @@ export async function monitoringRoutes(app: FastifyInstance) {
       <h1>${M.scanOf(scan.site_name)}</h1>
       <p class="muted">${M.finished} ${lt(scan.finished_at, l)} · ${M.pagesN(scan.pages_scanned)} (${M.limit} ${scan.page_limit}) · ${M.hash} <code>${scan.evidence_hash}</code></p>
       ${canPdf(plan, scan.kind === 'oneoff') ? html`<div class="row"><a class="btn btn-primary" href="/app/scans/${scan.id}/report.pdf">${M.pdf}</a><a class="btn btn-secondary" href="/app/scans/${scan.id}/report">${M.printable}</a></div>
-      <p class="small" style="margin-top:8px">${C.reportLang}: ${REPORT_LOCALES.map((rl, i) => html`${i ? ' · ' : ''}<a href="/app/scans/${scan.id}/report.pdf?language=${rl}" hreflang="${t(rl).htmlLang}" lang="${t(rl).htmlLang}">${t(rl).langName} (PDF)</a>`)}</p>` : ''}
+      <p class="small" style="margin-top:8px">${C.reportLang}: ${pickerLocales<ReportLocale>(PUBLIC_REPORT_LOCALES, l).map((rl, i) => html`${i ? ' · ' : ''}<a href="/app/scans/${scan.id}/report.pdf?language=${rl}" hreflang="${t(rl).htmlLang}" lang="${t(rl).htmlLang}">${t(rl).langName} (PDF)</a>`)}</p>` : ''}
       <p style="margin-top:16px"><strong data-counts>${C.counts(S.elements, S.rules, S.occurrences, S.pagesWithIssues)}</strong></p>
       <p class="small muted">${C.countsHelp}</p>
       <p class="small" style="margin:16px 0 0"><strong>${C.byImpact}</strong></p>

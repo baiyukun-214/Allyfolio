@@ -22,7 +22,10 @@ after(async () => { await closeBrowser(); await app.close(); fx.server.close(); 
 const get = (url: string, headers: Record<string, string> = {}) => app.inject({ method: 'GET', url, headers });
 
 test('locale resolution: Accept-Language < cookie < ?lang (persisted) and switcher', async () => {
+  // Chinese is internal-only: a Chinese browser gets English, and English pages offer no 中文 switcher (English is the only public UI language).
   let r = await get('/login', { 'accept-language': 'zh-CN,zh;q=0.9' });
+  assert.match(r.body, /<html lang="en">/); assert.doesNotMatch(r.body, /lang-switch|中文|\/lang\?to=/);
+  r = await get('/login', { cookie: 'af_lang=zh-CN' });
   assert.match(r.body, /<html lang="zh-CN">/); assert.match(r.body, /登录/);
   r = await get('/login', { 'accept-language': 'zh-CN', cookie: 'af_lang=en' });
   assert.match(r.body, /<html lang="en">/);
@@ -76,6 +79,17 @@ test('user setting beats cookie; dashboard, emails, statement and reports in Chi
   writeFileSync('/tmp/zh-report.pdf', r.rawPayload);
   const txt = execFileSync('pdftotext', ['/tmp/zh-report.pdf', '-']).toString();
   assert.match(txt, /图像必须有替代文本/); assert.match(txt, /57%/);
+  // Report-language links: customers get English + Deutsch; an internal Chinese user also keeps 简体中文.
+  const pdfLangs = (b: string) => [...b.matchAll(/report\.pdf\?language=([\w-]+)/g)].map((m) => m[1]);
+  assert.deepEqual(pdfLangs((await c.req('GET', `/app/scans/${scan.id}`)).body), ['en', 'de', 'zh-CN']);
+  await c.post('/app/settings', { locale: 'en' }, '/app/settings');
+  r = await c.req('GET', `/app/scans/${scan.id}`);
+  assert.deepEqual(pdfLangs(r.body), ['en', 'de']); assert.doesNotMatch(r.body, /简体中文|中文|lang-switch/);
+  r = await c.req('GET', '/app/settings'); assert.doesNotMatch(r.body, /name="locale"/, 'single public UI language: no language picker');
+  // Internal route back to Chinese for a logged-in user: ?lang=zh wins over the user setting and is saved.
+  r = await c.req('GET', '/app?lang=zh'); assert.match(r.body, /<html lang="zh-CN">/);
+  assert.equal(db.get('SELECT locale FROM users WHERE email = ?', 'zh@example.com').locale, 'zh-CN');
+  r = await c.req('GET', '/app'); assert.match(r.body, /<html lang="zh-CN">/); assert.match(r.body, /href="\/lang\?to=en&amp;next=[^"]*" hreflang="en" lang="en" aria-label="Switch to English"/);
   r = await c.req('GET', sitePath.replace('/app/sites/', '/app/sites/') + '/statement');
   assert.match(r.body, /无障碍声明/); assert.match(r.body, /57%/);
   assert.doesNotMatch(r.body, /合规认证|保证合规|已认证|compliant|certified/i);
