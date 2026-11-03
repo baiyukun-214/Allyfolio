@@ -16,6 +16,7 @@ import { LOCALES, normLocale, t, trError } from '../i18n.ts';
 import { siteDetailExtras } from './monitoring.ts';
 import { accountSection } from './account.ts';
 import { emptyState } from '../views/ui.ts';
+import { SITE_COOKIE, carriedSite } from './auth.ts';
 
 
 export async function dashboardRoutes(app: FastifyInstance) {
@@ -27,6 +28,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
     const fq = String((req.query as any)?.client ?? ''), filter = clients.length && (fq === 'none' || clients.some((c) => c.id === fq)) ? fq : null;
     const total = get<any>('SELECT COUNT(*) AS n FROM sites WHERE team_id = ?', ctx.team.id)!.n;
     const sites = siteRows(ctx.team.id, filter === null ? undefined : filter === 'none' ? '' : filter);
+    // First site: prefill from the free scan (cookie set on /signup?site=…) or the site given when joining the waitlist.
+    const carry = total ? null : carriedSite(req.cookies?.[SITE_COOKIE]) ?? carriedSite(get<any>('SELECT site FROM waitlist WHERE email = ?', ctx.user.email)?.site);
     return render(reply, ctx, { title: D.sites, current: '/app', body: html`
       <div class="row between"><div><p class="eyebrow">${ctx.team.name}</p><h1>${D.sites}</h1></div><span class="pill">${D.planPill(Tx.plans[plan.id] ?? plan.name, total, plan.sites)}</span></div>
       ${ctx.team.plan === 'none' ? html`<p class="notice"><strong>${D.noPlanH}</strong> ${D.noPlan} <a href="/app/billing">${D.noPlanLink}</a>${D.noPlanEnd}</p>` : ''}
@@ -36,8 +39,8 @@ export async function dashboardRoutes(app: FastifyInstance) {
       </tbody></table></div>` : filter !== null ? html`<p>${C.noSites}</p>` : emptyState(D.emptySitesH, D.emptySitesText, html`<a class="btn btn-primary" href="#name">${D.addH}</a>`)}
       <h2>${D.addH}</h2>
       <form class="card" method="post" action="/app/sites">${csrfField(req)}
-        <div class="grid g2"><div class="field"><label for="name">${D.name}</label><input id="name" name="name" type="text" required maxlength="80" placeholder="${D.namePh}"></div>
-        <div class="field"><label for="origin">${D.origin}</label><input id="origin" name="origin" type="url" required placeholder="https://www.example.com"></div></div>
+        <div class="grid g2"><div class="field"><label for="name">${D.name}</label><input id="name" name="name" type="text" required maxlength="80" placeholder="${D.namePh}" value="${carry ? new URL(carry).hostname.replace(/^www\./, '') : ''}"></div>
+        <div class="field"><label for="origin">${D.origin}</label><input id="origin" name="origin" type="url" required placeholder="https://www.example.com" value="${carry ?? ''}"></div></div>
         <button class="btn btn-primary" type="submit">${D.addBtn}</button>
       </form>` });
   });
@@ -57,6 +60,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
       const { scheduleFirstScan } = await import('../jobs/queue.ts');
       scheduleFirstScan(id, ctx.team);
     }
+    reply.clearCookie(SITE_COOKIE, { path: '/' });
     return reply.redirect(`/app/sites/${id}`, 303);
   });
 

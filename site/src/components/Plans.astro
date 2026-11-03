@@ -3,9 +3,10 @@ import Icon from './Icon.astro';
 import Tile from './Tile.astro';
 const planIcons = ['bolt', 'building', 'layers'];
 import { i18n } from '../i18n';
+import { APP_LIVE, appLink } from '../lib/api';
 interface Props { detailed?: boolean }
 const { detailed = false } = Astro.props;
-const { t, l } = i18n(Astro.url.pathname);
+const { t, l, lang } = i18n(Astro.url.pathname);
 const P = t.plans;
 const plans = [
   { ...P.items.starter, price: '€19' },
@@ -14,6 +15,9 @@ const plans = [
 ];
 const shown = (p: typeof plans[number]) => detailed ? [...p.features, ...p.extra] : p.features.slice(0, 4);
 const uid = detailed ? 'pd' : 'ph';
+// Pre-launch every plan button joins the waitlist; with PUBLIC_APP_LIVE=true it opens signup (the plan is chosen in the app's Billing page).
+const ctaHref = APP_LIVE ? appLink('/signup', lang) : l('/#waitlist');
+const ctaLabel = APP_LIVE ? P.start : P.join;
 ---
 <div data-tabs>
   <div role="tablist" aria-label={P.tabsLabel} class="seg mb-10" hidden>
@@ -34,7 +38,7 @@ const uid = detailed ? 'pd' : 'ph';
       <ul class={`mt-6 space-y-3 text-sm flex-1 border-t pt-6 ${p.highlight ? 'border-white/20' : 'border-slate-200'}`}>
         {shown(p).map((f) => (<li class="flex gap-2.5"><span class={p.highlight ? 'text-brand-200' : 'text-brand-500'}><Icon name="check" /></span>{f}</li>))}
       </ul>
-      <a href={l('/#waitlist')} class={`btn mt-8 w-full ${p.highlight ? 'bg-white text-brand-700 hover:bg-brand-50 focus-visible:outline-white' : 'btn-secondary'}`}>{P.join}<span class="sr-only"> {P.joinFor} {p.name}</span></a>
+      <a href={ctaHref} class={`btn mt-8 w-full ${p.highlight ? 'bg-white text-brand-700 hover:bg-brand-50 focus-visible:outline-white' : 'btn-secondary'}`}>{ctaLabel}<span class="sr-only"> {P.joinFor} {p.name}</span></a>
     </div>
   ))}
 </div>
@@ -49,7 +53,7 @@ const uid = detailed ? 'pd' : 'ph';
       <ul class="mt-6 space-y-3 text-sm border-t border-slate-200 pt-6">
         {P.oneoffFeatures.map((f) => (<li class="flex gap-2.5"><span class="text-brand-500"><Icon name="check" /></span>{f}</li>))}
       </ul>
-      <a href={l('/#waitlist')} class="btn btn-primary mt-8 w-full">{P.join}<span class="sr-only"> {P.oneoffSr}</span></a>
+      <a href={ctaHref} class="btn btn-primary mt-8 w-full">{ctaLabel}<span class="sr-only"> {P.oneoffSr}</span></a>
     </div>
   </div>
 </div>

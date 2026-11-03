@@ -7,7 +7,7 @@ const base = process.env.BASE_URL ?? 'http://localhost:4321';
 const en = ['/', '/pricing', '/free-scan', '/blog', '/blog/what-the-eaa-means-for-smes', '/about', '/privacy', '/terms', '/refund', '/dpa', '/imprint', '/bot', '/accessibility-statement', '/waitlist-check-email', '/waitlist-error',
   '/features', '/resources', '/eaa', '/bfsg', '/microenterprise-exemption', '/who-is-affected', '/en-301-549-wcag',
   '/blog/why-accessibility-overlays-dont-work', '/blog/what-automated-accessibility-testing-cant-catch'];
-const zh = en.map((p) => (p === '/' ? '/zh' : '/zh' + p));
+const zh = en.filter((p) => p !== '/bot').map((p) => (p === '/' ? '/zh' : '/zh' + p));
 const de = ['/de', '/de/pricing', '/de/free-scan', '/de/blog/what-the-eaa-means-for-smes', '/de/terms', '/de/privacy', '/de/refund', '/de/imprint', '/de/bot'];
 const home = new Set(['/', '/zh', '/de']);
 const pages = process.env.PAGES ? process.env.PAGES.split(',') : [...en, ...de, ...zh];

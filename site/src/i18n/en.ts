@@ -17,7 +17,7 @@ export const en = {
     pageTitle: 'Waitlist', back: 'Back to the home page',
   },
   plans: {
-    recommended: 'Recommended', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', joinFor: 'for',
+    recommended: 'Recommended', perMonth: '/month', exVat: 'excl. VAT', join: 'Join the waitlist', start: 'Get started', joinFor: 'for',
     oneoffTitle: 'One-off report', oneoffText: '1 site, up to 100 pages, a single scan and a PDF report. No subscription.', tabsLabel: 'Plan type', tabSubs: 'Subscriptions', tabOneoff: 'One-off report', oneoffPer: 'one-time', oneoffFeatures: ['1 website', 'Up to 100 pages', 'A single scan', 'PDF report', 'No subscription'], oneoffSr: 'for the one-off report',
     items: {
       starter: { name: 'Starter', blurb: 'For a single small business website.', features: ['1 website', 'Up to 100 pages', 'Weekly scans', '12-month evidence history', 'PDF report export', '1 seat'], extra: ['Timestamped audit trail', 'Draft accessibility statement'] },

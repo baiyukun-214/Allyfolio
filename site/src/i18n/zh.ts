@@ -18,7 +18,7 @@ export const zh: Dict = {
     pageTitle: '候补名单', back: '返回首页',
   },
   plans: {
-    recommended: '推荐', perMonth: '/月', exVat: '不含增值税', join: '加入候补名单', joinFor: '–',
+    recommended: '推荐', perMonth: '/月', exVat: '不含增值税', join: '加入候补名单', start: '开始使用', joinFor: '–',
     oneoffTitle: '单次报告', oneoffText: '1 个网站，最多 100 个页面，单次扫描并提供 PDF 报告。无需订阅。', tabsLabel: '方案类型', tabSubs: '订阅套餐', tabOneoff: '一次性报告', oneoffPer: '一次性', oneoffFeatures: ['1 个网站', '最多 100 个页面', '单次扫描', 'PDF 报告', '无需订阅'], oneoffSr: '– 单次报告',
     items: {
       starter: { name: '入门版', blurb: '适合单个小型企业网站。', features: ['1 个网站', '最多 100 个页面', '每周扫描', '12 个月证据历史', 'PDF 报告导出', '1 个席位'], extra: ['带时间戳的审计记录', '无障碍声明草稿'] },

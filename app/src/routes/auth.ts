@@ -10,17 +10,23 @@ import { hashPassword, verifyPassword, createUserWithTeam, startSession, endSess
 import { planOf, assertCanAddSeat, LimitError, effectivePlanSql } from '../lib/plans.ts';
 import { pg, loc, T } from './guard.ts';
 import { LANG_COOKIE, normLocale, t } from '../i18n.ts';
+import { parsePublicUrl } from '../lib/ssrf.ts';
+
+/** Site carried over from the marketing site's free scan (/signup?site=…): kept in a short-lived cookie so it survives password signup and magic links, then prefilled on the empty dashboard. */
+export const SITE_COOKIE = 'af_site';
+export const carriedSite = (v: unknown): string | null => { if (!v) return null; try { return parsePublicUrl(String(v).slice(0, 500)).origin; } catch { return null; } };
 
 const authLimit = rateLimiter(20, 15 * 60_000);
 const field = (id: string, label: string, type: string, extra: any = '', hint = '') => html`<div class="field"><label for="${id}">${label}</label>${hint ? html`<p class="hint" id="${id}-hint">${hint}</p>` : ''}<input id="${id}" name="${id}" type="${type}" ${hint ? html`aria-describedby="${id}-hint"` : ''} ${extra}></div>`;
 
-export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '', ok?: string) {
+export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '', ok?: string, site: string | null = null) {
   const signup = mode === 'signup'; const A = T(req).auth;
   return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : ok ? { kind: 'ok', msg: ok } : null, body: html`
   <div class="narrow">
     <div class="card">
       <h1>${signup ? A.signupH : A.loginH}</h1>
       <p class="muted">${signup ? A.signupLead : A.loginLead}</p>
+      ${signup && site ? html`<p class="notice small">${A.siteCarry(site)}</p>` : ''}
       <form method="post" action="/${mode}">${csrfField(req)}
         <div class="field"><label for="email">${A.email}</label><input id="email" name="email" type="email" autocomplete="email" required value="${email}"></div>
         ${field('password', A.password, 'password', html`autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="10"`, signup ? A.pwHint : '')}
@@ -45,7 +51,11 @@ const safeNext = (n: unknown) => { const s = String(n ?? ''); return s.startsWit
 
 export async function authRoutes(app: FastifyInstance) {
   app.get('/login', async (req, reply) => { if (currentUser(req)) return reply.redirect('/app'); reply.type('text/html'); return authForm(req, 'login'); });
-  app.get('/signup', async (req, reply) => { reply.type('text/html'); return authForm(req, 'signup'); });
+  app.get('/signup', async (req, reply) => {
+    const site = carriedSite((req.query as any).site) ?? carriedSite(req.cookies?.[SITE_COOKIE]);
+    if (site) reply.setCookie(SITE_COOKIE, site, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 86400, secure: config.appUrl.startsWith('https') });
+    reply.type('text/html'); return authForm(req, 'signup', undefined, '', undefined, site);
+  });
 
   /** Language switcher: persist to cookie (and to the user's setting when logged in), then go back. */
   app.get('/lang', async (req, reply) => {
