@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync, existsSync, chmodSync } from 'node:fs';
 
 export const WEBHOOK_EVENTS = ['subscription.created', 'subscription.updated', 'subscription.activated', 'subscription.past_due', 'subscription.paused',
-  'subscription.resumed', 'subscription.canceled', 'transaction.completed', 'transaction.payment_failed'];
+  'subscription.resumed', 'subscription.canceled', 'transaction.completed', 'transaction.payment_failed', 'adjustment.created', 'adjustment.updated'];
 export const CATALOGUE = [
   { key: 'starter', env: 'PADDLE_PRICE_STARTER', product: 'Allyfolio Starter', cents: 1900, monthly: true },
   { key: 'business', env: 'PADDLE_PRICE_BUSINESS', product: 'Allyfolio Business', cents: 3900, monthly: true },
@@ -25,6 +25,25 @@ export function updateEnvFile(path: string, values: Record<string, string>) {
   if (missing.length) { if (out.length && out[out.length - 1] !== '') out.push(''); out.push('# written by npm run paddle:setup', ...missing.map((k) => `${k}=${values[k]}`), ''); }
   writeFileSync(path, out.join('\n'));
   try { chmodSync(path, 0o600); } catch { /* not fatal */ }
+}
+
+export const DEFAULT_DISCOUNT_CODE = 'EARLYBIRD30';
+export const codeFromEnv = () => (/^[A-Za-z0-9]{3,32}$/.test(process.env.PADDLE_DISCOUNT_CODE ?? '') ? process.env.PADDLE_DISCOUNT_CODE!.toUpperCase() : DEFAULT_DISCOUNT_CODE);
+type Call = (method: string, path: string, body?: unknown) => Promise<any>;
+/**
+ * Fallback for waitlist members who sign up with another email: the same offer as the early bird (30%, first 12 monthly
+ * periods, subscriptions only, at most 100 uses) as a code that customers can enter (in the app's Billing page, or in
+ * Paddle checkout). Found again by custom_data.allyfolio_key, so re-runs never create a second one.
+ */
+export async function ensureDiscountCode(call: Call, list: (path: string) => Promise<any[]>, subPrices: string[], code: string) {
+  const want = { description: 'Early bird code – 30% off the first 12 months', type: 'percentage', amount: '30', recur: true, maximum_recurring_intervals: 12,
+    usage_limit: 100, enabled_for_checkout: true, code, restrict_to: subPrices, custom_data: { allyfolio_key: 'earlybird_code' } };
+  const found = (await list('/discounts?status=active&per_page=200')).find((x) => x.custom_data?.allyfolio_key === 'earlybird_code');
+  if (!found) { const d = (await call('POST', '/discounts', want)).data; return { id: d.id as string, code: d.code as string, created: true }; }
+  const same = JSON.stringify([...(found.restrict_to ?? [])].sort()) === JSON.stringify([...subPrices].sort()) && Number(found.amount) === 30 && found.recur && found.maximum_recurring_intervals === 12 && found.usage_limit === 100 && found.enabled_for_checkout && found.code === code;
+  if (same) return { id: found.id as string, code: found.code as string, created: false };
+  const d = (await call('PATCH', `/discounts/${found.id}`, { amount: '30', recur: true, maximum_recurring_intervals: 12, usage_limit: 100, enabled_for_checkout: true, code, restrict_to: subPrices })).data;
+  return { id: d.id as string, code: d.code as string, created: false };
 }
 
 export interface SetupOptions { apiKey: string; apiBase: string; webhookUrl?: string; envPath: string; log?: (s: string) => void }
@@ -71,6 +90,8 @@ export async function runPaddleSetup(o: SetupOptions) {
   else if (JSON.stringify([...(d.restrict_to ?? [])].sort()) !== JSON.stringify([...subPrices].sort()) || Number(d.amount) !== 30 || d.maximum_recurring_intervals !== 12 || d.usage_limit !== 100 || !d.recur)
     { d = (await call('PATCH', `/discounts/${d.id}`, { amount: '30', recur: true, maximum_recurring_intervals: 12, usage_limit: 100, restrict_to: subPrices })).data; log(`updated discount ${d.id}`); }
   env.PADDLE_DISCOUNT_EARLYBIRD = d.id;
+  const code = await ensureDiscountCode(call, list, subPrices, codeFromEnv());
+  env.PADDLE_DISCOUNT_CODE_ID = code.id; env.PADDLE_DISCOUNT_CODE = code.code; if (code.created) created.push(`discount code ${code.id}`);
 
   // Webhook destination, only for a public URL (Paddle cannot reach localhost).
   if (o.webhookUrl) {

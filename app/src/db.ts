@@ -109,6 +109,8 @@ export function db(): DatabaseSync {
     "CREATE INDEX IF NOT EXISTS sites_client ON sites(client_id)",
     // Evidence hash scheme per scan (NULL = v1, see lib/evidence.ts). Old rows keep their scheme and stay verifiable.
     "ALTER TABLE scans ADD COLUMN hash_version INTEGER",
+    // Launch invite (npm run waitlist:invite): when the invite went out, so a re-run never mails the same person twice.
+    "ALTER TABLE waitlist ADD COLUMN invited_at TEXT",
   ]) { try { _db.exec(m); } catch { /* already applied */ } }
   return _db;
 }

@@ -2,6 +2,8 @@
 // Spins up the app with an in-memory DB and a local fixture site; exits non-zero on serious/critical violations.
 import http from 'node:http';
 process.env.ALLOW_PRIVATE_TARGETS = '1'; process.env.DATABASE_PATH = ':memory:'; process.env.WORKER = '0'; process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? 'warn';
+// Discount code configured, so the Billing page shows its code field (and the applied / invalid states below).
+process.env.PADDLE_DISCOUNT_CODE_ID = 'dsc_01h8earlybirdcode000000000'; process.env.PADDLE_DISCOUNT_CODE = 'EARLYBIRD30';
 const { chromium } = await import('playwright');
 const { AxeBuilder } = await import('@axe-core/playwright');
 const { buildServer } = await import('../src/server.ts');
@@ -26,7 +28,7 @@ await p.goto(base + '/app'); await p.fill('#name', 'Fixture'); await p.fill('#or
 const siteUrl = p.url(); token = (await p.content()).match(/content="([0-9a-f]{32})"/)![1];
 await Promise.all([p.waitForNavigation(), p.click('button:has-text("Check now")')]); console.log('verify:', await p.textContent('.alert').catch(() => 'none'), token); await workOnce({}); await workOnce({});
 const scanId = db.get<any>("SELECT id FROM scans WHERE status='done' LIMIT 1")!.id;
-const pages = ['/app', '/app/settings', siteUrl.replace(base, ''), `/app/scans/${scanId}`, `/app/scans/${scanId}/report`, `/app/team`, '/app/billing', '/app/billing?paid=1', `${siteUrl.replace(base, '')}/statement`];
+const pages = ['/app', '/app/settings', siteUrl.replace(base, ''), `/app/scans/${scanId}`, `/app/scans/${scanId}/report`, `/app/team`, '/app/billing', '/app/billing?paid=1', '/app/billing?plan=business', '/app/billing?code=WRONG1', '/app/billing?plan=oneoff&code=EARLYBIRD30', `${siteUrl.replace(base, '')}/statement`];
 let bad = 0, total = 0; let lang = 'en';
 const langs = (process.env.LANGS ?? 'en,zh-CN').split(',');
 const check = async (page: any, path: string, w: number) => {
@@ -43,7 +45,7 @@ for (const l of langs) {
     await p.setViewportSize({ width: w, height: 800 });
     for (const path of pages) { await p.goto(base + path); await check(p, path, w); }
     const anon = await browser.newContext({ viewport: { width: w, height: 800 } }); const a = await anon.newPage();
-    for (const path of ['/login', '/signup', '/forgot', '/reset?token=invalid']) { await a.goto(`${base}${path}?lang=${l}`); await check(a, path, w); }
+    for (const path of ['/login', '/signup', '/signup?plan=agency', '/forgot', '/reset?token=invalid']) { await a.goto(`${base}${path}${path.includes('?') ? '&' : '?'}lang=${l}`); await check(a, path, w); }
     await anon.close();
   }
 }

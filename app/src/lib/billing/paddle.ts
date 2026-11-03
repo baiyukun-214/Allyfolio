@@ -45,9 +45,10 @@ export class PaddleProvider implements BillingProvider {
   clientConfig() { const p = P(); return p.clientToken ? { script: 'https://cdn.paddle.com/paddle/v2/paddle.js', token: p.clientToken, environment: p.env } : null; }
 
   /** Server-side transaction (price, discount and team binding are decided here, not in the browser); Paddle.js opens it as an overlay. */
-  async checkout(team: any, email: string, what: Purchase, opts: { earlyBird: boolean; locale: Locale }): Promise<CheckoutSpec> {
+  async checkout(team: any, email: string, what: Purchase, opts: { earlyBird: boolean; code?: boolean; locale: Locale }): Promise<CheckoutSpec> {
     const price = paddlePrice(what); if (!price) throw new Error(`No Paddle price configured for ${what}`);
-    const discount = what !== 'oneoff' && opts.earlyBird && P().earlyBirdDiscount ? P().earlyBirdDiscount : undefined;
+    // Early bird (by waitlist email) first; otherwise the fallback code if the customer entered it. Never on the one-off.
+    const discount = what === 'oneoff' ? undefined : opts.earlyBird && P().earlyBirdDiscount ? P().earlyBirdDiscount : opts.code ? P().discountCodeId || undefined : undefined;
     const tx = await api('POST', '/transactions', {
       items: [{ price_id: price, quantity: 1 }],
       ...(team.billing_customer_id ? { customer_id: team.billing_customer_id } : {}),
@@ -106,6 +107,13 @@ export class PaddleProvider implements BillingProvider {
       case 'transaction.payment_failed':
         if (d.subscription_id) events.push({ kind: 'payment_failed', subscriptionId: d.subscription_id });
         break;
+      case 'adjustment.created': case 'adjustment.updated': {
+        // Refunds (and chargebacks) need approval in Paddle: act only once the adjustment is approved.
+        if (!['refund', 'chargeback'].includes(d.action) || d.status !== 'approved' || !d.id || !d.transaction_id) break;
+        const full = d.type === 'full' || (d.type == null && Array.isArray(d.items) && d.items.length > 0 && d.items.every((i: any) => i.type === 'full'));
+        events.push({ kind: 'refund', adjustmentId: d.id, transactionId: d.transaction_id, subscriptionId: d.subscription_id ?? null, customerId: d.customer_id ?? null, full });
+        break;
+      }
     }
     return { id: String(n.event_id ?? n.notification_id), type: String(n.event_type), events };
   }

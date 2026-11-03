@@ -2,13 +2,14 @@ import { randomBytes } from 'node:crypto';
 import { get, run, now, tx } from '../db.ts';
 import { config } from '../config.ts';
 import { mailer } from './mailer.ts';
-import { t, type Locale } from '../i18n.ts';
+import { t, normLocale, type Locale, type ReportLocale } from '../i18n.ts';
 import { parsePublicUrl } from './ssrf.ts';
 export const EARLY_BIRD_LIMIT = 100;
 const EMAIL_RE = /^[^\s@<>()"']{1,64}@[a-z0-9.-]{1,253}\.[a-z]{2,}$/i;
 export const validEmail = (e: string) => EMAIL_RE.test(e) && e.length <= 254;
 
-export async function joinWaitlist(emailRaw: string, ip: string, locale: Locale = 'en', siteRaw?: unknown) {
+/** locale may be 'de' (German site): stored for the confirm and launch-invite emails; app pages stay English or Chinese. */
+export async function joinWaitlist(emailRaw: string, ip: string, locale: ReportLocale = 'en', siteRaw?: unknown) {
   let site: string | null = null;
   if (siteRaw) { try { site = parsePublicUrl(String(siteRaw).slice(0, 500)).origin; } catch { site = null; } }
   const email = String(emailRaw ?? '').trim().toLowerCase();
@@ -27,11 +28,11 @@ export function confirmWaitlist(token: string): { ok: boolean; earlyBird?: boole
   return tx(() => {
     const row = get<any>('SELECT * FROM waitlist WHERE token = ?', String(token ?? ''));
     if (!row) return { ok: false };
-    if (row.confirmed_at) return { ok: true, earlyBird: !!row.early_bird, locale: row.locale ?? 'en' };
+    if (row.confirmed_at) return { ok: true, earlyBird: !!row.early_bird, locale: normLocale(row.locale) ?? 'en' };
     const count = get<any>('SELECT COUNT(*) AS n FROM waitlist WHERE early_bird = 1')!.n as number;
     const eb = count < EARLY_BIRD_LIMIT ? 1 : 0;
     run('UPDATE waitlist SET confirmed_at = ?, early_bird = ? WHERE id = ?', now(), eb, row.id);
-    return { ok: true, earlyBird: !!eb, locale: row.locale ?? 'en' };
+    return { ok: true, earlyBird: !!eb, locale: normLocale(row.locale) ?? 'en' };
   });
 }
 export const isEarlyBird = (email: string) => !!get<any>('SELECT 1 FROM waitlist WHERE email = ? AND confirmed_at IS NOT NULL AND early_bird = 1', email.toLowerCase());

@@ -68,7 +68,7 @@ const en = {
   },
   auth: {
     loginTitle: 'Log in', signupTitle: 'Create account', signupH: 'Create your account', loginH: 'Log in',
-    signupLead: 'Monitor your sites and keep a timestamped evidence trail.', siteCarry: (site: string) => `After you sign up, ${site} is ready to add as your first site.`, loginLead: 'Welcome back.',
+    signupLead: 'Monitor your sites and keep a timestamped evidence trail.', siteCarry: (site: string) => `After you sign up, ${site} is ready to add as your first site.`, planCarry: (p: string) => `After you sign up, you go straight to checkout for ${p}.`, loginLead: 'Welcome back.',
     email: 'Work email', password: 'Password', pwHint: 'At least 10 characters.', magicH: 'Prefer a magic link?', magicEmail: 'Email', magicBtn: 'Email me a sign-in link',
     have: 'Already have an account?', haveLink: 'Log in', newHere: 'New here?', newLink: 'Create an account',
     tooMany: 'Too many attempts. Please wait a few minutes.', pwShort: 'Your password needs at least 10 characters.', exists: 'An account with this email already exists. Log in or use a magic link.',
@@ -237,7 +237,11 @@ const en = {
     deletedBody: 'Your Allyfolio account and personal data were deleted at your request. Invoices stay with Paddle, our reseller, for as long as tax law requires.',
   },
   bill: {
-    title: 'Billing', notConfigured: 'Billing is not configured on this server yet (Paddle sandbox keys and price IDs missing). In development, plans can be set with npm run set-plan.',
+    title: 'Billing',
+    codeLabel: 'Discount code', codeHint: 'Waitlist early bird who signed up with a different email? Enter the code from your invite.', codeApply: 'Apply',
+    codeOk: (c: string) => `Code ${c} applied: 30% off your first 12 months on any monthly plan (not on the one-off report).`, codeBad: 'This discount code is not valid.',
+    chosenH: (p: string) => `You picked ${p}`, chosenLead: 'Continue to checkout when you are ready. You can still pick another plan below.', chosenBtn: 'Continue to checkout',
+    notConfigured: 'Billing is not configured on this server yet (Paddle sandbox keys and price IDs missing). In development, plans can be set with npm run set-plan.',
     statuses: { active: 'Active', trialing: 'Trial', past_due: 'Payment overdue', paused: 'Paused', canceled: 'Cancelled' } as Record<string, string>,
     cancel: 'Cancel subscription', cancelHint: 'Your plan stays active until the end of the current billing period. No further payments are taken.', canceled: 'Your subscription will end at the end of the current billing period.',
     cancelsOn: ['Your subscription ends on ', '. Scheduled scans stop after that date.'] as [string, string],
@@ -312,7 +316,7 @@ const zh: Dict = {
   },
   auth: {
     loginTitle: '登录', signupTitle: '注册账户', signupH: '创建您的账户', loginH: '登录',
-    signupLead: '监测您的网站，并保留带时间戳的证据记录。', siteCarry: (site: string) => `注册后，${site} 已为您预填为第一个网站。`, loginLead: '欢迎回来。',
+    signupLead: '监测您的网站，并保留带时间戳的证据记录。', siteCarry: (site: string) => `注册后，${site} 已为您预填为第一个网站。`, planCarry: (p) => `注册后将直接进入${p}的结账页面。`, loginLead: '欢迎回来。',
     email: '工作邮箱', password: '密码', pwHint: '至少 10 个字符。', magicH: '想用登录链接？', magicEmail: '邮箱', magicBtn: '给我发送登录链接',
     have: '已有账户？', haveLink: '登录', newHere: '还没有账户？', newLink: '注册账户',
     tooMany: '尝试次数过多，请几分钟后再试。', pwShort: '密码至少需要 10 个字符。', exists: '该邮箱已注册。请登录或使用登录链接。',
@@ -481,7 +485,11 @@ const zh: Dict = {
     deletedBody: '您的 Allyfolio 账户和个人数据已按您的要求删除。发票将依照税法要求的期限由我们的经销商 Paddle 保留。',
   },
   bill: {
-    title: '账单', notConfigured: '此服务器尚未配置计费（缺少 Paddle 沙盒密钥和价格 ID）。开发环境中可使用 npm run set-plan 设置方案。',
+    title: '账单',
+    codeLabel: '折扣码', codeHint: '候补名单早鸟成员但使用了其他邮箱注册？请输入邀请邮件中的折扣码。', codeApply: '使用',
+    codeOk: (c) => `已使用折扣码 ${c}：任意月付套餐前 12 个月享 7 折（不适用于单次报告）。`, codeBad: '该折扣码无效。',
+    chosenH: (p) => `您选择了${p}`, chosenLead: '准备好后即可继续结账。您也可以在下方选择其他方案。', chosenBtn: '继续结账',
+    notConfigured: '此服务器尚未配置计费（缺少 Paddle 沙盒密钥和价格 ID）。开发环境中可使用 npm run set-plan 设置方案。',
     statuses: { active: '有效', trialing: '试用中', past_due: '付款逾期', paused: '已暂停', canceled: '已取消' },
     cancel: '取消订阅', cancelHint: '您的方案在当前计费周期结束前保持有效，之后不再扣款。', canceled: '您的订阅将在当前计费周期结束时终止。',
     cancelsOn: ['您的订阅将于 ', ' 终止，之后定期扫描将停止。'],
@@ -548,6 +556,11 @@ function deReport(): Dict {
   const pl = plural;
   return merge<Dict>(en, {
     langName: 'Deutsch', htmlLang: 'de', dateLocale: 'de-DE',
+    // German site's waitlist: confirmation email in German (the confirm page itself is English).
+    waitlist: {
+      mailSubject: 'Bestätigen Sie Ihren Platz auf der Allyfolio-Warteliste',
+      mailBody: (link) => `Guten Tag,\n\nbitte bestätigen Sie Ihre E-Mail-Adresse, um der Allyfolio-Warteliste beizutreten:\n${link}\n\nDie ersten 100 bestätigten Mitglieder der Warteliste erhalten 30 % Rabatt auf ihr erstes Jahr.\nWenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail – wir kontaktieren Sie nicht erneut.\n\nAllyfolio`,
+    },
     layout: { skip: 'Zum Hauptinhalt springen', main: 'Hauptnavigation', website: 'Website', terms: 'AGB', privacy: 'Datenschutz', refund: 'Widerrufsbelehrung', imprint: 'Impressum', legal: 'Rechtliches', site: 'Allyfolio-Website', backToSite: '← Zurück zur Website', homeAria: 'Startseite der Allyfolio-Website', login: 'Anmelden', footer: 'Allyfolio ist ein Werkzeug zum Testen und Dokumentieren, keine Rechtsberatung. Automatisierte Prüfungen finden nur einen Teil aller Barrieren.' },
     impacts: { critical: 'Kritisch', serious: 'Schwerwiegend', moderate: 'Mittel', minor: 'Gering' },
     mon: {

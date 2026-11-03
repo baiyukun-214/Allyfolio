@@ -9,6 +9,9 @@ import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
 import { requireUser, render, back, loc, localTime, fmtDay } from './guard.ts';
 import { t as tr } from '../i18n.ts';
+import { PLAN_COOKIE, carriedPlan } from './auth.ts';
+/** The fallback discount code (early-bird offer for waitlist members who signed up with another email), if configured. */
+const codeMatches = (v: unknown) => { const P = config.billing.paddle; return !!(P.discountCodeId && P.discountCode && String(v ?? '').trim().toUpperCase() === P.discountCode); };
 const eur = (c: number) => `€${(c / 100).toFixed(0)}`;
 
 /**
@@ -36,11 +39,22 @@ export async function billingRoutes(app: FastifyInstance) {
     const eb = isEarlyBird(ctx.user.email) && !t.billing_subscription_id;
     const l = loc(req, ctx), Tx = tr(l), B = Tx.bill; const pn = (id: string) => Tx.plans[id] ?? planOf(id).name;
     const pend = t.pending_plan ? B.pending(pn(t.pending_plan), pn(plan.id)) : null;
+    const q = req.query as any;
+    // Discount code field: owners without a subscription who do not already get the early-bird discount by email.
+    const codeField = owner && !t.billing_subscription_id && !eb && !!(config.billing.paddle.discountCodeId && config.billing.paddle.discountCode);
+    const codeIn = codeField && q.code != null && String(q.code).trim() ? String(q.code).trim().slice(0, 40) : null;
+    const codeOk = codeIn != null && codeMatches(codeIn);
+    // Plan picked on the pricing page (?plan= carried through signup): offer its checkout first.
+    if (req.cookies?.[PLAN_COOKIE]) reply.clearCookie(PLAN_COOKIE, { path: '/' });
+    const chosen = carriedPlan(q.plan); const chosenName = chosen === 'oneoff' ? B.oneoffH : chosen ? pn(chosen) : '';
+    const showChosen = owner && !!chosen && (chosen === 'oneoff' || (!t.billing_subscription_id && t.plan !== chosen));
     const buy = (what: Purchase, label: string, cls: string) => html`<form method="post" action="/app/billing/checkout" data-checkout>${csrfField(req)}<input type="hidden" name="plan" value="${what}">
-      <button class="btn ${cls}" type="submit" ${ready ? '' : 'disabled'}>${label}</button></form>`;
+      ${codeOk && what !== 'oneoff' ? html`<input type="hidden" name="code" value="${codeIn}">` : ''}<button class="btn ${cls}" type="submit" ${ready ? '' : 'disabled'}>${label}</button></form>`;
     return render(reply, ctx, { title: B.title, current: '/app/billing', body: html`
       <h1>${B.title}</h1>
       ${!ready ? html`<p class="alert alert-error" role="note">${B.notConfigured}</p>` : ''}
+      ${showChosen ? html`<div class="card" id="chosen"><h2 style="margin-top:0">${B.chosenH(chosenName)}</h2><p>${B.chosenLead}</p>${buy(chosen!, B.chosenBtn, 'btn-primary')}</div>` : ''}
+      ${codeIn != null ? (codeOk ? html`<p class="notice" role="status">${B.codeOk(codeIn.toUpperCase())}</p>` : html`<p class="alert alert-error" role="alert">${B.codeBad}</p>`) : ''}
       <div class="card"><p class="muted small">${B.current}</p><p class="stat">${pn(plan.id)}</p>
         ${t.subscription_status ? html`<p class="small muted">${B.status}${B.colon}${B.statuses[t.subscription_status] ?? t.subscription_status}${(() => {
           const st = t.subscription_status, end = t.cancel_at ?? t.current_period_end; if (!end) return '';
@@ -58,6 +72,9 @@ export async function billingRoutes(app: FastifyInstance) {
       ${eb ? html`<p class="notice"><strong>${B.earlyH}</strong> ${B.early}</p>` : ''}
       <h2>${B.plans}</h2>
       <p class="small muted">${B.terms}</p>
+      ${codeField && !codeOk ? html`<form method="get" action="/app/billing" class="row" style="gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">${chosen ? html`<input type="hidden" name="plan" value="${chosen}">` : ''}
+        <div class="field" style="margin:0"><label for="code">${B.codeLabel}</label><p class="hint" id="code-hint">${B.codeHint}</p><input id="code" name="code" type="text" autocomplete="off" maxlength="40" aria-describedby="code-hint" value="${codeIn ?? ''}"></div>
+        <button class="btn btn-secondary" type="submit">${B.codeApply}</button></form>` : ''}
       <div class="grid g3">${PAID.map((id) => { const p = PLANS[id]; const cur = t.plan === id; return html`
         <div class="card"><h3>${pn(id)}</h3><p class="stat">${eur(p.priceCents)}<span class="small muted"> ${B.perMonth}</span></p>
           <ul class="small"><li>${B.sitesN(p.sites)}</li><li>${B.pagesN(p.pagesPerSite)}</li><li>${p.frequency === 'daily' ? B.daily : B.weekly}</li><li>${B.history(p.retentionMonths)}</li>${p.pdf ? html`<li>${B.pdf}</li>` : ''}${p.whiteLabel ? html`<li>${B.wl}</li>` : ''}${p.clients ? html`<li>${B.clients}</li>` : ''}<li>${B.seatsN(p.seats)}</li></ul>
@@ -93,7 +110,7 @@ export async function billingRoutes(app: FastifyInstance) {
     if (what !== 'oneoff' && ctx.team.billing_subscription_id) return fail(B.hasSub);
     const prov = await provider(); if (!prov?.configured()) return fail(B.notConfigured, 503);
     try {
-      const co = await prov.checkout(ctx.team, ctx.user.email, what, { earlyBird: isEarlyBird(ctx.user.email), locale: loc(req, ctx) });
+      const co = await prov.checkout(ctx.team, ctx.user.email, what, { earlyBird: isEarlyBird(ctx.user.email), code: what !== 'oneoff' && codeMatches((req.body as any).code), locale: loc(req, ctx) });
       if (wantsJson) return { transactionId: co.transactionId };
       if (co.url) return reply.redirect(co.url, 303); // Paddle's hosted checkout (default payment link) when JS is off
       return fail(B.checkoutFail, 502);
@@ -136,6 +153,10 @@ export async function billingWebhook(app: FastifyInstance) {
     let parsed;
     try { parsed = prov.parseWebhook(req.body as Buffer, req.headers as any); }
     catch (e) { if (e instanceof WebhookSignatureError) { req.log.warn({ ip: req.ip, hasSignature: !!req.headers['paddle-signature'], bytes: (req.body as Buffer)?.length ?? 0 }, 'billing webhook rejected: invalid signature'); return reply.code(400).send({ error: 'invalid signature' }); } req.log.error(e); return reply.code(400).send({ error: 'bad payload' }); }
-    return { received: true, result: applyBillingEvents(parsed.id, parsed.type, parsed.events) };
+    const cancelNow: string[] = [];
+    const result = applyBillingEvents(parsed.id, parsed.type, parsed.events, cancelNow);
+    // Fully refunded subscriptions: the plan already ended locally; stop renewals at Paddle too (after the transaction).
+    for (const sid of cancelNow) await prov.cancel({ billing_subscription_id: sid }, 'immediately').catch((e: any) => req.log.error(e, 'cancel after full refund failed'));
+    return { received: true, result };
   });
 }

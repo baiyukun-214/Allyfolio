@@ -40,6 +40,10 @@ export const config = {
       clientToken: e.PADDLE_CLIENT_TOKEN ?? '',
       prices: { starter: e.PADDLE_PRICE_STARTER ?? '', business: e.PADDLE_PRICE_BUSINESS ?? '', agency: e.PADDLE_PRICE_AGENCY ?? '', oneoff: e.PADDLE_PRICE_ONEOFF ?? '' },
       earlyBirdDiscount: validPaddleId(e.PADDLE_DISCOUNT_EARLYBIRD, 'dsc'),
+      // Fallback discount code for waitlist members who sign up with another email (same 30% / 12 months, subscriptions only).
+      // Created per environment by `npm run paddle:discount-code`; both must be set for the code field to appear.
+      discountCodeId: validPaddleId(e.PADDLE_DISCOUNT_CODE_ID, 'dsc'),
+      discountCode: /^[A-Za-z0-9]{3,32}$/.test(e.PADDLE_DISCOUNT_CODE ?? '') ? String(e.PADDLE_DISCOUNT_CODE).toUpperCase() : '',
     },
     creem: { apiKey: e.CREEM_API_KEY ?? '', webhookSecret: e.CREEM_WEBHOOK_SECRET ?? '' },
   },

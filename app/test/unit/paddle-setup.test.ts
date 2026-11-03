@@ -45,12 +45,19 @@ test('paddle setup is idempotent, writes .env and never prints secrets', async (
   const out: string[] = []; const log = (s: string) => out.push(s);
   try {
     const r1 = await runPaddleSetup({ apiKey: 'pdl_sdbx_apikey_SECRET', apiBase: base, envPath: p, webhookUrl: 'https://abc.trycloudflare.com/api/billing/webhook', log });
-    assert.equal(f.db.products.length, 4); assert.equal(f.db.prices.length, 4); assert.equal(f.db.discounts.length, 1); assert.equal(f.db['notification-settings'].length, 1);
+    assert.equal(f.db.products.length, 4); assert.equal(f.db.prices.length, 4); assert.equal(f.db.discounts.length, 2); assert.equal(f.db['notification-settings'].length, 1);
     const amounts = Object.fromEntries(f.db.prices.map((x) => [x.custom_data.allyfolio_key, [x.unit_price.amount, x.unit_price.currency_code, x.billing_cycle?.interval ?? null]]));
     assert.deepEqual(amounts, { starter: ['1900', 'EUR', 'month'], business: ['3900', 'EUR', 'month'], agency: ['9900', 'EUR', 'month'], oneoff: ['4900', 'EUR', null] });
-    const d = f.db.discounts[0];
+    const d = f.db.discounts.find((x) => x.custom_data.allyfolio_key === 'earlybird');
     assert.deepEqual([d.type, d.amount, d.recur, d.maximum_recurring_intervals, d.usage_limit, d.enabled_for_checkout], ['percentage', '30', true, 12, 100, false]);
     assert.deepEqual(d.restrict_to.sort(), [r1.env.PADDLE_PRICE_STARTER, r1.env.PADDLE_PRICE_BUSINESS, r1.env.PADDLE_PRICE_AGENCY].sort());
+    // fallback code: same offer, but enterable at checkout
+    const c = f.db.discounts.find((x) => x.custom_data.allyfolio_key === 'earlybird_code');
+    assert.deepEqual([c.type, c.amount, c.recur, c.maximum_recurring_intervals, c.usage_limit, c.enabled_for_checkout, c.code], ['percentage', '30', true, 12, 100, true, 'EARLYBIRD30']);
+    assert.deepEqual(c.restrict_to.sort(), d.restrict_to.sort());
+    assert.equal(r1.env.PADDLE_DISCOUNT_CODE_ID, c.id); assert.equal(r1.env.PADDLE_DISCOUNT_CODE, 'EARLYBIRD30');
+    const events = f.db['notification-settings'][0].subscribed_events.map((e: any) => e.name);
+    for (const e of ['adjustment.created', 'adjustment.updated', 'transaction.completed']) assert.ok(events.includes(e), e);
     const env = readFileSync(p, 'utf8');
     assert.match(env, /^PADDLE_ENV=sandbox\nPADDLE_API_KEY=pdl_sdbx_apikey_SECRET\nPADDLE_CLIENT_TOKEN=test_tok\n/, 'existing lines untouched');
     assert.match(env, new RegExp(`PADDLE_PRICE_ONEOFF=${r1.env.PADDLE_PRICE_ONEOFF}`)); assert.match(env, /PADDLE_WEBHOOK_SECRET=pdl_ntfset_SECRETKEY/);

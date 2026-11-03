@@ -22,12 +22,14 @@ before(async () => {
       if (req.url === '/transactions/txn_wait') return ok({ id: 'txn_wait', status: 'ready', custom_data: { team_id: 'tsync' } });
       if (req.url === '/transactions/txn_other') return ok({ id: 'txn_other', status: 'completed', subscription_id: 'sub_9', custom_data: { team_id: 'someone-else' } });
       if (req.url === '/subscriptions/sub_9') return ok({ ...SUB('pri_b'), id: 'sub_9', customer_id: 'ctm_9' });
+      if (/^\/subscriptions\/sub_r\d?\/cancel$/.test(req.url!)) return ok({ id: req.url!.split('/')[2], status: 'canceled' });
       if (req.url === '/customers/ctm_1/portal-sessions') return ok({ urls: { general: { overview: 'https://portal.example.test/ov' } } });
       res.writeHead(404); res.end('{}');
     });
   } });
   Object.assign(process.env, { BILLING_PROVIDER: 'paddle', PADDLE_ENV: 'sandbox', PADDLE_API_KEY: 'pdl_sdbx_test', PADDLE_API_BASE: fake.base, PADDLE_WEBHOOK_SECRET: 'whsec_paddle_test',
-    PADDLE_CLIENT_TOKEN: 'test_clienttoken', PADDLE_PRICE_STARTER: 'pri_s', PADDLE_PRICE_BUSINESS: 'pri_b', PADDLE_PRICE_AGENCY: 'pri_a', PADDLE_PRICE_ONEOFF: 'pri_o', PADDLE_DISCOUNT_EARLYBIRD: 'dsc_01h8earlybird0000000000000' });
+    PADDLE_CLIENT_TOKEN: 'test_clienttoken', PADDLE_PRICE_STARTER: 'pri_s', PADDLE_PRICE_BUSINESS: 'pri_b', PADDLE_PRICE_AGENCY: 'pri_a', PADDLE_PRICE_ONEOFF: 'pri_o', PADDLE_DISCOUNT_EARLYBIRD: 'dsc_01h8earlybird0000000000000',
+    PADDLE_DISCOUNT_CODE_ID: 'dsc_01h8earlybirdcode000000000', PADDLE_DISCOUNT_CODE: 'EarlyBird30' });
   envReady();
 });
 let app: any, db: any, signPaddle: any, applyDueDowngrades: any;
@@ -96,6 +98,7 @@ test('dashboard: checkout (overlay JSON + no-JS redirect, early-bird discount), 
   r = await c.post('/app/billing/checkout', { plan: 'oneoff' }, '/app/billing');
   assert.equal(r.statusCode, 303); assert.equal(r.headers.location, 'https://pay.example.test/checkout?_ptxn=txn_1');
   assert.equal(calls.filter((x) => x.path === '/transactions').at(-1)!.body.discount_id, undefined, 'no early-bird on one-off');
+  assert.doesNotMatch((await c.req('GET', '/app/billing?code=EARLYBIRD30')).body, /name="code"|Code EARLYBIRD30 applied/, 'early birds get the discount by email, no code field');
   // Subscription exists → upgrade / downgrade / cancel / portal
   db.run("UPDATE teams SET plan = 'starter', billing_subscription_id = 'sub_1', billing_customer_id = 'ctm_1' WHERE id = ?", tid);
   r = await c.post('/app/billing/change', { plan: 'business' }, '/app/billing');
@@ -181,4 +184,109 @@ test('plan_override: effective plan wins; webhooks, downgrade job and billing UI
   // Removing the override restores normal billing behaviour.
   db.run('UPDATE teams SET plan_override = NULL WHERE id = ?', tid);
   assert.equal(withEffectivePlan(team(tid)).plan, team(tid).plan);
+});
+
+const adj = (o: any) => ({ id: 'adj_1', action: 'refund', status: 'approved', type: 'full', transaction_id: 'txn_r', subscription_id: 'sub_r', customer_id: 'ctm_r',
+  items: [{ item_id: 'txnitm_1', type: 'full', amount: '3900' }], ...o });
+test('refunds: full refund ends the plan immediately (once), partial keeps it, pending ignored, late active updates ignored', async () => {
+  db.run("INSERT INTO teams (id, name, created_at) VALUES ('tr', 'Refund', '2026-01-01')");
+  db.run("INSERT INTO sites (id, team_id, name, origin, verify_token, verified_at, created_at, next_scan_at) VALUES ('sr1', 'tr', 'S', 'https://refund.example', 'x', '2026-01-01', '2026-01-01', '2030-01-01')");
+  await send('subscription.created', { ...SUB('pri_b'), id: 'sub_r', customer_id: 'ctm_r', custom_data: { team_id: 'tr', kind: 'business' } });
+  assert.equal(team('tr').plan, 'business');
+  const cancels = () => calls.filter((x) => x.path === '/subscriptions/sub_r/cancel');
+  // partial refund: plan stays
+  let r = await send('adjustment.created', adj({ id: 'adj_p', type: 'partial', items: [{ item_id: 'txnitm_1', type: 'partial', amount: '1000' }] }));
+  assert.equal(r.statusCode, 200, r.body); assert.equal(team('tr').plan, 'business'); assert.equal(cancels().length, 0);
+  // full refund still awaiting approval: nothing yet
+  await send('adjustment.created', adj({ id: 'adj_f', status: 'pending_approval' }));
+  assert.equal(team('tr').plan, 'business');
+  // approved (adjustment.updated): plan ends now, schedule stops, Paddle subscription cancelled immediately
+  r = await send('adjustment.updated', adj({ id: 'adj_f' }));
+  assert.equal(r.statusCode, 200, r.body);
+  const t = team('tr');
+  assert.deepEqual([t.plan, t.subscription_status, t.billing_subscription_id, t.pending_plan, t.cancel_at], ['none', 'canceled', null, null, null]);
+  assert.equal(db.get("SELECT next_scan_at FROM sites WHERE id = 'sr1'").next_scan_at, null);
+  assert.equal(cancels().length, 1); assert.deepEqual(cancels()[0].body, { effective_from: 'immediately' });
+  // the same adjustment again (retry with a new event id, or a later update): applied once
+  await send('adjustment.updated', adj({ id: 'adj_f' }));
+  await send('adjustment.updated', adj({ id: 'adj_f' }), 'evt_same'); r = await send('adjustment.updated', adj({ id: 'adj_f' }), 'evt_same');
+  assert.equal(r.json().result, 'duplicate'); assert.equal(cancels().length, 1);
+  // late "active" update and the resulting canceled event for the refunded subscription: plan stays ended
+  await send('subscription.updated', { ...SUB('pri_b'), id: 'sub_r', customer_id: 'ctm_r', custom_data: { team_id: 'tr', kind: 'business' } });
+  assert.equal(team('tr').plan, 'none'); assert.equal(team('tr').billing_subscription_id, null);
+  await send('subscription.canceled', { id: 'sub_r', status: 'canceled', custom_data: { team_id: 'tr' } });
+  assert.equal(team('tr').plan, 'none');
+  // chargeback counts as a full refund; a rejected refund does nothing
+  db.run("UPDATE teams SET plan = 'starter', billing_subscription_id = 'sub_r2', subscription_status = 'active' WHERE id = 'tr'");
+  await send('adjustment.created', adj({ id: 'adj_rej', subscription_id: 'sub_r2', status: 'rejected' }));
+  assert.equal(team('tr').plan, 'starter');
+  await send('adjustment.created', adj({ id: 'adj_cb', action: 'chargeback', subscription_id: 'sub_r2' }));
+  assert.equal(team('tr').plan, 'none'); assert.equal(calls.filter((x) => x.path === '/subscriptions/sub_r2/cancel').length, 1);
+  // credits (account credit, not money back) are not refunds
+  db.run("UPDATE teams SET plan = 'starter', billing_subscription_id = 'sub_r3', subscription_status = 'active' WHERE id = 'tr'");
+  await send('adjustment.created', adj({ id: 'adj_cr', action: 'credit', subscription_id: 'sub_r3' }));
+  assert.equal(team('tr').plan, 'starter');
+});
+
+test('refunds: full refund of a one-off takes its credit back once; partial and unknown transactions do not', async () => {
+  db.run("INSERT INTO teams (id, name, created_at, billing_customer_id) VALUES ('to', 'Oneoff', '2026-01-01', 'ctm_o')");
+  for (const id of ['txn_o1', 'txn_o2']) await send('transaction.completed', { id, subscription_id: null, customer_id: 'ctm_o', custom_data: { team_id: 'to', kind: 'oneoff' }, items: [{ price: { id: 'pri_o' } }] });
+  assert.equal(team('to').oneoff_credits, 2);
+  const one = (o: any) => adj({ subscription_id: null, customer_id: 'ctm_o', ...o });
+  await send('adjustment.created', one({ id: 'adj_o_p', transaction_id: 'txn_o1', type: 'partial' }));
+  assert.equal(team('to').oneoff_credits, 2, 'partial keeps the credit');
+  await send('adjustment.created', one({ id: 'adj_o_f', transaction_id: 'txn_o1' }));
+  await send('adjustment.updated', one({ id: 'adj_o_f', transaction_id: 'txn_o1' }));
+  assert.equal(team('to').oneoff_credits, 1, 'one credit back, once');
+  await send('adjustment.created', one({ id: 'adj_o_x', transaction_id: 'txn_unknown' }));
+  assert.equal(team('to').oneoff_credits, 1, 'transaction that never granted a credit');
+  db.run("UPDATE teams SET oneoff_credits = 0 WHERE id = 'to'"); // credit already used for a scan
+  await send('adjustment.created', one({ id: 'adj_o_f2', transaction_id: 'txn_o2' }));
+  assert.equal(team('to').oneoff_credits, 0, 'never negative');
+});
+
+test('discount code: field for non-early-bird owners, validated, sent only with subscription checkouts', async () => {
+  const c = client(app);
+  await c.post('/signup', { email: 'code@example.com', password: 'code password long' }, '/signup');
+  let r = await c.req('GET', '/app/billing');
+  assert.match(r.body, /<label for="code">Discount code<\/label>/); assert.match(r.body, /aria-describedby="code-hint"/);
+  r = await c.req('GET', '/app/billing?code=WRONG1');
+  assert.match(r.body, /role="alert">This discount code is not valid\./); assert.doesNotMatch(r.body, /name="code" value=/);
+  r = await c.req('GET', '/app/billing?code=earlybird30');
+  assert.match(r.body, /Code EARLYBIRD30 applied: 30% off your first 12 months/);
+  assert.equal((r.body.match(/<input type="hidden" name="code" value="earlybird30">/g) ?? []).length, 3, 'on the three plan buttons, not the one-off');
+  const checkout = async (form: Record<string, string>) => { await c.post('/app/billing/checkout', form, '/app/billing'); return calls.filter((x) => x.path === '/transactions').at(-1)!.body; };
+  assert.equal((await checkout({ plan: 'starter', code: 'earlybird30' })).discount_id, 'dsc_01h8earlybirdcode000000000');
+  assert.equal((await checkout({ plan: 'starter', code: 'nope' })).discount_id, undefined);
+  assert.equal((await checkout({ plan: 'starter' })).discount_id, undefined);
+  assert.equal((await checkout({ plan: 'oneoff', code: 'EARLYBIRD30' })).discount_id, undefined, 'never on the one-off');
+});
+
+test('plan carry: /signup?plan= → signup/login → that plan\'s checkout on Billing', async () => {
+  const c = client(app);
+  let r = await c.req('GET', '/signup?plan=agency&lang=en');
+  assert.match(r.body, /After you sign up, you go straight to checkout for Agency\./); assert.equal(c.jar.get('af_plan'), 'agency');
+  r = await c.post('/signup', { email: 'carry@example.com', password: 'carry password long' }, '/signup');
+  assert.equal(r.headers.location, '/app/billing?plan=agency#chosen');
+  r = await c.req('GET', '/app/billing?plan=agency');
+  assert.match(r.body, /<h2[^>]*>You picked Agency<\/h2>/);
+  assert.match(r.body, /id="chosen".*?name="plan" value="agency".*?Continue to checkout/s);
+  assert.equal(c.jar.get('af_plan'), undefined, 'cookie cleared once used');
+  // one-off, and when already signed in
+  r = await c.req('GET', '/signup?plan=oneoff'); assert.equal(r.statusCode, 302); assert.equal(r.headers.location, '/app/billing?plan=oneoff#chosen');
+  r = await c.req('GET', '/app/billing?plan=oneoff'); assert.match(r.body, /You picked One-off report/); assert.match(r.body, /id="chosen".*?value="oneoff"/s);
+  // unknown plans are ignored
+  const d = client(app);
+  r = await d.req('GET', '/signup?plan=enterprise'); assert.doesNotMatch(r.body, /straight to checkout/); assert.equal(d.jar.get('af_plan'), undefined);
+  // login keeps the carry too (existing account clicking a pricing button)
+  await c.post('/logout', {}, '/app');
+  await c.req('GET', '/signup?plan=business');
+  r = await c.post('/login', { email: 'carry@example.com', password: 'carry password long' }, '/login');
+  assert.equal(r.headers.location, '/app/billing?plan=business#chosen');
+  // a team that already has this subscription is not offered it again
+  db.run("UPDATE teams SET plan = 'business', billing_subscription_id = 'sub_x' WHERE id = (SELECT team_id FROM memberships m JOIN users u ON u.id = m.user_id WHERE u.email = 'carry@example.com')");
+  assert.doesNotMatch((await c.req('GET', '/app/billing?plan=business')).body, /id="chosen"/);
+  // Chinese
+  const z = client(app);
+  r = await z.req('GET', '/signup?plan=starter&lang=zh-CN'); assert.match(r.body, /注册后将直接进入入门版的结账页面/);
 });

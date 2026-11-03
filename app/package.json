@@ -15,7 +15,9 @@
     "test:a11y": "tsx scripts/axe-dashboard.ts",
     "set-plan": "tsx scripts/set-plan.ts",
     "verify-chain": "tsx scripts/verify-chain.ts",
-    "paddle:setup": "tsx scripts/paddle-setup.ts"
+    "paddle:setup": "tsx scripts/paddle-setup.ts",
+    "paddle:discount-code": "tsx scripts/paddle-discount-code.ts",
+    "waitlist:invite": "tsx scripts/waitlist-invite.ts"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.14.0",

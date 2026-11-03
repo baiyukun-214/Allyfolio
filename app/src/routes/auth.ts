@@ -14,6 +14,12 @@ import { parsePublicUrl } from '../lib/ssrf.ts';
 
 /** Site carried over from the marketing site's free scan (/signup?site=…): kept in a short-lived cookie so it survives password signup and magic links, then prefilled on the empty dashboard. */
 export const SITE_COOKIE = 'af_site';
+/** Plan picked on the pricing page (/signup?plan=…): after signup or login the user lands on that plan's checkout. */
+export const PLAN_COOKIE = 'af_plan';
+export const CARRY_PLANS = ['starter', 'business', 'agency', 'oneoff'] as const;
+export type CarriedPlan = (typeof CARRY_PLANS)[number];
+export const carriedPlan = (v: unknown): CarriedPlan | null => (CARRY_PLANS as readonly string[]).includes(String(v ?? '')) ? (String(v) as CarriedPlan) : null;
+const afterAuth = (req: FastifyRequest) => { const p = carriedPlan(req.cookies?.[PLAN_COOKIE]); return p ? `/app/billing?plan=${p}#chosen` : '/app'; };
 export const carriedSite = (v: unknown): string | null => { if (!v) return null; try { return parsePublicUrl(String(v).slice(0, 500)).origin; } catch { return null; } };
 
 const authLimit = rateLimiter(20, 15 * 60_000);
@@ -21,12 +27,14 @@ const field = (id: string, label: string, type: string, extra: any = '', hint = 
 
 export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '', ok?: string, site: string | null = null) {
   const signup = mode === 'signup'; const A = T(req).auth;
+  const plan = carriedPlan(req.cookies?.[PLAN_COOKIE] ?? (req.query as any)?.plan); const planName = plan === 'oneoff' ? T(req).bill.oneoffH : plan ? T(req).plans[plan] : '';
   return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : ok ? { kind: 'ok', msg: ok } : null, body: html`
   <div class="narrow">
     <div class="card">
       <h1>${signup ? A.signupH : A.loginH}</h1>
       <p class="muted">${signup ? A.signupLead : A.loginLead}</p>
       ${signup && site ? html`<p class="notice small">${A.siteCarry(site)}</p>` : ''}
+      ${signup && plan ? html`<p class="notice small">${A.planCarry(planName)}</p>` : ''}
       <form method="post" action="/${mode}">${csrfField(req)}
         <div class="field"><label for="email">${A.email}</label><input id="email" name="email" type="email" autocomplete="email" required value="${email}"></div>
         ${field('password', A.password, 'password', html`autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="10"`, signup ? A.pwHint : '')}
@@ -54,6 +62,11 @@ export async function authRoutes(app: FastifyInstance) {
   app.get('/signup', async (req, reply) => {
     const site = carriedSite((req.query as any).site) ?? carriedSite(req.cookies?.[SITE_COOKIE]);
     if (site) reply.setCookie(SITE_COOKIE, site, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 86400, secure: config.appUrl.startsWith('https') });
+    const plan = carriedPlan((req.query as any).plan);
+    if (plan) {
+      if (currentUser(req)) return reply.redirect(`/app/billing?plan=${plan}#chosen`); // already signed in: straight to that checkout
+      reply.setCookie(PLAN_COOKIE, plan, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 86400, secure: config.appUrl.startsWith('https') });
+    }
     reply.type('text/html'); return authForm(req, 'signup', undefined, '', undefined, site);
   });
 
@@ -74,7 +87,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (get('SELECT 1 FROM users WHERE email = ?', email)) return reply.code(400).send(authForm(req, 'signup', A.exists, email));
     const { uid } = newUser(req, email, await hashPassword(password));
     startSession(reply, uid);
-    return reply.redirect('/app', 303);
+    return reply.redirect(afterAuth(req), 303);
   });
 
   app.post('/login', async (req, reply) => {
@@ -84,7 +97,7 @@ export async function authRoutes(app: FastifyInstance) {
     const u = get<any>('SELECT * FROM users WHERE email = ?', email);
     if (!u || !(await verifyPassword(String(password ?? ''), u.password_hash))) return reply.code(400).send(authForm(req, 'login', A.wrong, email));
     startSession(reply, u.id);
-    return reply.redirect('/app', 303);
+    return reply.redirect(afterAuth(req), 303);
   });
 
   app.post('/login/link', async (req, reply) => {
@@ -107,7 +120,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (!u) u = { id: newUser(req, email, null).uid };
     run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?', now(), u.id);
     startSession(reply, u.id);
-    return reply.redirect('/app', 303);
+    return reply.redirect(afterAuth(req), 303);
   });
 
   app.post('/logout', async (req, reply) => { endSession(req, reply); return reply.redirect('/login', 303); });

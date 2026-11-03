@@ -18,7 +18,7 @@ export interface BillingProvider {
   clientConfig(): { script: string; token: string; environment: string } | null;
   /** Optional: read a finished checkout from the provider API (return-URL fallback when no webhook can reach this server, e.g. local sandbox). */
   syncTransaction?(team: any, transactionId: string): Promise<{ state: 'done' | 'pending' | 'foreign'; events: BillingEvent[] }>;
-  checkout(team: any, email: string, what: Purchase, opts: { earlyBird: boolean; locale: Locale }): Promise<CheckoutSpec>;
+  checkout(team: any, email: string, what: Purchase, opts: { earlyBird: boolean; code?: boolean; locale: Locale }): Promise<CheckoutSpec>;
   /** Upgrades: immediately with a prorated charge. Downgrades: price changes for the next period, no charge or credit. */
   changePrice(team: any, to: PlanId, mode: 'prorated_now' | 'next_period'): Promise<SubscriptionPeriod>;
   currentPeriod(team: any): Promise<SubscriptionPeriod>;
@@ -34,7 +34,9 @@ export type BillingEvent =
   | { kind: 'subscription'; teamId: string | null; subscriptionId: string; customerId: string | null; status: string; plan: PlanId | null; periodEnd: string | null; cancelAt: string | null }
   | { kind: 'subscription_canceled'; subscriptionId: string }
   | { kind: 'oneoff_paid'; teamId: string; customerId: string | null; transactionId?: string }
-  | { kind: 'payment_failed'; subscriptionId: string };
+  | { kind: 'payment_failed'; subscriptionId: string }
+  /** Approved refund or chargeback. full = the whole transaction was refunded. */
+  | { kind: 'refund'; adjustmentId: string; transactionId: string; subscriptionId: string | null; customerId: string | null; full: boolean };
 
 let _provider: BillingProvider | null | undefined;
 export async function provider(): Promise<BillingProvider | null> {
@@ -96,17 +98,42 @@ export async function applyDueDowngrades(at = now()) {
   return due.length;
 }
 
-/** Apply normalised events from one webhook delivery. Idempotent via billing_events. */
-export function applyBillingEvents(eventId: string, type: string, events: BillingEvent[]) {
+/**
+ * Apply normalised events from one webhook delivery. Idempotent via billing_events.
+ * `cancelNow` collects subscriptions that must be cancelled at the provider afterwards (full refunds); see webhook route.
+ */
+export function applyBillingEvents(eventId: string, type: string, events: BillingEvent[], cancelNow: string[] = []) {
   return tx(() => {
     if (get('SELECT 1 FROM billing_events WHERE id = ?', eventId)) return 'duplicate';
     run('INSERT INTO billing_events (id, type, received_at) VALUES (?,?,?)', eventId, type, now());
-    for (const ev of events) applyOne(ev);
+    for (const ev of events) applyOne(ev, cancelNow);
     return 'ok';
   });
 }
-function applyOne(ev: BillingEvent) {
+/** Once-only marker in billing_events; false if it already existed. */
+const once = (key: string, type: string) => !!run('INSERT OR IGNORE INTO billing_events (id, type, received_at) VALUES (?,?,?)', key, type, now()).changes;
+const refundedSub = (subscriptionId: string) => !!get('SELECT 1 FROM billing_events WHERE id = ?', `refunded_sub:${subscriptionId}`);
+function applyOne(ev: BillingEvent, cancelNow: string[] = []) {
   switch (ev.kind) {
+    case 'refund': {
+      // The same adjustment arrives as adjustment.created and adjustment.updated (and as retries): apply it once.
+      if (!once(`refund:${ev.adjustmentId}`, ev.full ? 'refund_full' : 'refund_partial')) return;
+      if (!ev.full) return; // partial refund: plan and credits stay as they are
+      if (ev.subscriptionId) {
+        const team = get<any>('SELECT * FROM teams WHERE billing_subscription_id = ?', ev.subscriptionId);
+        once(`refunded_sub:${ev.subscriptionId}`, 'refunded_sub'); // late "active" updates for this subscription must not reactivate it
+        if (!team) return;
+        run("UPDATE teams SET plan = 'none', pending_plan = NULL, subscription_status = 'canceled', billing_subscription_id = NULL, cancel_at = NULL WHERE id = ?", team.id);
+        if (isComped(team)) return; // complimentary plan: effective plan untouched, provider never called
+        run('UPDATE sites SET next_scan_at = NULL WHERE team_id = ?', team.id);
+        cancelNow.push(ev.subscriptionId); // stop future renewals of the refunded subscription
+        return;
+      }
+      // One-off report: take back the credit once, and only if this transaction had granted one.
+      if (get('SELECT 1 FROM billing_events WHERE id = ?', `oneoff:${ev.transactionId}`) && ev.customerId)
+        run('UPDATE teams SET oneoff_credits = MAX(oneoff_credits - 1, 0) WHERE id = (SELECT id FROM teams WHERE billing_customer_id = ? LIMIT 1)', ev.customerId);
+      return;
+    }
     case 'oneoff_paid':
       // The same purchase can arrive by webhook and by the return-URL sync: credit each transaction once.
       if (ev.transactionId && !run('INSERT OR IGNORE INTO billing_events (id, type, received_at) VALUES (?,?,?)', `oneoff:${ev.transactionId}`, 'oneoff_credit', now()).changes) return;
@@ -114,6 +141,7 @@ function applyOne(ev: BillingEvent) {
       return;
     case 'subscription': {
       const team = get<any>('SELECT * FROM teams WHERE billing_subscription_id = ? OR id = ?', ev.subscriptionId, ev.teamId ?? ''); if (!team) return;
+      if (refundedSub(ev.subscriptionId)) return; // fully refunded: plan already ended; ignore later updates of that subscription
       const active = ['active', 'trialing', 'past_due'].includes(ev.status);
       const isNew = team.billing_subscription_id !== ev.subscriptionId;
       let plan = team.plan as PlanId;

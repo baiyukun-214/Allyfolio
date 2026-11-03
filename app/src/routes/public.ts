@@ -9,7 +9,7 @@ import { joinWaitlist, confirmWaitlist } from '../lib/waitlist.ts';
 import { run, now } from '../db.ts';
 import { page } from '../views/layout.ts';
 import { html } from '../lib/html.ts';
-import { normLocale, t, scanError, type Locale } from '../i18n.ts';
+import { normLocale, normReportLocale, t, scanError, type Locale } from '../i18n.ts';
 
 const waitlistLimit = rateLimiter(10, 3600_000);
 /** API locale: explicit body/query lang wins, then the request locale (cookie / Accept-Language). */
@@ -59,7 +59,8 @@ export async function publicRoutes(app: FastifyInstance) {
     const isForm = String(req.headers['content-type'] ?? '').includes('application/x-www-form-urlencoded');
     const l = apiLocale(req); const T = t(l);
     const rl = waitlistLimit.take(req.ip);
-    const r = rl.ok ? await joinWaitlist((req.body as any)?.email, req.ip, l, (req.body as any)?.site) : { ok: false as const, error: T.errors.tooMany };
+    const ml = normReportLocale((req.body as any)?.lang) === 'de' ? 'de' : l; // German site: German emails
+    const r = rl.ok ? await joinWaitlist((req.body as any)?.email, req.ip, ml, (req.body as any)?.site) : { ok: false as const, error: T.errors.tooMany };
     if (isForm) {
       const back = config.siteOrigins[0] ?? config.appUrl;
       return reply.redirect(`${back}${l === 'zh-CN' ? '/zh' : ''}/waitlist-${r.ok ? 'check-email' : 'error'}`, 303);
