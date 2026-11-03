@@ -5,7 +5,7 @@ export type InviteLang = 'en' | 'de' | 'zh-CN';
 export interface InviteRow { email: string; locale: string | null; site: string | null; early_bird: number }
 export const inviteLang = (l: string | null | undefined): InviteLang => { const s = String(l ?? '').toLowerCase(); return s.startsWith('zh') ? 'zh-CN' : s.startsWith('de') ? 'de' : 'en'; };
 
-/** Signup link: the app UI is English or Chinese (German readers get English), with their waitlist site prefilled. */
+/** Signup link: customer-facing app UI is English (German readers get English), with their waitlist site prefilled. */
 export function inviteLink(row: InviteRow) {
   const lang = inviteLang(row.locale) === 'zh-CN' ? 'zh-CN' : 'en';
   const site = carriedSite(row.site);
@@ -23,7 +23,8 @@ const TEXT: Record<InviteLang, { subject: string; body: (p: Parts) => string }> 
       ...(p.early ? ['Your early-bird offer: 30% off your first year on any monthly plan.',
         `Sign up with the same email (${p.email}) to keep your 30% early-bird discount. It is applied automatically at checkout.`,
         ...(p.code ? [`If you use a different email, enter the code ${p.code} on the Billing page before you check out.`] : []), ''] : []),
-      'Plans start at €19 per month (excl. VAT). Cancel any time; full refund on request within 30 days of any payment.', '',
+      'Plans start at €19 per month (excl. VAT). Cancel any time; full refund on request within 30 days of any payment.',
+      'The app interface is currently in English; a German interface is in development. PDF reports and report emails are also available in German.', '',
       'You get this email because you confirmed your place on the Allyfolio waitlist. This is the only invite we send; if you are no longer interested, just ignore it.', '',
       'Allyfolio',
     ].join('\n'),
@@ -38,7 +39,7 @@ const TEXT: Record<InviteLang, { subject: string; body: (p: Parts) => string }> 
         `Registrieren Sie sich mit derselben E-Mail-Adresse (${p.email}), damit Sie Ihre 30 % Frühbucher-Rabatt behalten. Der Rabatt wird beim Bezahlen automatisch abgezogen.`,
         ...(p.code ? [`Wenn Sie eine andere E-Mail-Adresse verwenden, geben Sie vor dem Bezahlen auf der Seite „Billing“ (Abrechnung) den Code ${p.code} ein.`] : []), ''] : []),
       'Die Tarife beginnen bei 19 € pro Monat (zzgl. MwSt.). Jederzeit kündbar; volle Erstattung auf Anfrage innerhalb von 30 Tagen nach jeder Zahlung.',
-      'Die App ist derzeit auf Englisch und Chinesisch verfügbar; Berichte und Berichts-E-Mails gibt es auch auf Deutsch.', '',
+      'Die Oberfläche der App ist derzeit auf Englisch; eine deutsche Oberfläche ist in Entwicklung. PDF-Berichte und Berichts-E-Mails gibt es auch auf Deutsch.', '',
       'Sie erhalten diese E-Mail, weil Sie Ihren Platz auf der Allyfolio-Warteliste bestätigt haben. Dies ist die einzige Einladung, die wir senden. Wenn Sie kein Interesse mehr haben, ignorieren Sie sie einfach.', '',
       'Allyfolio',
     ].join('\n'),

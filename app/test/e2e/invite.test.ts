@@ -23,6 +23,10 @@ test('invite mail: EN / DE / ZH, signup link with the waitlist site, early-bird 
   assert.equal(zh.lang, 'zh-CN'); assert.match(zh.text, /\/signup\?lang=zh-CN&site=https%3A%2F%2Fzh\.example\n/);
   assert.doesNotMatch(zh.text, /早鸟|EARLYBIRD30/, 'no early-bird text for members after the first 100');
   for (const m of [en, de, zh]) { assert.doesNotMatch(m.subject + m.text, BANNED); assert.match(m.text, /€19|19 €/); }
+  // Chinese is internal-only: customer-facing invites state English now, German interface in development, and never promise a date.
+  assert.match(en.text, /app interface is currently in English; a German interface is in development/);
+  assert.match(de.text, /Oberfläche der App ist derzeit auf Englisch; eine deutsche Oberfläche ist in Entwicklung/);
+  for (const m of [en, de]) assert.doesNotMatch(m.text, /Chines|chinesisch|中文|demn(ä|a)chst|bald verfügbar/i);
 });
 
 test('invite script: dry run by default, skips unconfirmed / signed-up / invited, console send marks nobody', () => {
