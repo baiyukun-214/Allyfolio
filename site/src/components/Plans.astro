@@ -9,14 +9,15 @@ const { detailed = false } = Astro.props;
 const { t, l, lang } = i18n(Astro.url.pathname);
 const P = t.plans;
 const plans = [
-  { ...P.items.starter, price: '€19' },
-  { ...P.items.business, price: '€39', highlight: true },
-  { ...P.items.agency, price: '€99' },
+  { ...P.items.starter, key: 'starter', price: '€19' },
+  { ...P.items.business, key: 'business', price: '€39', highlight: true },
+  { ...P.items.agency, key: 'agency', price: '€99' },
 ];
 const shown = (p: typeof plans[number]) => detailed ? [...p.features, ...p.extra] : p.features.slice(0, 4);
 const uid = detailed ? 'pd' : 'ph';
-// Pre-launch every plan button joins the waitlist; with PUBLIC_APP_LIVE=true it opens signup (the plan is chosen in the app's Billing page).
-const ctaHref = APP_LIVE ? appLink('/signup', lang) : l('/#waitlist');
+// Pre-launch every plan button joins the waitlist; with PUBLIC_APP_LIVE=true it opens signup with ?plan=, and the app
+// takes the new account straight to that plan's checkout on its Billing page.
+const ctaHref = (plan: string) => APP_LIVE ? `${appLink('/signup', lang)}&plan=${plan}` : l('/#waitlist');
 const ctaLabel = APP_LIVE ? P.start : P.join;
 ---
 <div data-tabs>
@@ -38,7 +39,7 @@ const ctaLabel = APP_LIVE ? P.start : P.join;
       <ul class={`mt-6 space-y-3 text-sm flex-1 border-t pt-6 ${p.highlight ? 'border-white/20' : 'border-slate-200'}`}>
         {shown(p).map((f) => (<li class="flex gap-2.5"><span class={p.highlight ? 'text-brand-200' : 'text-brand-500'}><Icon name="check" /></span>{f}</li>))}
       </ul>
-      <a href={ctaHref} class={`btn mt-8 w-full ${p.highlight ? 'bg-white text-brand-700 hover:bg-brand-50 focus-visible:outline-white' : 'btn-secondary'}`}>{ctaLabel}<span class="sr-only"> {P.joinFor} {p.name}</span></a>
+      <a href={ctaHref(p.key)} class={`btn mt-8 w-full ${p.highlight ? 'bg-white text-brand-700 hover:bg-brand-50 focus-visible:outline-white' : 'btn-secondary'}`}>{ctaLabel}<span class="sr-only"> {P.joinFor} {p.name}</span></a>
     </div>
   ))}
 </div>
@@ -53,7 +54,7 @@ const ctaLabel = APP_LIVE ? P.start : P.join;
       <ul class="mt-6 space-y-3 text-sm border-t border-slate-200 pt-6">
         {P.oneoffFeatures.map((f) => (<li class="flex gap-2.5"><span class="text-brand-500"><Icon name="check" /></span>{f}</li>))}
       </ul>
-      <a href={ctaHref} class="btn btn-primary mt-8 w-full">{ctaLabel}<span class="sr-only"> {P.oneoffSr}</span></a>
+      <a href={ctaHref('oneoff')} class="btn btn-primary mt-8 w-full">{ctaLabel}<span class="sr-only"> {P.oneoffSr}</span></a>
     </div>
   </div>
 </div>
