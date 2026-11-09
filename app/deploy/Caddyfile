@@ -9,6 +9,24 @@ app.allyfolio.com {
 		Referrer-Policy strict-origin-when-cross-origin
 		-Server
 	}
+	# Access log (JSON) for Paddle / bot review diagnosis. Lives on the caddydata volume (/data).
+	# Cookie / Authorization / Set-Cookie stripped so sessions and credentials are not stored.
+	log {
+		output file /data/logs/access.log {
+			roll_size 50MiB
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format filter {
+			wrap json
+			delete request>headers>Cookie
+			delete request>headers>cookie
+			delete request>headers>Authorization
+			delete request>headers>authorization
+			delete resp_headers>Set-Cookie
+			delete resp_headers>set-cookie
+		}
+	}
 }
 
 # Optional: serve the marketing site from this server too (normally it is on Cloudflare Workers).
