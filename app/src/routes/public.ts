@@ -18,6 +18,10 @@ const apiLocale = (req: any): Locale => normLocale(req.body?.lang) ?? normLocale
 export async function publicRoutes(app: FastifyInstance) {
   app.get('/api/health', async () => ({ ok: true }));
 
+  // Allow crawlers to see the public landing and auth pages (Paddle and search bots). Do not Disallow: /.
+  app.get('/robots.txt', async (_req, reply) =>
+    reply.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /api/\n'));
+
   app.get('/api/scan/load', async () => {
     const { active, queued, slots } = scanLoad();
     return { active, queued, slots, busy: queued >= config.freeScanMaxQueue, etaS: etaSeconds(queued, active, slots) };

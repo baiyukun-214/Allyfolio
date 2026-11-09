@@ -139,3 +139,22 @@ code.snippet { white-space: pre-wrap; word-break: break-all; font-size: 12px; }
 table.cov .cap, table .cap { caption-side: top; text-align: left; font-weight: 600; padding: 4px 0; }
 td code { word-break: break-all; }
 @media (max-width: 640px) { .guide { grid-template-columns: 1fr; } }
+
+/* ---- Public landing (`/`) ---- */
+.landing-hero { margin: 0 auto 24px; max-width: 720px; padding: 48px 24px 32px; border-radius: 20px;
+  background: linear-gradient(160deg, #eef2ff 0%, #fff 55%, #e0e7ff 100%); border: 1px solid var(--tint-200); }
+.landing-hero h1 { margin: 8px 0 12px; font-size: clamp(1.75rem, 4vw, 2.25rem); line-height: 1.2;
+  background: linear-gradient(90deg, #1e3a8a, #4f46e5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.landing-hero .lead { font-size: 1.05rem; color: var(--ink); }
+.landing-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.landing-plans, .landing-about { margin: 0 auto 24px; max-width: 720px; }
+.landing-plan-list { list-style: none; margin: 16px 0; padding: 0; display: grid; gap: 10px; }
+.landing-plan { display: flex; justify-content: space-between; gap: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(135deg, #fff, var(--tint)); }
+.landing-plan-name { font-weight: 600; color: var(--ink); }
+.landing-plan-price { font-weight: 700; color: var(--navy); white-space: nowrap; }
+.landing-legal-h { font-size: 1rem; margin: 20px 0 8px; }
+.landing-legal { margin-top: 0; }
+@media (max-width: 520px) {
+  .landing-hero { padding: 32px 16px 24px; }
+  .landing-plan { flex-direction: column; gap: 4px; }
+}
