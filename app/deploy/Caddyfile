@@ -19,12 +19,14 @@ app.allyfolio.com {
 		}
 		format filter {
 			wrap json
-			delete request>headers>Cookie
-			delete request>headers>cookie
-			delete request>headers>Authorization
-			delete request>headers>authorization
-			delete resp_headers>Set-Cookie
-			delete resp_headers>set-cookie
+			fields {
+				request>headers>Cookie delete
+				request>headers>cookie delete
+				request>headers>Authorization delete
+				request>headers>authorization delete
+				resp_headers>Set-Cookie delete
+				resp_headers>set-cookie delete
+			}
 		}
 	}
 }
