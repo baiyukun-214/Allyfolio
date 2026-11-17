@@ -19,7 +19,7 @@ export const PLAN_COOKIE = 'af_plan';
 export const CARRY_PLANS = ['starter', 'business', 'agency', 'oneoff'] as const;
 export type CarriedPlan = (typeof CARRY_PLANS)[number];
 export const carriedPlan = (v: unknown): CarriedPlan | null => (CARRY_PLANS as readonly string[]).includes(String(v ?? '')) ? (String(v) as CarriedPlan) : null;
-const afterAuth = (req: FastifyRequest) => { const p = carriedPlan(req.cookies?.[PLAN_COOKIE]); return p ? `/app/billing?plan=${p}#chosen` : '/app'; };
+const afterAuth = (req: FastifyRequest) => { if (!config.billing.checkoutEnabled) return '/app'; const p = carriedPlan(req.cookies?.[PLAN_COOKIE]); return p ? `/app/billing?plan=${p}#chosen` : '/app'; };
 export const carriedSite = (v: unknown): string | null => { if (!v) return null; try { return parsePublicUrl(String(v).slice(0, 500)).origin; } catch { return null; } };
 
 const authLimit = rateLimiter(20, 15 * 60_000);
@@ -27,7 +27,7 @@ const field = (id: string, label: string, type: string, extra: any = '', hint = 
 
 export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '', ok?: string, site: string | null = null) {
   const signup = mode === 'signup'; const A = T(req).auth;
-  const plan = carriedPlan(req.cookies?.[PLAN_COOKIE] ?? (req.query as any)?.plan); const planName = plan === 'oneoff' ? T(req).bill.oneoffH : plan ? T(req).plans[plan] : '';
+  const plan = config.billing.checkoutEnabled ? carriedPlan(req.cookies?.[PLAN_COOKIE] ?? (req.query as any)?.plan) : null; const planName = plan === 'oneoff' ? T(req).bill.oneoffH : plan ? T(req).plans[plan] : '';
   return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : ok ? { kind: 'ok', msg: ok } : null, body: html`
   <div class="narrow">
     <div class="card">
@@ -62,7 +62,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.get('/signup', async (req, reply) => {
     const site = carriedSite((req.query as any).site) ?? carriedSite(req.cookies?.[SITE_COOKIE]);
     if (site) reply.setCookie(SITE_COOKIE, site, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 86400, secure: config.appUrl.startsWith('https') });
-    const plan = carriedPlan((req.query as any).plan);
+    const plan = config.billing.checkoutEnabled ? carriedPlan((req.query as any).plan) : null;
     if (plan) {
       if (currentUser(req)) return reply.redirect(`/app/billing?plan=${plan}#chosen`); // already signed in: straight to that checkout
       reply.setCookie(PLAN_COOKIE, plan, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 86400, secure: config.appUrl.startsWith('https') });

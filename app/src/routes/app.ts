@@ -16,6 +16,7 @@ import { PUBLIC_LOCALES, pickerLocales, normLocale, t, trError } from '../i18n.t
 import { siteDetailExtras } from './monitoring.ts';
 import { accountSection } from './account.ts';
 import { emptyState } from '../views/ui.ts';
+import { siteLink } from '../views/layout.ts';
 import { SITE_COOKIE, carriedSite } from './auth.ts';
 
 
@@ -32,7 +33,9 @@ export async function dashboardRoutes(app: FastifyInstance) {
     const carry = total ? null : carriedSite(req.cookies?.[SITE_COOKIE]) ?? carriedSite(get<any>('SELECT site FROM waitlist WHERE email = ?', ctx.user.email)?.site);
     return render(reply, ctx, { title: D.sites, current: '/app', body: html`
       <div class="row between"><div><p class="eyebrow">${ctx.team.name}</p><h1>${D.sites}</h1></div><span class="pill">${D.planPill(Tx.plans[plan.id] ?? plan.name, total, plan.sites)}</span></div>
-      ${ctx.team.plan === 'none' ? html`<p class="notice"><strong>${D.noPlanH}</strong> ${D.noPlan} <a href="/app/billing">${D.noPlanLink}</a>${D.noPlanEnd}</p>` : ''}
+      ${ctx.team.plan === 'none' ? (config.billing.checkoutEnabled
+        ? html`<p class="notice"><strong>${D.noPlanH}</strong> ${D.noPlan} <a href="/app/billing">${D.noPlanLink}</a>${D.noPlanEnd}</p>`
+        : html`<p class="notice"><strong>${D.noPlanClosedH}</strong> ${D.noPlanClosed} <a href="${siteLink(l, '/free-scan')}">${D.noPlanClosedLink}</a></p>`) : ''}
       ${clients.length ? html`<form method="get" action="/app" class="row" style="gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px"><div class="field" style="margin:0"><label for="cf">${C.filter}</label><select id="cf" name="client"><option value="">${C.allClients}</option>${clients.map((c) => html`<option value="${c.id}" ${filter === c.id ? 'selected' : ''}>${c.name}</option>`)}<option value="none" ${filter === 'none' ? 'selected' : ''}>${C.unassigned}</option></select></div><button class="btn btn-secondary" type="submit">${C.filterBtn}</button></form>` : ''}
       ${sites.length ? html`<div class="table-wrap card" style="padding:8px 16px"><table><caption class="sr-only">${D.yourSites}</caption><thead><tr><th scope="col">${D.colSite}</th>${clients.length ? html`<th scope="col">${C.colClient}</th>` : ''}<th scope="col">${D.colOwner}</th><th scope="col">${D.colLast}</th><th scope="col">${D.colSerious}</th></tr></thead><tbody>
         ${sites.map((s) => html`<tr><td><a href="/app/sites/${s.id}">${s.name}</a><br><span class="muted small">${s.origin}</span></td>${clients.length ? html`<td>${s.client_id ? html`<a href="/app/clients/${s.client_id}">${s.client_name}</a>` : '–'}</td>` : ''}<td>${s.verified_at ? html`<span class="pill ok">${D.verified}</span>` : html`<span class="pill imp-moderate">${D.notVerified}</span>`}</td><td>${localTime(s.last_scan, l)}</td><td>${s.last_serious ?? '–'}</td></tr>`)}

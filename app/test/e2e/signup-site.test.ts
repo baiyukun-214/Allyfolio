@@ -16,7 +16,10 @@ test('free scan → signup?site=… carries the scanned site to the empty dashbo
   assert.equal(r.statusCode, 303);
   r = await c.req('GET', '/app');
   assert.equal(origin(r.body), 'https://shop.example'); assert.match(r.body, /id="name"[^>]*value="shop\.example"/);
-  assert.match(r.body, /choose a plan<\/a> for scheduled scans/, 'space after the link');
+  assert.match(r.body, /No scan plan on this account/);
+  assert.match(r.body, /does not include scheduled scans or PDF reports/);
+  assert.match(r.body, /href="http:\/\/localhost:4321\/free-scan">Run a free one-page scan/);
+  assert.doesNotMatch(r.body, /choose a plan|buy a one-off|straight to checkout/);
   r = await c.post('/app/sites', { name: 'Shop', origin: 'https://shop.example' });
   assert.equal(r.statusCode, 303); assert.equal(c.jar.has('af_site'), false, 'cookie cleared after the first site is added');
 });

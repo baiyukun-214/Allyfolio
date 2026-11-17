@@ -9,6 +9,7 @@ import { paddleLocale } from '../lib/billing/paddle.ts';
 import { isEarlyBird } from '../lib/waitlist.ts';
 import { requireUser, render, back, loc, localTime, fmtDay } from './guard.ts';
 import { t as tr } from '../i18n.ts';
+import { siteLink } from '../views/layout.ts';
 import { PLAN_COOKIE, carriedPlan } from './auth.ts';
 /** The fallback discount code (early-bird offer for waitlist members who signed up with another email), if configured. */
 const codeMatches = (v: unknown) => { const P = config.billing.paddle; return !!(P.discountCodeId && P.discountCode && String(v ?? '').trim().toUpperCase() === P.discountCode); };
@@ -28,8 +29,30 @@ async function syncReturn(req: any, ctx: any) {
 export async function billingRoutes(app: FastifyInstance) {
   app.get('/app/billing', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
-    await syncReturn(req, ctx);
+    if (config.billing.checkoutEnabled) await syncReturn(req, ctx);
     const t = ctx.team, plan = planOf(t.plan), owner = ctx.role === 'owner';
+    if (!config.billing.checkoutEnabled) {
+      const l = loc(req, ctx), Tx = tr(l), B = Tx.bill; const pn = (id: string) => Tx.plans[id] ?? planOf(id).name;
+      const pend = t.pending_plan ? B.pending(pn(t.pending_plan), pn(plan.id)) : null;
+      const prov = await provider(); const ready = !!prov?.configured();
+      return render(reply, ctx, { title: B.title, current: '/app/billing', body: html`
+        <h1>${B.title}</h1>
+        <p class="notice"><strong>${B.checkoutClosedH}</strong> ${B.checkoutClosedLead} <a href="${siteLink(l, '/free-scan')}">${B.checkoutClosedScan}</a></p>
+        <div class="card"><p class="muted small">${B.current}</p><p class="stat">${pn(plan.id)}</p>
+          ${t.subscription_status ? html`<p class="small muted">${B.status}${B.colon}${B.statuses[t.subscription_status] ?? t.subscription_status}${(() => {
+            const st = t.subscription_status, end = t.cancel_at ?? t.current_period_end; if (!end) return '';
+            const label = t.cancel_at && st !== 'canceled' ? B.endsOn : st === 'canceled' ? B.endedOn : st === 'active' || st === 'trialing' ? B.renewsOn : B.periodEndsOn;
+            return html` · ${label} ${localTime(end, l, 'date')}`; })()}</p>` : ''}
+          ${pend ? html`<p class="notice">${pend[0]}<strong>${pend[1]}</strong>${pend[2]}</p>` : ''}
+          ${t.cancel_at ? html`<p class="notice">${B.cancelsOn[0]}${localTime(t.cancel_at, l, 'date')}${B.cancelsOn[1]}</p>` : ''}
+          ${t.oneoff_credits ? html`<p class="small">${B.credits}: <strong>${t.oneoff_credits}</strong></p>` : ''}
+          <div class="row">
+          ${owner && t.billing_customer_id && ready ? html`<form method="post" action="/app/billing/portal">${csrfField(req)}<button class="btn btn-secondary" type="submit">${B.portal}</button></form>` : ''}
+          ${owner && t.billing_subscription_id && !t.cancel_at && ready ? html`<form method="post" action="/app/billing/cancel">${csrfField(req)}<button class="btn btn-danger" type="submit">${B.cancel}</button></form>` : ''}
+          </div>
+          ${owner && t.billing_subscription_id && !t.cancel_at ? html`<p class="small muted">${B.cancelHint}</p>` : ''}
+        </div>` });
+    }
     if (t.comped) { const Bc = tr(loc(req, ctx)).bill; const pnc = tr(loc(req, ctx)).plans[plan.id] ?? plan.name;
       // Complimentary plan (admin): no checkout, change, cancel or portal, and no Paddle.js on the page.
       return render(reply, ctx, { title: Bc.title, current: '/app/billing', body: html`
@@ -95,7 +118,7 @@ export async function billingRoutes(app: FastifyInstance) {
   // Small JSON status for the post-checkout poll (billing-status.js).
   app.get('/app/billing/status', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return;
-    await syncReturn(req, ctx);
+    if (config.billing.checkoutEnabled) await syncReturn(req, ctx);
     const t = ctx.team;
     return reply.header('cache-control', 'no-store').send({ plan: t.plan, status: t.subscription_status ?? null, credits: t.oneoff_credits ?? 0 });
   });
@@ -103,6 +126,7 @@ export async function billingRoutes(app: FastifyInstance) {
     const ctx = requireUser(req, reply); if (!ctx) return; const B = tr(loc(req, ctx)).bill;
     const wantsJson = String(req.headers.accept ?? '').includes('application/json');
     const fail = (msg: string, code = 400) => wantsJson ? reply.code(code).send({ error: msg }) : back(reply, '/app/billing', 'err', msg);
+    if (!config.billing.checkoutEnabled) return fail(B.checkoutClosed, 403);
     if (ctx.role !== 'owner') return fail(B.ownerOnly, 403);
     if (ctx.team.comped) return fail(B.comped, 409);
     const what = String((req.body as any).plan) as Purchase;
@@ -119,6 +143,7 @@ export async function billingRoutes(app: FastifyInstance) {
 
   app.post('/app/billing/change', async (req, reply) => {
     const ctx = requireUser(req, reply); if (!ctx) return; const l = loc(req, ctx), Tx = tr(l), B = Tx.bill;
+    if (!config.billing.checkoutEnabled) return back(reply, '/app/billing', 'err', B.checkoutClosed);
     if (ctx.team.comped) return back(reply, '/app/billing', 'err', B.comped);
     if (ctx.role !== 'owner' || !ctx.team.billing_subscription_id) return back(reply, '/app/billing', 'err', B.noSub);
     const to = String((req.body as any).plan) as PlanId; if (!PAID.includes(to)) return back(reply, '/app/billing', 'err', B.unknown);

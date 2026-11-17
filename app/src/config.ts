@@ -32,6 +32,8 @@ export const config = {
   mailFrom: e.MAIL_FROM ?? 'Allyfolio <hello@allyfolio.com>',
   billing: {
     provider: (e.BILLING_PROVIDER ?? 'paddle') as 'paddle' | 'creem' | 'none',
+    // New purchases and plan changes. Independent of PADDLE_ENV / PUBLIC_APP_LIVE. Only the exact value true turns this on.
+    checkoutEnabled: e.BILLING_CHECKOUT_ENABLED === 'true',
     paddle: {
       env: (e.PADDLE_ENV === 'production' || e.PADDLE_ENV === 'live' ? 'production' : 'sandbox') as 'sandbox' | 'production', // sandbox (default) | live (alias: production)
       apiKey: e.PADDLE_API_KEY ?? '',

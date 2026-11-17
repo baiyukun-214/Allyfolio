@@ -1,7 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import LangSwitch from './LangSwitch.astro';
-import { appLink, APP_LIVE } from '../lib/api';
+import { appLink } from '../lib/api';
 import { resourceOrder, resources } from '../i18n/resources';
 import { i18n } from '../i18n';
 interface Props { hasTranslation?: boolean }
@@ -28,11 +28,9 @@ const link = 'text-muted hover:text-brand-700 hover:underline underline-offset-4
         <li><a class={link} href={l('/blog')}>{t.nav.blog}</a></li>
         <li><a class={link} href={l('/features')}>{t.nav.features}</a></li>
         <li><a class={link} href={l('/about')}>{t.nav.about}</a></li>
-        {APP_LIVE && (<>
-          <li data-auth="out"><a class={link} href={appLink('/login', lang)}>{t.nav.login}</a></li>
-          <li data-auth="out"><a class={link} href={appLink('/signup', lang)}>{t.nav.signup}</a></li>
-          <li data-auth="in" hidden><a class={link} href={appLink('/app', lang)}>{t.nav.dashboard}</a></li>
-        </>)}
+        <li data-auth="out"><a class={link} href={appLink('/login', lang)}>{t.nav.login}</a></li>
+        <li data-auth="out"><a class={link} href={appLink('/signup', lang)}>{t.nav.signup}</a></li>
+        <li data-auth="in" hidden><a class={link} href={appLink('/app', lang)}>{t.nav.dashboard}</a></li>
         <li><LangSwitch class={link} hasTranslation={Astro.props.hasTranslation} /></li>
       </ul>
     </nav>
