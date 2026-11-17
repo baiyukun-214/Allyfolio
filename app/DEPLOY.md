@@ -63,6 +63,7 @@ MAILER=                       # empty = auto: resend when RESEND_API_KEY is set
 RESEND_API_KEY=<from Resend; domain allyfolio.com verified (SPF/DKIM records in Cloudflare)>
 MAIL_FROM="Allyfolio <hello@allyfolio.com>"
 BILLING_PROVIDER=paddle
+BILLING_CHECKOUT_ENABLED=     # leave unset: new purchases and plan changes stay off (independent of PADDLE_ENV and PUBLIC_APP_LIVE)
 PADDLE_ENV=sandbox            # switch to live once the live account is approved
 PADDLE_API_KEY=<…>
 PADDLE_CLIENT_TOKEN=<…>
@@ -103,7 +104,7 @@ Paddle → Developer tools → Notifications → New destination:
 
 Prices/products can be created with `docker compose exec app npm run paddle:setup` (sandbox), or by hand
 (Starter €19, Business €39, Agency €99 per month, one-off report €49); put the `pri_…` IDs into `.env`.
-Going live: `PADDLE_ENV=live` with live API key, client token, price IDs and webhook secret, then `docker compose up -d app`.
+Going live: `PADDLE_ENV=live` with live API key, client token, price IDs and webhook secret, then `docker compose up -d app`. New purchases also need BILLING_CHECKOUT_ENABLED set to true; leaving it unset keeps checkout closed even when Paddle is configured.
 
 ## 8. Backups
 

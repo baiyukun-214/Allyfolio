@@ -8,6 +8,14 @@ const evalWith = (env: Record<string, string>, code: string) => execFileSync(pro
   { env: { PATH: process.env.PATH ?? '', NODE_TEST_CONTEXT: 'child', ...env }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const cfg = "const { config } = await import('./src/config.ts');";
 
+test('BILLING_CHECKOUT_ENABLED is off unless the value is exactly true', () => {
+  assert.equal(evalWith({}, `${cfg} console.log(config.billing.checkoutEnabled)`), 'false');
+  assert.equal(evalWith({ BILLING_CHECKOUT_ENABLED: '' }, `${cfg} console.log(config.billing.checkoutEnabled)`), 'false');
+  assert.equal(evalWith({ BILLING_CHECKOUT_ENABLED: '1' }, `${cfg} console.log(config.billing.checkoutEnabled)`), 'false');
+  assert.equal(evalWith({ BILLING_CHECKOUT_ENABLED: 'yes' }, `${cfg} console.log(config.billing.checkoutEnabled)`), 'false');
+  assert.equal(evalWith({ BILLING_CHECKOUT_ENABLED: 'TRUE' }, `${cfg} console.log(config.billing.checkoutEnabled)`), 'false');
+  assert.equal(evalWith({ BILLING_CHECKOUT_ENABLED: 'true', PADDLE_ENV: 'sandbox' }, `${cfg} console.log(config.billing.checkoutEnabled)`), 'true');
+});
 test('PADDLE_ENV: sandbox by default, live (and production) select the live API', () => {
   assert.equal(evalWith({}, `${cfg} console.log(config.billing.paddle.env)`), 'sandbox');
   assert.equal(evalWith({ PADDLE_ENV: 'live' }, `${cfg} console.log(config.billing.paddle.env)`), 'production');
@@ -38,11 +46,15 @@ test('score is labelled as an internal score, not a compliance measure (en / de 
 });
 test('deploy files: env example has placeholders only and PUBLIC_APP_LIVE is never true', () => {
   const ex = readFileSync(new URL('../../.env.example', import.meta.url), 'utf8');
-  for (const k of ['SITE_ORIGINS', 'RESEND_API_KEY', 'PADDLE_ENV', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_STARTER', 'PADDLE_PRICE_BUSINESS', 'PADDLE_PRICE_AGENCY', 'PADDLE_PRICE_ONEOFF', 'SESSION_SECRET'])
+  for (const k of ['SITE_ORIGINS', 'RESEND_API_KEY', 'PADDLE_ENV', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_STARTER', 'PADDLE_PRICE_BUSINESS', 'PADDLE_PRICE_AGENCY', 'PADDLE_PRICE_ONEOFF', 'SESSION_SECRET', 'BILLING_CHECKOUT_ENABLED'])
     assert.match(ex, new RegExp(`^${k}=`, 'm'), k);
+  assert.match(ex, /^BILLING_CHECKOUT_ENABLED=\s*$/m, 'checkout stays unset in the example');
   assert.doesNotMatch(ex, /re_[A-Za-z0-9]{20,}|pdl_(live|sdbx)_apikey_[A-Za-z0-9]{10,}|ntfset_[A-Za-z0-9]{10,}/);
-  for (const f of ['../../docker-compose.yml', '../../Dockerfile', '../../deploy/Caddyfile', '../../DEPLOY.md', '../../.env.example'])
-    assert.doesNotMatch(readFileSync(new URL(f, import.meta.url), 'utf8'), /PUBLIC_APP_LIVE\s*=\s*["']?true/);
+  for (const f of ['../../docker-compose.yml', '../../Dockerfile', '../../deploy/Caddyfile', '../../DEPLOY.md', '../../.env.example']) {
+    const txt = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.doesNotMatch(txt, /PUBLIC_APP_LIVE\s*=\s*["']?true/);
+    assert.doesNotMatch(txt, /BILLING_CHECKOUT_ENABLED\s*=\s*["']?true/);
+  }
   assert.match(readFileSync(new URL('../../deploy/Caddyfile', import.meta.url), 'utf8'), /^app\.allyfolio\.com \{/m);
 });
 
@@ -54,4 +66,23 @@ test('backups: R2 retention only prunes top-level backup files; the daily eviden
   const a = readFileSync(new URL('../../deploy/anchor.sh', import.meta.url), 'utf8');
   assert.match(a, /sqlite3 -readonly/); assert.match(a, /\$BACKUP_RCLONE_REMOTE\/anchors/); assert.doesNotMatch(a, /rclone (delete|purge|sync)/);
   assert.doesNotMatch(a, /rclone\.conf|config show/, 'never print rclone config');
+});
+
+test('closed-checkout copy exists in en and de, without payment prompts or launch promises', () => {
+  for (const l of ['en', 'de'] as const) {
+    const D = t(l).dash, B = t(l).bill;
+    assert.ok(D.noPlanClosedH && D.noPlanClosed && D.noPlanClosedLink);
+    assert.ok(B.checkoutClosed && B.checkoutClosedH && B.checkoutClosedLead && B.checkoutClosedScan);
+    const blob = [D.noPlanClosedH, D.noPlanClosed, D.noPlanClosedLink, B.checkoutClosed, B.checkoutClosedH, B.checkoutClosedLead, B.checkoutClosedScan].join('\n');
+    const soon = 'coming' + ' soon';
+    const bald = 'bald ' + 'verfügbar';
+    const demn = 'demn' + 'ächst';
+    assert.doesNotMatch(blob, /choose a plan|buy a one-off|straight to checkout/i);
+    assert.doesNotMatch(blob, new RegExp(soon + '|' + demn + '|' + bald, 'i'));
+    // Banned marketing words: build the pattern from parts so the test itself does not contain them.
+    const banned = ['com'+'pliant', 'certif'+'ied', 'guaran'+'tee', 'kon'+'form', 'zertifiz'+'iert', 'garan'+'tiert'];
+    assert.doesNotMatch(blob, new RegExp(banned.join('|'), 'i'));
+  }
+  assert.match(t('en').dash.noPlanClosed, /free scan of one page/);
+  assert.match(t('de').dash.noPlanClosed, /kostenlos prüfen/);
 });

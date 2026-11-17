@@ -27,7 +27,7 @@ before(async () => {
       res.writeHead(404); res.end('{}');
     });
   } });
-  Object.assign(process.env, { BILLING_PROVIDER: 'paddle', PADDLE_ENV: 'sandbox', PADDLE_API_KEY: 'pdl_sdbx_test', PADDLE_API_BASE: fake.base, PADDLE_WEBHOOK_SECRET: 'whsec_paddle_test',
+  Object.assign(process.env, { BILLING_PROVIDER: 'paddle', BILLING_CHECKOUT_ENABLED: 'true', PADDLE_ENV: 'sandbox', PADDLE_API_KEY: 'pdl_sdbx_test', PADDLE_API_BASE: fake.base, PADDLE_WEBHOOK_SECRET: 'whsec_paddle_test',
     PADDLE_CLIENT_TOKEN: 'test_clienttoken', PADDLE_PRICE_STARTER: 'pri_s', PADDLE_PRICE_BUSINESS: 'pri_b', PADDLE_PRICE_AGENCY: 'pri_a', PADDLE_PRICE_ONEOFF: 'pri_o', PADDLE_DISCOUNT_EARLYBIRD: 'dsc_01h8earlybird0000000000000',
     PADDLE_DISCOUNT_CODE_ID: 'dsc_01h8earlybirdcode000000000', PADDLE_DISCOUNT_CODE: 'EarlyBird30' });
   envReady();

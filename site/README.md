@@ -41,7 +41,9 @@ Workers Builds (Cloudflare dashboard → Workers → allyfolio → Settings → 
 
 URLs: production builds default to `https://app.allyfolio.com` for both the dashboard links (`PUBLIC_APP_URL`) and the API (`PUBLIC_API_BASE`); `astro dev` defaults to `http://localhost:8787`. Set either variable to override; an explicitly empty `PUBLIC_API_BASE` means same origin. The app must allow the site in CORS: `SITE_ORIGINS=https://allyfolio.com,https://www.allyfolio.com`.
 
-**Pre-launch flag (`PUBLIC_APP_LIVE`):** until the dashboard at `app.allyfolio.com` is live, the site renders **no** Log in / Sign up / Dashboard links (header, mobile menu, footer); every CTA points to the waitlist (`/#waitlist`) or the free scan (`/free-scan`). At launch set the build variable `PUBLIC_APP_LIVE=true` (together with `PUBLIC_APP_URL` if it differs from the default) and redeploy – the links come back, including the `af_logged_in` cookie switch to “Dashboard”. Any other value or no value keeps them hidden. The flag lives in `src/lib/api.ts` (`APP_LIVE`).
+**Log in / Sign up / Dashboard** links in the header, mobile menu and footer are always rendered (and switch to “Dashboard” when the `af_logged_in` cookie is set). They do not use `PUBLIC_APP_LIVE`.
+
+**Plan / free-scan flag (`PUBLIC_APP_LIVE`):** until this is set to `true` at build time, pricing buttons and the free-scan “monitor this site” CTA stay on the waitlist (`/#waitlist`). When you are ready for those CTAs to open app signup (with `?plan=` / `?site=`), set the build variable `PUBLIC_APP_LIVE=true` (together with `PUBLIC_APP_URL` if it differs from the default) and redeploy. The flag lives in `src/lib/api.ts` (`APP_LIVE`).
 
 **Indexing:** `/waitlist-check-email` and `/waitlist-error` (all locales) carry `<meta name="robots" content="noindex, follow">` and are excluded from the sitemap (`astro.config.mjs`). Pass `noindex` to `Base.astro` for any other utility page.
 

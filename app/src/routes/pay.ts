@@ -13,9 +13,11 @@ import type { Locale } from '../i18n.ts';
  */
 const S = {
   en: { title: 'Checkout', loading: 'Opening secure checkout…', none: 'There is no payment to complete here. If you received a payment link, open it again, or go to Billing to choose a plan.',
-    billing: 'Go to Billing', thanks: 'Thank you! Your payment was received. Redirecting to Billing…', unavailable: 'Checkout is not available right now. Please try again later or contact support.' },
+    billing: 'Go to Billing', thanks: 'Thank you! Your payment was received. Redirecting to Billing…', unavailable: 'Checkout is not available right now. Please try again later or contact support.',
+    closed: 'New purchases are not available. A free scan of one page is available on the Allyfolio website.' },
   zh: { title: '结账', loading: '正在打开安全结账页面…', none: '这里没有需要完成的付款。如果你收到了付款链接，请重新打开它，或前往“账单”选择套餐。',
-    billing: '前往账单', thanks: '谢谢！我们已收到你的付款，正在跳转到账单页面…', unavailable: '结账暂时不可用，请稍后再试或联系支持。' },
+    billing: '前往账单', thanks: '谢谢！我们已收到你的付款，正在跳转到账单页面…', unavailable: '结账暂时不可用，请稍后再试或联系支持。',
+    closed: '目前无法进行新的购买。您仍可在 Allyfolio 网站上免费检测单个页面。' },
 };
 
 export async function payRoutes(app: FastifyInstance) {
@@ -24,12 +26,14 @@ export async function payRoutes(app: FastifyInstance) {
     const T = l === 'zh-CN' ? S.zh : S.en;
     const ptxn = String((req.query as any)?._ptxn ?? '');
     const has = /^txn_[a-z0-9]+$/.test(ptxn);
-    const client = (await provider())?.clientConfig() ?? null;
+    const closed = !config.billing.checkoutEnabled;
+    const client = closed ? null : ((await provider())?.clientConfig() ?? null);
+    const msg = closed ? T.closed : !client ? T.unavailable : has ? T.loading : T.none;
     reply.type('text/html').header('cache-control', 'no-store');
     return page({ locale: l, path: '/pay', title: T.title, body: html`
       <div class="narrow card">
         <h1>${T.title}</h1>
-        <p id="pay-msg" role="status" aria-live="polite">${!client ? T.unavailable : has ? T.loading : T.none}</p>
+        <p id="pay-msg" role="status" aria-live="polite">${msg}</p>
         <p><a class="btn btn-secondary" href="/app/billing">${T.billing}</a></p>
       </div>
       ${client ? html`<div id="paddle-pay" hidden data-token="${client.token}" data-env="${client.environment}" data-locale="${paddleLocale(l)}"
