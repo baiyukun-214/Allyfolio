@@ -22,8 +22,26 @@ before(async () => {
       if (req.url === '/transactions/txn_wait') return ok({ id: 'txn_wait', status: 'ready', custom_data: { team_id: 'tsync' } });
       if (req.url === '/transactions/txn_other') return ok({ id: 'txn_other', status: 'completed', subscription_id: 'sub_9', custom_data: { team_id: 'someone-else' } });
       if (req.url === '/subscriptions/sub_9') return ok({ ...SUB('pri_b'), id: 'sub_9', customer_id: 'ctm_9' });
-      if (/^\/subscriptions\/sub_r\d?\/cancel$/.test(req.url!)) return ok({ id: req.url!.split('/')[2], status: 'canceled' });
+      if (/^\/subscriptions\/sub_r[\w]*\/cancel$/.test(req.url!)) return ok({ id: req.url!.split('/')[2], status: 'canceled' });
       if (req.url === '/customers/ctm_1/portal-sessions') return ok({ urls: { general: { overview: 'https://portal.example.test/ov' } } });
+      const path = (req.url ?? '').split('?')[0];
+      if (req.method === 'GET' && /^\/transactions\/txn_rf_/.test(path)) {
+        const id = path.split('/')[2];
+        const totals = id === 'txn_rf_api_fail' ? null : { grand_total: '1900', total: '1900' };
+        if (!totals) { res.writeHead(500); return res.end('{}'); }
+        return ok({ id, currency_code: 'EUR', details: { totals } });
+      }
+      if (req.method === 'GET' && path === '/adjustments') {
+        const u = new URL(req.url!, 'http://paddle.test');
+        const txn = u.searchParams.get('transaction_id') ?? '';
+        if (txn === 'txn_rf_listed') return ok([
+          { id: 'adj_rf_l1', action: 'refund', status: 'approved', type: 'partial', transaction_id: txn, currency_code: 'EUR', totals: { total: '1000' } },
+          { id: 'adj_rf_l2', action: 'refund', status: 'approved', type: 'partial', transaction_id: txn, currency_code: 'EUR', totals: { total: '900' } },
+          { id: 'adj_rf_pending', action: 'refund', status: 'pending_approval', type: 'partial', transaction_id: txn, currency_code: 'EUR', totals: { total: '1900' } },
+        ]);
+        if (txn === 'txn_rf_api_fail') { res.writeHead(500); return res.end('{}'); }
+        return ok([]);
+      }
       res.writeHead(404); res.end('{}');
     });
   } });
@@ -260,6 +278,60 @@ test('discount code: field for non-early-bird owners, validated, sent only with 
   assert.equal((await checkout({ plan: 'starter', code: 'nope' })).discount_id, undefined);
   assert.equal((await checkout({ plan: 'starter' })).discount_id, undefined);
   assert.equal((await checkout({ plan: 'oneoff', code: 'EARLYBIRD30' })).discount_id, undefined, 'never on the one-off');
+});
+
+test('refunds: cumulative approved amounts covering the transaction total revoke like a full refund', async () => {
+  const start = (tid: string, sub: string, site: string) => {
+    db.run("INSERT INTO teams (id, name, created_at) VALUES (?, 'RefundCov', '2026-01-01')", tid);
+    db.run("INSERT INTO sites (id, team_id, name, origin, verify_token, verified_at, created_at, next_scan_at) VALUES (?, ?, 'S', 'https://rfcov.example', 'x', '2026-01-01', '2026-01-01', '2030-01-01')", site, tid);
+    return send('subscription.created', { ...SUB('pri_s'), id: sub, customer_id: 'ctm_' + tid, custom_data: { team_id: tid, kind: 'starter' } });
+  };
+  const money = (o: any) => ({ currency_code: 'EUR', totals: { total: o.total, grand_total: o.total }, items: [{ item_id: 'txnitm_x', type: 'partial', amount: o.total }] });
+  const cancels = (sub: string) => calls.filter((x) => x.path === `/subscriptions/${sub}/cancel`);
+
+  // type=partial, amount equals the tax-inclusive total (Paddle often labels a full dashboard refund as partial)
+  await start('tr_eq', 'sub_rf_eq', 'sr_eq');
+  let r = await send('adjustment.created', adj({ id: 'adj_rf_eq', type: 'partial', transaction_id: 'txn_rf_eq', subscription_id: 'sub_rf_eq', customer_id: 'ctm_tr_eq', ...money({ total: '1900' }) }));
+  assert.equal(r.statusCode, 200, r.body);
+  assert.deepEqual([team('tr_eq').plan, team('tr_eq').billing_subscription_id, team('tr_eq').subscription_status], ['none', null, 'canceled']);
+  assert.equal(cancels('sub_rf_eq').length, 1);
+  // duplicate notification: not processed twice
+  await send('adjustment.updated', adj({ id: 'adj_rf_eq', type: 'partial', transaction_id: 'txn_rf_eq', subscription_id: 'sub_rf_eq', customer_id: 'ctm_tr_eq', ...money({ total: '1900' }) }));
+  assert.equal(cancels('sub_rf_eq').length, 1);
+  assert.equal(team('tr_eq').plan, 'none');
+
+  // several partials adding up to the total (API lists none: rely on stored amounts + earlier transaction total)
+  await start('tr_sum', 'sub_rf_sum', 'sr_sum');
+  await send('transaction.completed', { id: 'txn_rf_sum', subscription_id: 'sub_rf_sum', currency_code: 'EUR', details: { totals: { grand_total: '1900', total: '1900' } }, custom_data: { team_id: 'tr_sum', kind: 'starter' } });
+  r = await send('adjustment.created', adj({ id: 'adj_rf_s1', type: 'partial', transaction_id: 'txn_rf_sum', subscription_id: 'sub_rf_sum', customer_id: 'ctm_tr_sum', ...money({ total: '1000' }) }));
+  assert.equal(r.statusCode, 200, r.body);
+  assert.equal(team('tr_sum').plan, 'starter', 'first slice keeps the plan');
+  assert.equal(cancels('sub_rf_sum').length, 0);
+  r = await send('adjustment.created', adj({ id: 'adj_rf_s2', type: 'partial', transaction_id: 'txn_rf_sum', subscription_id: 'sub_rf_sum', customer_id: 'ctm_tr_sum', ...money({ total: '900' }) }));
+  assert.equal(r.statusCode, 200, r.body);
+  assert.deepEqual([team('tr_sum').plan, team('tr_sum').billing_subscription_id], ['none', null]);
+  assert.equal(cancels('sub_rf_sum').length, 1);
+
+  // genuine partial stays
+  await start('tr_part', 'sub_rf_part', 'sr_part');
+  await send('adjustment.created', adj({ id: 'adj_rf_part', type: 'partial', transaction_id: 'txn_rf_part', subscription_id: 'sub_rf_part', customer_id: 'ctm_tr_part', ...money({ total: '1000' }) }));
+  assert.equal(team('tr_part').plan, 'starter');
+  assert.equal(cancels('sub_rf_part').length, 0);
+
+  // pending and rejected never revoke, even when the amount equals the total
+  await start('tr_pend', 'sub_rf_pend', 'sr_pend');
+  await send('adjustment.created', adj({ id: 'adj_rf_pend', status: 'pending_approval', type: 'partial', transaction_id: 'txn_rf_pend', subscription_id: 'sub_rf_pend', ...money({ total: '1900' }) }));
+  assert.equal(team('tr_pend').plan, 'starter');
+  await send('adjustment.updated', adj({ id: 'adj_rf_rej', status: 'rejected', type: 'partial', transaction_id: 'txn_rf_pend', subscription_id: 'sub_rf_pend', ...money({ total: '1900' }) }));
+  assert.equal(team('tr_pend').plan, 'starter');
+  assert.equal(cancels('sub_rf_pend').length, 0);
+
+  // API list already has two approved slices covering the total (plus a pending that must be ignored)
+  await start('tr_list', 'sub_rf_list', 'sr_list');
+  r = await send('adjustment.created', adj({ id: 'adj_rf_l2', type: 'partial', transaction_id: 'txn_rf_listed', subscription_id: 'sub_rf_list', customer_id: 'ctm_tr_list', ...money({ total: '900' }) }));
+  assert.equal(r.statusCode, 200, r.body);
+  assert.equal(team('tr_list').plan, 'none', 'listed adjustments plus this one cover the total');
+  assert.equal(cancels('sub_rf_list').length, 1);
 });
 
 test('plan carry: /signup?plan= → signup/login → that plan\'s checkout on Billing', async () => {

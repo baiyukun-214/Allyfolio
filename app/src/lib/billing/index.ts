@@ -25,7 +25,7 @@ export interface BillingProvider {
   cancel(team: any, when: 'period_end' | 'immediately'): Promise<void>;
   portalUrl(team: any): Promise<string>;
   /** Verify a webhook signature and translate the payload into normalised events. Throws WebhookSignatureError. */
-  parseWebhook(raw: Buffer, headers: Record<string, string | string[] | undefined>): { id: string; type: string; events: BillingEvent[] };
+  parseWebhook(raw: Buffer, headers: Record<string, string | string[] | undefined>): { id: string; type: string; events: BillingEvent[] } | Promise<{ id: string; type: string; events: BillingEvent[] }>;
 }
 export class WebhookSignatureError extends Error {}
 export class BillingNotConfigured extends Error {}
@@ -116,9 +116,17 @@ const refundedSub = (subscriptionId: string) => !!get('SELECT 1 FROM billing_eve
 function applyOne(ev: BillingEvent, cancelNow: string[] = []) {
   switch (ev.kind) {
     case 'refund': {
-      // The same adjustment arrives as adjustment.created and adjustment.updated (and as retries): apply it once.
-      if (!once(`refund:${ev.adjustmentId}`, ev.full ? 'refund_full' : 'refund_partial')) return;
-      if (!ev.full) return; // partial refund: plan and credits stay as they are
+      // Same adjustment may arrive as created + updated + retries. A later delivery can upgrade a stored
+      // partial to full once cumulative approved refunds cover the transaction (do not apply full twice).
+      const refundKey = `refund:${ev.adjustmentId}`;
+      const prev = get<{ type: string }>('SELECT type FROM billing_events WHERE id = ?', refundKey);
+      if (prev?.type === 'refund_full') return;
+      if (!ev.full) {
+        if (!prev) once(refundKey, 'refund_partial');
+        return; // genuine partial: plan and credits stay as they are
+      }
+      if (!prev) once(refundKey, 'refund_full');
+      else run("UPDATE billing_events SET type = 'refund_full' WHERE id = ?", refundKey);
       if (ev.subscriptionId) {
         const team = get<any>('SELECT * FROM teams WHERE billing_subscription_id = ?', ev.subscriptionId);
         once(`refunded_sub:${ev.subscriptionId}`, 'refunded_sub'); // late "active" updates for this subscription must not reactivate it
@@ -129,7 +137,8 @@ function applyOne(ev: BillingEvent, cancelNow: string[] = []) {
         cancelNow.push(ev.subscriptionId); // stop future renewals of the refunded subscription
         return;
       }
-      // One-off report: take back the credit once, and only if this transaction had granted one.
+      // One-off report: take back the credit once per transaction, and only if this transaction had granted one.
+      if (!once(`refunded_txn:${ev.transactionId}`, 'refunded_txn')) return;
       if (get('SELECT 1 FROM billing_events WHERE id = ?', `oneoff:${ev.transactionId}`) && ev.customerId)
         run('UPDATE teams SET oneoff_credits = MAX(oneoff_credits - 1, 0) WHERE id = (SELECT id FROM teams WHERE billing_customer_id = ? LIMIT 1)', ev.customerId);
       return;
