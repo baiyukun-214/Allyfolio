@@ -185,7 +185,7 @@ export async function billingWebhook(app: FastifyInstance) {
     const prov = await provider();
     if (!prov?.configured()) return reply.code(503).send({ error: 'billing not configured' });
     let parsed;
-    try { parsed = prov.parseWebhook(req.body as Buffer, req.headers as any); }
+    try { parsed = await prov.parseWebhook(req.body as Buffer, req.headers as any); }
     catch (e) { if (e instanceof WebhookSignatureError) { req.log.warn({ ip: req.ip, hasSignature: !!req.headers['paddle-signature'], bytes: (req.body as Buffer)?.length ?? 0 }, 'billing webhook rejected: invalid signature'); return reply.code(400).send({ error: 'invalid signature' }); } req.log.error(e); return reply.code(400).send({ error: 'bad payload' }); }
     const cancelNow: string[] = [];
     const result = applyBillingEvents(parsed.id, parsed.type, parsed.events, cancelNow);

@@ -4,6 +4,8 @@ import { config } from '../../config.ts';
 import type { PlanId } from '../plans.ts';
 import type { BillingEvent, BillingProvider, CheckoutSpec, Purchase, SubscriptionPeriod } from './index.ts';
 import { WebhookSignatureError } from './index.ts';
+import { all, get, now, run } from '../../db.ts';
+import { approvedRefundAmount, decideRefundIsFull, isApprovedRefundOrChargeback, isTypedFull, moneyFromTotals, type Money, type RefundAmt } from './refundCoverage.ts';
 import type { Locale } from '../../i18n.ts';
 
 const P = () => config.billing.paddle;
@@ -24,6 +26,98 @@ async function api<T = any>(method: 'GET' | 'POST' | 'PATCH', path: string, body
   const j: any = await r.json().catch(() => ({}));
   if (!r.ok) throw new PaddleApiError(r.status, j?.error?.code ?? 'unknown', `Paddle ${method} ${path} → ${r.status} ${j?.error?.detail ?? ''}`);
   return j.data as T;
+}
+
+const refundAmtKey = (txnId: string, adjId: string) => `refund_amt:${txnId}:${adjId}`;
+const refundTxnKey = (txnId: string) => `refund_txn_total:${txnId}`;
+function parseStoredMoney(type: string | undefined): Money | null {
+  if (!type) return null;
+  const i = type.lastIndexOf(':');
+  if (i <= 0) return null;
+  const amount = type.slice(i + 1);
+  if (!/^\d+$/.test(amount)) return null;
+  const currency = type.slice(0, i);
+  return currency ? { amount: BigInt(amount), currency } : null;
+}
+function rememberRefundAmount(txnId: string, adj: RefundAmt) {
+  run('INSERT OR IGNORE INTO billing_events (id, type, received_at) VALUES (?,?,?)', refundAmtKey(txnId, adj.id), `${adj.currency}:${adj.amount}`, now());
+}
+function rememberTxnTotal(txnId: string, m: Money) {
+  run('INSERT OR IGNORE INTO billing_events (id, type, received_at) VALUES (?,?,?)', refundTxnKey(txnId), `${m.currency}:${m.amount}`, now());
+}
+function storedRefundAmounts(txnId: string): RefundAmt[] {
+  const rows = all<{ id: string; type: string }>('SELECT id, type FROM billing_events WHERE id LIKE ?', `refund_amt:${txnId}:%`);
+  const out: RefundAmt[] = [];
+  for (const r of rows) {
+    const m = parseStoredMoney(r.type);
+    const adjId = r.id.slice(`refund_amt:${txnId}:`.length);
+    if (m && adjId) out.push({ id: adjId, ...m });
+  }
+  return out;
+}
+function storedTxnTotal(txnId: string): Money | null {
+  return parseStoredMoney(get<{ type: string }>('SELECT type FROM billing_events WHERE id = ?', refundTxnKey(txnId))?.type);
+}
+
+/** List adjustments for a transaction (paginated). Throws on HTTP errors so the caller can fail safe. */
+async function listAdjustments(txnId: string): Promise<any[]> {
+  const out: any[] = [];
+  let after: string | undefined;
+  for (let i = 0; i < 10; i++) {
+    const q = new URLSearchParams({ transaction_id: txnId, per_page: '200' });
+    if (after) q.set('after', after);
+    const r = await fetch(`${apiBase()}/adjustments?${q}`, {
+      method: 'GET', signal: AbortSignal.timeout(20_000),
+      headers: { authorization: `Bearer ${P().apiKey}`, 'content-type': 'application/json', 'paddle-version': '1' },
+    });
+    const j: any = await r.json().catch(() => ({}));
+    if (!r.ok) throw new PaddleApiError(r.status, j?.error?.code ?? 'unknown', `Paddle GET /adjustments → ${r.status}`);
+    const data = Array.isArray(j.data) ? j.data : [];
+    out.push(...data);
+    if (!j.meta?.pagination?.has_more) break;
+    after = j.meta?.pagination?.after ?? data.at(-1)?.id;
+    if (!after) break;
+  }
+  return out;
+}
+
+/** type=full stays full; otherwise approved refunds covering the tax-inclusive transaction total also count as full. Fail-safe on missing data or API errors. */
+async function resolveRefundIsFull(d: any): Promise<boolean> {
+  const approved = isApprovedRefundOrChargeback(d);
+  const typedFull = isTypedFull(d);
+  const thisRefund = approvedRefundAmount(d);
+  if (thisRefund) rememberRefundAmount(d.transaction_id, thisRefund);
+  if (!approved) return false;
+  if (typedFull) return true;
+
+  let storedTotal = storedTxnTotal(d.transaction_id);
+  const payloadTxn = moneyFromTotals(d.transaction) ?? moneyFromTotals({ currency_code: d.currency_code, totals: d.transaction_totals ?? d.transaction_total });
+  if (!storedTotal && payloadTxn) { rememberTxnTotal(d.transaction_id, payloadTxn); storedTotal = payloadTxn; }
+
+  let fetchedTotal: Money | null = null;
+  let fetchedRefunds: RefundAmt[] | null = null;
+  try {
+    const txn = await api('GET', `/transactions/${encodeURIComponent(d.transaction_id)}`);
+    fetchedTotal = moneyFromTotals(txn);
+    if (fetchedTotal) rememberTxnTotal(d.transaction_id, fetchedTotal);
+  } catch { /* keep stored / payload total */ }
+  try {
+    const list = await listAdjustments(d.transaction_id);
+    fetchedRefunds = [];
+    for (const adj of list) {
+      const m = approvedRefundAmount(adj);
+      if (!m) continue;
+      rememberRefundAmount(d.transaction_id, m);
+      fetchedRefunds.push(m);
+    }
+  } catch { fetchedRefunds = null; }
+
+  return decideRefundIsFull({
+    approved, typedFull, thisRefund,
+    storedRefunds: storedRefundAmounts(d.transaction_id),
+    storedTotal: storedTxnTotal(d.transaction_id),
+    fetchedTotal, fetchedRefunds,
+  });
 }
 
 /** Verify `Paddle-Signature: ts=…;h1=…` (HMAC-SHA256 over `${ts}:${rawBody}`), allowing several h1 values during secret rotation. */
@@ -88,7 +182,7 @@ export class PaddleProvider implements BillingProvider {
       plan: planForPaddlePrice(d.items?.[0]?.price?.id), periodEnd: d.current_billing_period?.ends_at ?? null, cancelAt: d.scheduled_change?.action === 'cancel' ? d.scheduled_change.effective_at : null }] };
   }
 
-  parseWebhook(raw: Buffer, headers: Record<string, string | string[] | undefined>) {
+  async parseWebhook(raw: Buffer, headers: Record<string, string | string[] | undefined>) {
     const sig = headers['paddle-signature']; if (!verifyPaddleSignature(raw, Array.isArray(sig) ? sig[0] : sig, P().webhookSecret)) throw new WebhookSignatureError('invalid signature');
     const n = JSON.parse(raw.toString('utf8'));
     const d = n.data ?? {}; const events: BillingEvent[] = [];
@@ -99,18 +193,21 @@ export class PaddleProvider implements BillingProvider {
           cancelAt: d.scheduled_change?.action === 'cancel' ? d.scheduled_change.effective_at : null });
         break;
       case 'subscription.canceled': events.push({ kind: 'subscription_canceled', subscriptionId: d.id }); break;
-      case 'transaction.completed':
+      case 'transaction.completed': {
+        const tot = d.id ? moneyFromTotals(d) : null;
+        if (tot && d.id) rememberTxnTotal(d.id, tot);
         // One-off report: a completed transaction without a subscription for the one-off price.
         if (!d.subscription_id && d.custom_data?.team_id && (d.custom_data?.kind === 'oneoff' || d.items?.some((i: any) => i.price?.id === paddlePrice('oneoff'))))
           events.push({ kind: 'oneoff_paid', teamId: d.custom_data.team_id, customerId: d.customer_id ?? null, transactionId: d.id });
         break;
+      }
       case 'transaction.payment_failed':
         if (d.subscription_id) events.push({ kind: 'payment_failed', subscriptionId: d.subscription_id });
         break;
       case 'adjustment.created': case 'adjustment.updated': {
         // Refunds (and chargebacks) need approval in Paddle: act only once the adjustment is approved.
-        if (!['refund', 'chargeback'].includes(d.action) || d.status !== 'approved' || !d.id || !d.transaction_id) break;
-        const full = d.type === 'full' || (d.type == null && Array.isArray(d.items) && d.items.length > 0 && d.items.every((i: any) => i.type === 'full'));
+        if (!isApprovedRefundOrChargeback(d)) break;
+        const full = await resolveRefundIsFull(d);
         events.push({ kind: 'refund', adjustmentId: d.id, transactionId: d.transaction_id, subscriptionId: d.subscription_id ?? null, customerId: d.customer_id ?? null, full });
         break;
       }
