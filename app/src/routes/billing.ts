@@ -51,7 +51,16 @@ export async function billingRoutes(app: FastifyInstance) {
           ${owner && t.billing_subscription_id && !t.cancel_at && ready ? html`<form method="post" action="/app/billing/cancel">${csrfField(req)}<button class="btn btn-danger" type="submit">${B.cancel}</button></form>` : ''}
           </div>
           ${owner && t.billing_subscription_id && !t.cancel_at ? html`<p class="small muted">${B.cancelHint}</p>` : ''}
-        </div>` });
+        </div>
+        <h2>${B.plans}</h2>
+        <p class="small muted">${B.terms}</p>
+        <div class="grid g3">${PAID.map((id) => { const p = PLANS[id]; const cur = t.plan === id; return html`
+          <div class="card"><h3>${pn(id)}</h3><p class="stat">${eur(p.priceCents)}<span class="small muted"> ${B.perMonth}</span></p>
+            <ul class="small"><li>${B.sitesN(p.sites)}</li><li>${B.pagesN(p.pagesPerSite)}</li><li>${p.frequency === 'daily' ? B.daily : B.weekly}</li><li>${B.history(p.retentionMonths)}</li>${p.pdf ? html`<li>${B.pdf}</li>` : ''}${p.whiteLabel ? html`<li>${B.wl}</li>` : ''}${p.clients ? html`<li>${B.clients}</li>` : ''}<li>${B.seatsN(p.seats)}</li></ul>
+            ${cur ? html`<p class="pill ok">${B.currentPill}</p>` : html`<p class="small muted">${B.checkoutClosed}</p>`}
+          </div>`; })}</div>
+        <h2>${B.oneoffH}</h2>
+        <div class="card"><p style="margin:0">${B.oneoff(eur(ONE_OFF.priceCents))}</p><p class="small muted">${B.checkoutClosed}</p></div>` });
     }
     if (t.comped) { const Bc = tr(loc(req, ctx)).bill; const pnc = tr(loc(req, ctx)).plans[plan.id] ?? plan.name;
       // Complimentary plan (admin): no checkout, change, cancel or portal, and no Paddle.js on the page.

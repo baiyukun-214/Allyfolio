@@ -20,7 +20,18 @@ export async function publicRoutes(app: FastifyInstance) {
 
   // Allow crawlers to see the public landing and auth pages (Paddle and search bots). Do not Disallow: /.
   app.get('/robots.txt', async (_req, reply) =>
-    reply.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /api/\n'));
+    reply.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /api/\n\nSitemap: ${config.appUrl}/sitemap.xml\n`));
+
+  // Public pages only — never list /app or /api.
+  app.get('/sitemap.xml', async (_req, reply) => {
+    const base = config.appUrl;
+    const locs = ['/', '/login', '/signup', '/pay'];
+    const body = '<?xml version="1.0" encoding="UTF-8"?>\n'
+      + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+      + locs.map((path) => `  <url><loc>${base}${path}</loc></url>`).join('\n') + '\n'
+      + '</urlset>\n';
+    return reply.type('application/xml').header('cache-control', 'public, max-age=3600').send(body);
+  });
 
   app.get('/api/scan/load', async () => {
     const { active, queued, slots } = scanLoad();

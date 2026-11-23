@@ -23,5 +23,11 @@ for (const [label, rel] of Object.entries(files)) {
     if (!html.includes('/#waitlist') && !html.includes('/de#waitlist')) fail(`${label}: plan buttons should still point at the waitlist`);
     if (/\/signup\?[^"]*plan=/.test(html)) fail(`${label}: plan buttons must not open signup checkout carry`);
   }
+  if (html.includes('127.0.0.1:8787') || html.includes('localhost:8787')) fail(`${label}: must not contain the local app URL`);
+  const status = lang === 'de' ? 'Bezahlte Tarife sind noch nicht verfügbar' : 'Paid plans are not yet available';
+  if (!html.includes(status)) fail(`${label}: missing paid-plans-not-available status`);
 }
-console.log('auth-cta-check: EN/DE login and signup present; pricing CTAs stay on the waitlist');
+// Home hero should send people to sign up (not only the waitlist).
+const enHome = readFileSync(resolve(root, files.enHome), 'utf8');
+if (!/\/signup\?lang=en/.test(enHome)) fail('enHome: missing signup CTA');
+console.log('auth-cta-check: EN/DE login and signup present; pricing CTAs stay on the waitlist; status copy present; no local app URL');

@@ -31,7 +31,7 @@ draft: false
 It appears at `/blog/<slug>` and on `/blog` automatically. Use `##` headings and below (the title is the page's only h1).
 
 ## Deploy to Cloudflare Workers (static assets)
-`wrangler.jsonc` deploys `./dist` as a static-assets-only Worker named `allyfolio` (no Worker script). Unknown paths get `dist/404.html` (`not_found_handling: "404-page"`); `page.html` is served at clean URLs (`/pricing`).
+`wrangler.jsonc` deploys `./dist` as a Worker named `allyfolio` with static assets and a small `https-redirect.mjs` script (`run_worker_first`) that answers HTTP with a 301 to the same HTTPS URL. Unknown paths get `dist/404.html` (`not_found_handling: "404-page"`); `page.html` is served at clean URLs (`/pricing`). This does not change app.allyfolio.com (Caddy).
 
 Workers Builds (Cloudflare dashboard → Workers → allyfolio → Settings → Build), repo = the monorepo:
 - Root directory: `site`

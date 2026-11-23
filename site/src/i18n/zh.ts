@@ -7,8 +7,12 @@ export const zh: Dict = {
   nav: { how: '工作原理', pricing: '价格', freeScan: '免费扫描', blog: '博客', resources: '资源', features: '功能', about: '关于我们', waitlist: '加入候补名单', menu: '菜单', main: '主导航', login: '登录', signup: '注册', dashboard: '控制台', account: '账户', language: '语言' },
   switcher: { label: 'English', aria: 'Switch to English', hreflang: 'en' },
   footer: { tagline: '面向欧盟网站的无障碍监测与证据记录。不使用覆盖层插件。', product: '产品', legal: '法律信息', privacy: '隐私政策', terms: '服务条款', dpa: '数据处理协议', imprint: '网站信息（Impressum）', refund: '退款政策', statement: '无障碍声明', trustAria: '托管与付款', hosting: '应用和数据托管于德国（Hetzner，法尔肯施泰因）', payments: '付款、发票和欧盟增值税由 Paddle.com Market Ltd 作为记录商户（Merchant of Record）处理', allResources: '全部资源', copyright: '一款测试与记录工具，不构成法律建议。' },
+  status: {
+    heading: '您现在可以创建账户',
+    body: '注册和登录已经开放。付费方案尚未开放。新账户可以添加并验证一个网站，不包含定期扫描或 PDF 报告。您仍可在本网站免费检测单个页面。',
+  },
   waitlist: {
-    heading: '加入候补名单', lead: '抢先试用 Allyfolio。前 100 位候补名单成员首年享 7 折优惠。',
+    heading: '加入候补名单', lead: '付费方案尚未开放。加入候补名单，以便在方案开放时收到通知。前 100 位候补名单成员首年享 7 折优惠。',
     label: '工作邮箱', placeholder: 'you@company.eu', button: '加入候补名单', sending: '正在提交…',
     ok: '还差一步：请查收邮件并点击其中的链接确认您的邮箱。', fail: '出现问题，请重试。',
     network: '无法连接服务器。请稍后重试，或发送邮件至 hello@allyfolio.com。',
@@ -40,7 +44,7 @@ export const zh: Dict = {
     pill: 'EAA 已于 2025 年 6 月 28 日生效',
     h1: '用证据展示您的无障碍工作，而不只是承诺。',
     lead: 'Allyfolio 定期扫描您的网站，持续跟踪每个问题，并保留带时间戳的证据记录，让您能够证明在满足 EAA 和德国 BFSG 要求方面取得的真实进展。',
-    ctaPrimary: '加入候补名单', ctaSecondary: '免费扫描一个页面', trustLine: '不使用覆盖层插件 · 不向您的网站注入任何脚本',
+    ctaPrimary: '创建账户', ctaSecondary: '免费扫描一个页面', trustLine: '不使用覆盖层插件 · 不向您的网站注入任何脚本',
     demo: { caption: '示意图：一次示例扫描', note: '示例数据 · 仅自动化检测', url: 'https://shop.example.de', scanning: '正在扫描…', pages: '个页面', done: '示例扫描已完成', scoreLabel: '示例 Allyfolio 内部评分：82（满分 100），不代表是否符合法规要求。', score: '满分 100', scoreSub: 'Allyfolio 内部评分——不代表是否符合法规要求', scoreNote: '这是我们自己对自动化检测结果的加权汇总（严重问题权重最高），并非行业标准。自动化检测只能发现部分无障碍问题（据 Deque 统计约 57%）。该得分不是完整的无障碍审查或法律评估。', issues: [['按钮缺少可访问名称', '严重', '12'], ['图片缺少替代文本', '严重', '12'], ['颜色对比度不足', '较严重', '7'], ['表单字段缺少标签', '中等', '3']], fixedChip: '已修复', figSummary: '示意图（示例数据）：对 shop.example.de 的自动化扫描在 12 个页面上发现缺少可访问名称的按钮。一次代码修复把仅含图标的 div 替换为带名称的按钮；随后该问题已在 12 个页面修复并经复扫验证，未解决问题随之减少。Allyfolio 内部评分（我们自己的加权指标，不代表是否符合法规要求）从 70 升至 82（满分 100）。自动化检测只能发现约 57% 的问题。' },
     fix: { eyebrow: '修复前 / 修复后', h2: '一次修复，有据可查', lead: '每次扫描都会与上一次进行比较，因此每项修复都会作为带日期的条目出现在您的证据记录中。', before: "修复前 · 9月1日扫描", after: "修复后 · 9月22日复扫", issues: [["button-name", "WCAG 4.1.2", "严重", "仅含图标的“加入购物车”控件没有可访问名称和按钮角色"], ["label", "WCAG 1.3.1 · 4.1.2", "严重", "订阅邮箱输入框没有标签"], ["color-contrast", "WCAG 1.4.3", "较严重", "白底上的灰色价格说明 #9ca3af：2.54:1（需 4.5:1）"]], fixedNote: "白底上的 #4b5563：7.56:1", trailH: "证据记录", trailAria: "示例证据记录", trail: [["9月1日", "每周扫描", "12 个页面上发现 3 个问题", "扫描 #a41f9c2", "open"], ["9月8日", "发布后复扫", "button-name 与 label 已不再检测到 · 剩余 1 个", "扫描 #b7d03e1", "partial"], ["9月15日", "记录人工检查", "Anna Weber（示例）用屏幕阅读器确认按钮会读出“将蓝色跑鞋加入购物车，按钮”——自动化只能看到标签存在。", "备注 #m-0915", "manual"], ["9月22日", "每周扫描", "3 个问题均已在 12 个页面上不再检测到", "扫描 #c93e5a7", "done"]], example: "示例数据", diffSr: "代码改动", beforeCode: [["-", "<div class=\"card-cart\" onclick=\"addToCart(42)\">"], ["-", "  <svg viewBox=\"0 0 24 24\">…</svg>"], ["-", "</div>"], [" ", ""], ["-", "<input type=\"email\" placeholder=\"邮箱\">"], [" ", ""], ["-", ".price-note { color: #9ca3af; }  /* 2.54:1 */"]] as [string, string][], afterCode: [["+", "<button type=\"button\" class=\"card-cart\" onclick=\"addToCart(42)\""], ["+", "  aria-label=\"将蓝色跑鞋加入购物车\">"], ["+", "  <svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 24 24\">…</svg>"], ["+", "</button>"], [" ", ""], ["+", "<label for=\"nl-email\">电子邮件地址</label>"], ["+", "<input id=\"nl-email\" type=\"email\" autocomplete=\"email\">"], [" ", ""], ["+", ".price-note { color: #4b5563; }  /* 7.56:1 */"]] as [string, string][], caveat: '自动化检测只能确认属性存在——文本是否有意义仍需人工审查。' },
     stat: { value: '57', suffix: '%', label: '的无障碍问题大约可由自动化测试发现（Deque 研究）。我们事先如实说明。' },

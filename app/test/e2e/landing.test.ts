@@ -20,6 +20,8 @@ test('GET / is a public landing for logged-out visitors (no redirect to /login)'
   assert.match(r.body, /hello@allyfolio\.com/);
   assert.match(r.body, /href="\/signup"/);
   assert.match(r.body, /href="\/login"/);
+  assert.match(r.body, /Paid plans are not yet available/);
+  assert.match(r.body, /Sign-up and log-in are open/);
   assert.match(r.body, /\/pricing/);
   assert.match(r.body, /\/terms/);
   assert.match(r.body, /\/privacy/);
@@ -50,4 +52,20 @@ test('GET /robots.txt allows / and does not block everything', async () => {
   assert.match(r.headers['content-type'] ?? '', /text\/plain/);
   assert.match(r.body, /Allow:\s*\//);
   assert.doesNotMatch(r.body, /Disallow:\s*\/\s*$/m);
+  assert.match(r.body, /Disallow:\s*\/app/m);
+  assert.match(r.body, /Disallow:\s*\/api\//m);
+  assert.match(r.body, /Sitemap:\s*http:\/\/localhost:8787\/sitemap.xml/);
+});
+
+test('GET /sitemap.xml lists only public pages', async () => {
+  const r = await app.inject({ method: 'GET', url: '/sitemap.xml' });
+  assert.equal(r.statusCode, 200);
+  assert.match(r.headers['content-type'] ?? '', /xml/);
+  assert.match(r.body, /<urlset /);
+  for (const path of ['/', '/login', '/signup', '/pay']) {
+    assert.match(r.body, new RegExp(`<loc>http://localhost:8787${path === '/' ? '/' : path}</loc>`));
+  }
+  assert.doesNotMatch(r.body, /\/app\/|\/api\//);
+  const head = await app.inject({ method: 'HEAD', url: '/sitemap.xml' });
+  assert.equal(head.statusCode, 200);
 });
