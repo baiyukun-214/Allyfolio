@@ -12,7 +12,8 @@
     "preview": "astro preview",
     "test:a11y": "node scripts/axe-check.mjs",
     "test:header": "node scripts/header-check.mjs",
-    "test:auth-cta": "node scripts/auth-cta-check.mjs"
+    "test:auth-cta": "node scripts/auth-cta-check.mjs",
+    "test:https": "node scripts/https-redirect-check.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

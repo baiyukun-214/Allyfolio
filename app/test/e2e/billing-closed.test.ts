@@ -47,8 +47,14 @@ test('new account: dashboard and billing describe the limit without offering che
   assert.match(dash.body, /href="http:\/\/localhost:4321\/free-scan">Run a free one-page scan/);
   assert.doesNotMatch(dash.body, /choose a plan|buy a one-off|\/app\/billing\/checkout/);
   const bill = await c.req('GET', '/app/billing');
-  assert.match(bill.body, /Purchases are not available/);
+  assert.match(bill.body, /Paid plans are not yet available/);
   assert.match(bill.body, /Scheduled scans and paid reports are not included/);
+  assert.match(bill.body, /€19/);
+  assert.match(bill.body, /€39/);
+  assert.match(bill.body, /€99/);
+  assert.match(bill.body, /€49/);
+  assert.match(bill.body, /Starter/);
+  assert.match(bill.body, /Weekly scans|Up to 100 pages/);
   assert.doesNotMatch(bill.body, /action="\/app\/billing\/checkout"|action="\/app\/billing\/change"|id="paddle-config"|billing\.js|id="chosen"|Discount code/);
   const n = calls.length;
   const csrf = await c.csrf('/app');
