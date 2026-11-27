@@ -130,6 +130,9 @@ test('links back to the marketing site (locale-aware) and the logged-in hint coo
   assert.match(r.body, /class="brand" href="http:\/\/localhost:4321\/zh"/);
   r = await get('/signup?lang=en');
   assert.match(r.body, /<a href="http:\/\/localhost:4321\/">← Back to website<\/a>/);
+  r = await get('/signup?lang=de');
+  assert.match(r.body, /<html lang="en">/);
+  assert.match(r.body, /<p class="notice small" lang="de">Hinweis: Die App-Oberfläche ist derzeit auf Englisch; PDF-Berichte und Berichts-E-Mails sind auch auf Deutsch verfügbar\.<\/p>/);
   const c = client(app);
   r = await c.post('/signup', { email: 'hint@example.com', password: 'correct horse battery' }, '/signup');
   const hint = r.cookies.find((x: any) => x.name === 'af_logged_in');

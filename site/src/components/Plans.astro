@@ -20,7 +20,7 @@ const uid = detailed ? 'pd' : 'ph';
 const ctaHref = (plan: string) => APP_LIVE ? `${appLink('/signup', lang)}&plan=${plan}` : l('/#waitlist');
 const ctaLabel = APP_LIVE ? P.start : P.join;
 ---
-<p class="mb-8 text-sm leading-relaxed text-ink/80"><strong>{t.status.heading}</strong> {t.status.body}</p>
+{!APP_LIVE && <p class="mb-8 text-sm leading-relaxed text-ink/80"><strong>{t.status.heading}</strong> {t.status.body}</p>}
 <div data-tabs>
   <div role="tablist" aria-label={P.tabsLabel} class="seg mb-10" hidden>
     <span class="seg-pill" aria-hidden="true"></span>

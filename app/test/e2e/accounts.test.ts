@@ -47,3 +47,30 @@ test('wrong password is rejected', async () => {
   const r = await c.post('/login', { email: 'owner@example.com', password: 'wrong password!!' }, '/login');
   assert.equal(r.statusCode, 400);
 });
+
+test('logged-out team invite preserves next across login and lands on /invite/:token', async () => {
+  const owner = client(app);
+  await owner.post('/login', { email: 'owner@example.com', password: 'correct horse battery' }, '/login');
+  let r = await owner.post('/app/team/invite', { email: 'late@example.com' }, '/app/team');
+  assert.match(decodeURIComponent(r.headers.location as string), /Invite sent/);
+  const invitePath = new URL(sentMail.at(-1).text.match(/https?:\/\/\S+\/invite\/\S+/)[0]).pathname;
+
+  const inv = client(app);
+  await inv.post('/signup', { email: 'late@example.com', password: 'another long password' }, '/signup');
+  await inv.post('/logout', {}, '/app');
+
+  // Click invite while logged out -> /login?next=... -> login -> redirected straight to /invite/:token -> /app with team site
+  r = await inv.req('GET', invitePath);
+  assert.equal(r.statusCode, 302);
+  assert.match(r.headers.location as string, /^\/login\?next=%2Finvite%2F/);
+  r = await inv.req('GET', r.headers.location as string);
+  assert.equal(r.statusCode, 200);
+  r = await inv.post('/login', { email: 'late@example.com', password: 'another long password' }, '/login');
+  assert.equal(r.statusCode, 303);
+  assert.equal(r.headers.location, invitePath);
+  r = await inv.req('GET', invitePath);
+  assert.equal(r.statusCode, 303);
+  assert.equal(r.headers.location, '/app');
+  r = await inv.req('GET', '/app');
+  assert.match(r.body, /Fixture/);
+});

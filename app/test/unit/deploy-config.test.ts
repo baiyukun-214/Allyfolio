@@ -56,6 +56,7 @@ test('deploy files: env example has placeholders only and PUBLIC_APP_LIVE is nev
     assert.doesNotMatch(txt, /BILLING_CHECKOUT_ENABLED\s*=\s*["']?true/);
   }
   assert.match(readFileSync(new URL('../../deploy/Caddyfile', import.meta.url), 'utf8'), /^app\.allyfolio\.com \{/m);
+  assert.match(readFileSync(new URL('../../deploy/Caddyfile', import.meta.url), 'utf8'), /roll_keep_for 336h\b/, 'log retention matches 14-day privacy policy');
 });
 
 test('backups: R2 retention only prunes top-level backup files; the daily evidence anchor runs after each backup', () => {

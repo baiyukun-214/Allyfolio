@@ -69,3 +69,21 @@ test('GET /sitemap.xml lists only public pages', async () => {
   const head = await app.inject({ method: 'HEAD', url: '/sitemap.xml' });
   assert.equal(head.statusCode, 200);
 });
+
+test('GET / hides pre-launch paid-plans-not-available notice when checkoutEnabled is true', async () => {
+  const { config } = await import('../../src/config.ts');
+  const prev = config.billing.checkoutEnabled;
+  config.billing.checkoutEnabled = true;
+  try {
+    const r = await app.inject({ method: 'GET', url: '/' });
+    assert.equal(r.statusCode, 200);
+    assert.doesNotMatch(r.body, /Paid plans are not yet available/);
+    assert.match(r.body, /€19/);
+    assert.match(r.body, /30-day refund/i);
+    assert.match(r.body, /href="\/signup"/);
+    assert.match(r.body, /href="\/login"/);
+    assert.match(r.body, /\/terms/);
+  } finally {
+    config.billing.checkoutEnabled = prev;
+  }
+});

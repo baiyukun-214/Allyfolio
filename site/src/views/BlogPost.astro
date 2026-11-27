@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import { render } from 'astro:content';
 import { readingTime } from '../lib/reading';
 import { i18n } from '../i18n';
+import { APP_LIVE, appLink } from '../lib/api';
 interface Props { post: any; hasTranslation: boolean }
 const { post, hasTranslation } = Astro.props;
 const { Content } = await render(post);
@@ -33,7 +34,7 @@ const fmt = (d: Date) => d.toLocaleDateString(B.dateLocale, { day: 'numeric', mo
           <h2 id="post-cta" class="text-xl font-semibold text-ink">{B.ctaH}</h2>
           <p class="mt-2 text-muted">{B.ctaP}</p>
         </div>
-        <a href={l('/#waitlist')} class="btn btn-primary mt-5 sm:mt-0 shrink-0">{B.ctaBtn}</a>
+        <a href={APP_LIVE ? appLink('/signup', lang) : l('/#waitlist')} class="btn btn-primary mt-5 sm:mt-0 shrink-0">{APP_LIVE ? t.home.ctaPrimary : B.ctaBtn}</a>
       </div>
     </aside>
   </article>

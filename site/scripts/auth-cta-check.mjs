@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// After `astro build` without PUBLIC_APP_LIVE: header/footer Log in and Sign up must be present
-// in English and German, while paid plan buttons must still go to the waitlist.
+// After `astro build`: verifies EN/DE Log in + Sign up links and checks plan CTAs / status copy
+// for either live mode (default, PUBLIC_APP_LIVE != 'false') or pre-launch mode (PUBLIC_APP_LIVE=false).
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..', 'dist');
+const live = process.env.PUBLIC_APP_LIVE !== 'false';
 const files = {
   enHome: 'index.html',
   enPricing: 'pricing.html',
@@ -19,15 +20,27 @@ for (const [label, rel] of Object.entries(files)) {
   const lang = label.startsWith('de') ? 'de' : 'en';
   if (!html.includes(`/login?lang=${lang}`)) fail(`${label}: missing Log in link for lang=${lang}`);
   if (!html.includes(`/signup?lang=${lang}`)) fail(`${label}: missing Sign up link for lang=${lang}`);
-  if (label.endsWith('Pricing')) {
-    if (!html.includes('/#waitlist') && !html.includes('/de#waitlist')) fail(`${label}: plan buttons should still point at the waitlist`);
-    if (/\/signup\?[^"]*plan=/.test(html)) fail(`${label}: plan buttons must not open signup checkout carry`);
-  }
   if (html.includes('127.0.0.1:8787') || html.includes('localhost:8787')) fail(`${label}: must not contain the local app URL`);
   const status = lang === 'de' ? 'Bezahlte Tarife sind noch nicht verfügbar' : 'Paid plans are not yet available';
-  if (!html.includes(status)) fail(`${label}: missing paid-plans-not-available status`);
+  if (live) {
+    if (html.includes(status)) fail(`${label}: must not show pre-launch paid-plans-not-available status when live`);
+    if (html.includes('/#waitlist') || html.includes('/de#waitlist')) fail(`${label}: must not link to #waitlist when live`);
+    if (label.endsWith('Pricing')) {
+      for (const plan of ['starter', 'business', 'agency', 'oneoff']) {
+        if (!html.includes(`/signup?lang=${lang}&amp;plan=${plan}`) && !html.includes(`/signup?lang=${lang}&plan=${plan}`)) {
+          fail(`${label}: missing plan=${plan} signup link`);
+        }
+      }
+    }
+  } else {
+    if (!html.includes(status)) fail(`${label}: missing paid-plans-not-available status`);
+    if (label.endsWith('Pricing')) {
+      if (!html.includes('/#waitlist') && !html.includes('/de#waitlist')) fail(`${label}: plan buttons should still point at the waitlist`);
+      if (/\/signup\?[^"]*plan=/.test(html)) fail(`${label}: plan buttons must not open signup checkout carry`);
+    }
+  }
 }
 // Home hero should send people to sign up (not only the waitlist).
 const enHome = readFileSync(resolve(root, files.enHome), 'utf8');
 if (!/\/signup\?lang=en/.test(enHome)) fail('enHome: missing signup CTA');
-console.log('auth-cta-check: EN/DE login and signup present; pricing CTAs stay on the waitlist; status copy present; no local app URL');
+console.log(`auth-cta-check (${live ? 'live' : 'pre-launch'}): EN/DE login/signup and pricing CTAs verified; no local app URL`);

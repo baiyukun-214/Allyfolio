@@ -4,14 +4,15 @@ import PageHeader from '../components/PageHeader.astro';
 import Waitlist from '../components/Waitlist.astro';
 import Icon from '../components/Icon.astro';
 import { i18n } from '../i18n';
-const { t, l } = i18n(Astro.url.pathname);
+import { APP_LIVE, appLink } from '../lib/api';
+const { t, l, lang } = i18n(Astro.url.pathname);
 const H = t.home; const P = t.featuresPage;
 const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
 ---
 <Base title={P.title} description={P.description}>
   <PageHeader eyebrow={H.features.eyebrow} title={P.h1} lead={P.lead}>
     <div class="mt-8 grid grid-cols-1 sm:flex gap-3">
-      <a href={l('/#waitlist')} class="btn btn-primary px-6">{H.ctaPrimary}</a>
+      <a href={APP_LIVE ? appLink('/signup', lang) : l('/#waitlist')} class="btn btn-primary px-6">{H.ctaPrimary}</a>
       <a href={l('/free-scan')} class="btn btn-secondary px-6">{H.ctaSecondary}</a>
     </div>
   </PageHeader>

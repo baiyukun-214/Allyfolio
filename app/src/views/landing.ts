@@ -1,4 +1,5 @@
 import { html } from '../lib/html.ts';
+import { config } from '../config.ts';
 import { t, type Locale } from '../i18n.ts';
 import { siteLink } from './layout.ts';
 
@@ -13,7 +14,7 @@ export function landingBody(locale: Locale = 'en') {
     <h1 id="landing-h1">${L.h1}</h1>
     <p class="lead">${L.lead}</p>
     <p class="notice">${L.note}</p>
-    <p class="notice"><strong>${L.paidStatusH}</strong> ${L.paidStatus}</p>
+    ${config.billing.checkoutEnabled ? '' : html`<p class="notice"><strong>${L.paidStatusH}</strong> ${L.paidStatus}</p>`}
     <p class="landing-cta">
       <a class="btn btn-primary" href="/signup">${L.signup}</a>
       <a class="btn btn-secondary" href="/login">${L.login}</a>

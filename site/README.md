@@ -43,7 +43,7 @@ URLs: production builds default to `https://app.allyfolio.com` for both the dash
 
 **Log in / Sign up / Dashboard** links in the header, mobile menu and footer are always rendered (and switch to “Dashboard” when the `af_logged_in` cookie is set). They do not use `PUBLIC_APP_LIVE`.
 
-**Plan / free-scan flag (`PUBLIC_APP_LIVE`):** until this is set to `true` at build time, pricing buttons and the free-scan “monitor this site” CTA stay on the waitlist (`/#waitlist`). When you are ready for those CTAs to open app signup (with `?plan=` / `?site=`), set the build variable `PUBLIC_APP_LIVE=true` (together with `PUBLIC_APP_URL` if it differs from the default) and redeploy. The flag lives in `src/lib/api.ts` (`APP_LIVE`).
+**Plan / free-scan flag (`PUBLIC_APP_LIVE`):** paid signup is **live by default** (`APP_LIVE` in `src/lib/api.ts`), so pricing buttons and the free-scan CTA link to app signup (with `?plan=` / `?site=`). Set `PUBLIC_APP_LIVE=false` at build time to revert plan buttons, the free-scan CTA and status notices to pre-launch waitlist mode.
 
 **Indexing:** `/waitlist-check-email` and `/waitlist-error` (all locales) carry `<meta name="robots" content="noindex, follow">` and are excluded from the sitemap (`astro.config.mjs`). Pass `noindex` to `Base.astro` for any other utility page.
 

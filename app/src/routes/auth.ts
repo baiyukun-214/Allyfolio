@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { get, run, now } from '../db.ts';
 import { config } from '../config.ts';
 import { html } from '../lib/html.ts';
@@ -19,7 +19,21 @@ export const PLAN_COOKIE = 'af_plan';
 export const CARRY_PLANS = ['starter', 'business', 'agency', 'oneoff'] as const;
 export type CarriedPlan = (typeof CARRY_PLANS)[number];
 export const carriedPlan = (v: unknown): CarriedPlan | null => (CARRY_PLANS as readonly string[]).includes(String(v ?? '')) ? (String(v) as CarriedPlan) : null;
-const afterAuth = (req: FastifyRequest) => { if (!config.billing.checkoutEnabled) return '/app'; const p = carriedPlan(req.cookies?.[PLAN_COOKIE]); return p ? `/app/billing?plan=${p}#chosen` : '/app'; };
+/** Post-auth redirect path (for example /invite/<token>), preserved across login/signup in a short-lived cookie. */
+export const NEXT_COOKIE = 'af_next';
+const carriedNext = (v: unknown): string | null => {
+  const s = String(v ?? '');
+  if (!s.startsWith('/') || s.startsWith('//') || s.startsWith('/\\')) return null;
+  const p = s.split('?')[0];
+  return ['/app', '/login', '/signup', '/logout'].includes(p) ? null : s;
+};
+const afterAuth = (req: FastifyRequest, reply: FastifyReply) => {
+  const next = carriedNext(req.cookies?.[NEXT_COOKIE]);
+  if (next) { reply.clearCookie(NEXT_COOKIE, { path: '/' }); return next; }
+  if (!config.billing.checkoutEnabled) return '/app';
+  const p = carriedPlan(req.cookies?.[PLAN_COOKIE]);
+  return p ? `/app/billing?plan=${p}#chosen` : '/app';
+};
 export const carriedSite = (v: unknown): string | null => { if (!v) return null; try { return parsePublicUrl(String(v).slice(0, 500)).origin; } catch { return null; } };
 
 const authLimit = rateLimiter(20, 15 * 60_000);
@@ -27,12 +41,14 @@ const field = (id: string, label: string, type: string, extra: any = '', hint = 
 
 export function authForm(req: FastifyRequest, mode: 'login' | 'signup', error?: string, email = '', ok?: string, site: string | null = null) {
   const signup = mode === 'signup'; const A = T(req).auth;
+  const deNotice = /^de\b/i.test(String((req.query as any)?.lang ?? '')) && loc(req) === 'en';
   const plan = config.billing.checkoutEnabled ? carriedPlan(req.cookies?.[PLAN_COOKIE] ?? (req.query as any)?.plan) : null; const planName = plan === 'oneoff' ? T(req).bill.oneoffH : plan ? T(req).plans[plan] : '';
   return pg(req, { backToSite: true, title: signup ? A.signupTitle : A.loginTitle, flash: error ? { kind: 'error', msg: error } : ok ? { kind: 'ok', msg: ok } : null, body: html`
   <div class="narrow">
     <div class="card">
       <h1>${signup ? A.signupH : A.loginH}</h1>
       <p class="muted">${signup ? A.signupLead : A.loginLead}</p>
+      ${deNotice ? html`<p class="notice small" lang="de">Hinweis: Die App-Oberfläche ist derzeit auf Englisch; PDF-Berichte und Berichts-E-Mails sind auch auf Deutsch verfügbar.</p>` : ''}
       ${signup && site ? html`<p class="notice small">${A.siteCarry(site)}</p>` : ''}
       ${signup && plan ? html`<p class="notice small">${A.planCarry(planName)}</p>` : ''}
       <form method="post" action="/${mode}">${csrfField(req)}
@@ -58,7 +74,16 @@ const newUser = (req: FastifyRequest, email: string, hash: string | null) => {
 const safeNext = (n: unknown) => { const s = String(n ?? ''); return s.startsWith('/') && !s.startsWith('//') && !s.startsWith('/\\') ? s : '/app'; };
 
 export async function authRoutes(app: FastifyInstance) {
-  app.get('/login', async (req, reply) => { if (currentUser(req)) return reply.redirect('/app'); reply.type('text/html'); return authForm(req, 'login'); });
+  app.get('/login', async (req, reply) => {
+    const qNext = carriedNext((req.query as any)?.next);
+    const next = qNext ?? carriedNext(req.cookies?.[NEXT_COOKIE]);
+    if (currentUser(req)) {
+      if (req.cookies?.[NEXT_COOKIE]) reply.clearCookie(NEXT_COOKIE, { path: '/' });
+      return reply.redirect(next ?? '/app');
+    }
+    if (qNext) reply.setCookie(NEXT_COOKIE, qNext, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 3600, secure: config.appUrl.startsWith('https') });
+    reply.type('text/html'); return authForm(req, 'login');
+  });
   app.get('/signup', async (req, reply) => {
     const site = carriedSite((req.query as any).site) ?? carriedSite(req.cookies?.[SITE_COOKIE]);
     if (site) reply.setCookie(SITE_COOKIE, site, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 86400, secure: config.appUrl.startsWith('https') });
@@ -87,7 +112,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (get('SELECT 1 FROM users WHERE email = ?', email)) return reply.code(400).send(authForm(req, 'signup', A.exists, email));
     const { uid } = newUser(req, email, await hashPassword(password));
     startSession(reply, uid);
-    return reply.redirect(afterAuth(req), 303);
+    return reply.redirect(afterAuth(req, reply), 303);
   });
 
   app.post('/login', async (req, reply) => {
@@ -97,7 +122,7 @@ export async function authRoutes(app: FastifyInstance) {
     const u = get<any>('SELECT * FROM users WHERE email = ?', email);
     if (!u || !(await verifyPassword(String(password ?? ''), u.password_hash))) return reply.code(400).send(authForm(req, 'login', A.wrong, email));
     startSession(reply, u.id);
-    return reply.redirect(afterAuth(req), 303);
+    return reply.redirect(afterAuth(req, reply), 303);
   });
 
   app.post('/login/link', async (req, reply) => {
@@ -120,7 +145,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (!u) u = { id: newUser(req, email, null).uid };
     run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?', now(), u.id);
     startSession(reply, u.id);
-    return reply.redirect(afterAuth(req), 303);
+    return reply.redirect(afterAuth(req, reply), 303);
   });
 
   app.post('/logout', async (req, reply) => { endSession(req, reply); return reply.redirect('/login', 303); });

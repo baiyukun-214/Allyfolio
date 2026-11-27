@@ -11,7 +11,7 @@ import Coverage from '../components/Coverage.astro';
 import BrowserPins from '../components/BrowserPins.astro';
 import Spot from '../components/Spot.astro';
 import { i18n } from '../i18n';
-import { appLink } from '../lib/api';
+import { APP_LIVE, appLink } from '../lib/api';
 const { t, l, lang } = i18n(Astro.url.pathname);
 const H = t.home;
 const D = H.demo, F = H.fix, V = t.visuals;
@@ -37,7 +37,7 @@ const featIcons = ['chart', 'clock', 'doc', 'file', 'users', 'shield'];
         <p class="rv inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700"><span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>{H.pill}</p>
         <h1 class="rv mt-6 text-4xl sm:text-5xl lg:text-[3.6rem] font-bold tracking-[-0.03em] leading-[1.08] text-ink" data-d="60">{H.h1}</h1>
         <p class="rv mt-6 text-lg text-muted leading-relaxed max-w-xl lg:max-w-[25rem] xl:max-w-[30rem]" data-d="120">{H.lead}</p>
-        <p class="rv mt-4 text-sm text-ink/80 leading-relaxed max-w-xl" data-d="150"><strong>{t.status.heading}</strong> {t.status.body}</p>
+        {!APP_LIVE && <p class="rv mt-4 text-sm text-ink/80 leading-relaxed max-w-xl" data-d="150"><strong>{t.status.heading}</strong> {t.status.body}</p>}
         <div class="rv mt-8 grid grid-cols-1 sm:flex gap-3" data-d="180">
           <a href={appLink('/signup', lang)} class="btn btn-primary px-6">{H.ctaPrimary}</a>
           <a href={l('/free-scan')} class="btn btn-secondary px-6">{H.ctaSecondary}</a>

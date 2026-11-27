@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { API_BASE, APP_LIVE, APP_URL } from '../lib/api';
+import { API_BASE, APP_LIVE, APP_URL, appLink } from '../lib/api';
 import { i18n } from '../i18n';
 import { scanErrorsDe } from '../i18n/scan-errors';
 const { t, l, lang } = i18n(Astro.url.pathname);
@@ -87,7 +87,7 @@ const monitorHash = APP_LIVE ? '' : '#waitlist';
       <div class="mt-6 rounded-xl border border-brand-200 bg-brand-50/60 p-5">
         <h3 class="font-semibold text-ink">{S.monitorH}</h3>
         <p class="mt-1 text-sm text-muted">{S.monitorText}</p>
-        <a id="monitor-cta" class="btn btn-primary mt-4" href={l('/#waitlist')}>{S.cta}</a>
+        <a id="monitor-cta" class="btn btn-primary mt-4" href={APP_LIVE ? appLink('/signup', lang) : l('/#waitlist')}>{APP_LIVE ? t.home.ctaPrimary : S.cta}</a>
       </div>
     </section>
   </div>

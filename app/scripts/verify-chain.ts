@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { all, get } from '../src/db.ts';
 import { verifyScanChain } from '../src/lib/evidence.ts';
 import { verifyEvidence } from '../src/lib/manualReview.ts';
+import { planOf, effectivePlanSql, retentionCutoff } from '../src/lib/plans.ts';
 const args = process.argv.slice(2), ai = args.indexOf('--anchor');
 const anchorFile = ai >= 0 ? args.splice(ai, 2)[1] : null, only = args[0];
 const sites = all<any>('SELECT id FROM sites' + (only ? ' WHERE id = ?' : ''), ...(only ? [only] : []));
@@ -18,20 +19,31 @@ for (const s of sites) {
 }
 if (anchorFile) {
   const a = JSON.parse(readFileSync(anchorFile, 'utf8'));
-  let ok = 0, gone = 0, mismatch = 0;
+  let ok = 0, gone = 0, missing = 0, mismatch = 0;
   for (const h of a.scan_heads ?? []) {
     const row = get<any>('SELECT evidence_hash FROM scans WHERE id = ? AND site_id = ?', h.scan_id, h.site_id);
-    if (!row) { gone++; console.log(JSON.stringify({ anchor: a.anchored_at, site: h.site_id, scan: h.scan_id, result: 'scan no longer stored (retention or site deleted?)' })); continue; }
+    if (!row) {
+      const site = get<any>(`SELECT ${effectivePlanSql()} AS plan FROM sites s JOIN teams t ON t.id = s.team_id WHERE s.id = ?`, h.site_id);
+      const expired = !site || (h.finished_at && h.finished_at < retentionCutoff(planOf(site.plan)));
+      if (expired) { gone++; console.log(JSON.stringify({ anchor: a.anchored_at, site: h.site_id, scan: h.scan_id, result: 'scan no longer stored (retention or site deleted?)' })); }
+      else { missing++; console.log(JSON.stringify({ anchor: a.anchored_at, site: h.site_id, scan: h.scan_id, result: 'MISSING: anchored scan deleted within retention window' })); }
+      continue;
+    }
     if (row.evidence_hash !== h.evidence_hash) { mismatch++; console.log(JSON.stringify({ anchor: a.anchored_at, site: h.site_id, scan: h.scan_id, result: 'MISMATCH: stored hash differs from anchor' })); continue; }
     ok++;
   }
   for (const h of a.manual_heads ?? []) {
     const row = get<any>('SELECT hash FROM manual_evidence WHERE site_id = ? AND seq = ?', h.site_id, h.seq);
     if (row && row.hash !== h.hash) { mismatch++; console.log(JSON.stringify({ anchor: a.anchored_at, site: h.site_id, seq: h.seq, result: 'MISMATCH: manual evidence entry differs from anchor' })); }
-    else if (row) ok++; else gone++;
+    else if (row) ok++;
+    else {
+      const site = get<any>('SELECT 1 FROM sites WHERE id = ?', h.site_id);
+      if (site) { missing++; console.log(JSON.stringify({ anchor: a.anchored_at, site: h.site_id, seq: h.seq, result: 'MISSING: manual evidence entry deleted while site still exists' })); }
+      else gone++;
+    }
   }
-  if (mismatch) bad++;
-  console.log(`anchor ${a.anchored_at}: ${ok} head(s) match, ${gone} no longer stored, ${mismatch} mismatch(es)`);
+  if (mismatch || missing) bad++;
+  console.log(`anchor ${a.anchored_at}: ${ok} head(s) match, ${gone} no longer stored, ${missing} missing, ${mismatch} mismatch(es)`);
 }
 console.log(bad ? `FAIL: ${bad} problem(s)` : `OK: ${sites.length} site(s) verified`);
 process.exitCode = bad ? 1 : 0;
